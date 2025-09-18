@@ -230,10 +230,10 @@ const handleAddToCart = (product) => {
                         Статус: <strong>{activeOrder?.status || 'Неизвестен'}</strong>
                       </p>
                       <p>
-                        Ожидаемое время доставки: <span>13:55</span>
+                        Ожидаемое время доставки: <span>{activeOrder?.delivery_time || 'Неизвестен'}</span>
                       </p>
                       <p>
-                        Курьер: <span>Азим</span>
+                        Курьер: <span>{activeOrder?.courier || 'Неизвестен'}</span>
                       </p>
                     </div>
 
