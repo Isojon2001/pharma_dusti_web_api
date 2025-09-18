@@ -25,6 +25,28 @@ html, body, #root {
   animation: fadeInOut 2.5s ease-in-out;
   font-family: 'Montserrat', sans-serif;
 }
+.products_cart {
+  position: relative;
+  display: inline-block;
+}
+
+.cart-count-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background-color: #1BA1A0;
+  color: white;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  user-select: none;
+  pointer-events: none;
+}
 
 .cart-modal-content {
   display: flex;

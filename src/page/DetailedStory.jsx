@@ -46,7 +46,7 @@ function DetailedHistory() {
       <div className='DetailedHistory_content bg_history'>
         <div className='basket_back'>
           <div className="examination_backspace">
-            <Link to="/add-products-to-cart">
+            <Link to="/history-order">
               <MoveLeft stroke="#232323" /> Назад
             </Link>
           </div>

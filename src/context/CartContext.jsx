@@ -5,6 +5,7 @@ const CartContext = createContext();
 export function CartProvider({ children, userId }) {
   const [cartItems, setCartItems] = useState([]);
   const hasLoadedCart = useRef(false);
+
   useEffect(() => {
     if (!userId || hasLoadedCart.current) return;
 
@@ -24,6 +25,7 @@ export function CartProvider({ children, userId }) {
       hasLoadedCart.current = true;
     }
   }, [userId]);
+
   useEffect(() => {
     if (!userId || !hasLoadedCart.current) return;
 
@@ -47,6 +49,7 @@ export function CartProvider({ children, userId }) {
       console.warn('Нет ключа для товара:', product);
       return;
     }
+
     setCartItems(prevItems => {
       const existing = prevItems.find(item =>
         (item.id || item['Код'] || item['Артикул']) === productKey
@@ -59,35 +62,36 @@ export function CartProvider({ children, userId }) {
             : item
         );
       }
+
       return [...prevItems, { ...product, id: productKey, quantity: 1 }];
     });
   }
+
   function increaseQuantity(productId) {
-  setCartItems(prevItems =>
-    prevItems.map(item =>
-      (item.id || item['Код'] || item['Артикул']) === productId
-        ? { ...item, quantity: (item.quantity || 1) + 1 }
-        : item
-    )
-  );
-}
-function decreaseQuantity(productId) {
-  setCartItems(prevItems =>
-    prevItems.reduce((acc, item) => {
-      const key = item.id || item['Код'] || item['Артикул'];
-      if (key === productId) {
-        if ((item.quantity || 1) > 1) {
-          acc.push({ ...item, quantity: item.quantity - 1 });
+    setCartItems(prevItems =>
+      prevItems.map(item =>
+        (item.id || item['Код'] || item['Артикул']) === productId
+          ? { ...item, quantity: (item.quantity || 1) + 1 }
+          : item
+      )
+    );
+  }
+
+  function decreaseQuantity(productId) {
+    setCartItems(prevItems =>
+      prevItems.reduce((acc, item) => {
+        const key = item.id || item['Код'] || item['Артикул'];
+        if (key === productId) {
+          if ((item.quantity || 1) > 1) {
+            acc.push({ ...item, quantity: item.quantity - 1 });
+          }
+        } else {
+          acc.push(item);
         }
-      } else {
-        acc.push(item);
-      }
-      return acc;
-    }, [])
-  );
-}
-
-
+        return acc;
+      }, [])
+    );
+  }
 
   function removeFromCart(productId) {
     setCartItems(prevItems =>
@@ -97,8 +101,17 @@ function decreaseQuantity(productId) {
     );
   }
 
+  const cartCount = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, increaseQuantity, decreaseQuantity }}>
+    <CartContext.Provider value={{
+      cartItems,
+      cartCount,
+      addToCart,
+      removeFromCart,
+      increaseQuantity,
+      decreaseQuantity
+    }}>
       {children}
     </CartContext.Provider>
   );
