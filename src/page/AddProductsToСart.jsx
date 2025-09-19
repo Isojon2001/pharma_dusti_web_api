@@ -191,46 +191,61 @@ function AddProductsToCart() {
                 filteredProducts.map((product, index) => {
                   const productKey = product.id || product['Код'] || product['Артикул'];
                   return (
-                    <tr key={productKey || index} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
-                      <td><strong>{product['Наименование']}</strong></td>
+                    <tr
+                      key={productKey || index}
+                      className={index % 2 === 0 ? 'even-row' : 'odd-row'}
+                    >
+                      <td>
+                        <strong>{product['Наименование']}</strong>
+                      </td>
                       <td>{product['Производитель'] || 'Неизвестен'}</td>
                       <td>{formatDate(product['Срок'])}</td>
                       <td>{product['Цена']} сом</td>
                       <td>
                         <div className="quantity-wrapper">
-                        <button
-                          type="button"
-                          className="quantity-btn"
-                          onClick={() =>
-                            handleQuantityChange(productKey, (quantities[productKey] || 1) - 1)
-                          }
-                          disabled={quantities[productKey] <= 1 || addedItems[productKey]}
-                        >
-                          −
-                        </button>
-                        <input
-                          type="number"
-                          min="1"
-                          value={quantities[productKey] || 1}
-                          onChange={(e) => handleQuantityChange(productKey, e.target.value)}
-                          disabled={addedItems[productKey]}
-                          className="quantity-input"
-                        />
-                        <button
-                          type="button"
-                          className="quantity-btn"
-                          onClick={() =>
-                            handleQuantityChange(productKey, (quantities[productKey] || 1) + 1)
-                          }
-                          disabled={addedItems[productKey]}
-                        >
-                          +
-                        </button>
-                      </div>
+                          <button
+                            type="button"
+                            className="quantity-btn"
+                            onClick={() =>
+                              handleQuantityChange(
+                                productKey,
+                                (quantities[productKey] || 1) - 1
+                              )
+                            }
+                            disabled={quantities[productKey] <= 1 || addedItems[productKey]}
+                          >
+                            −
+                          </button>
+                          <input
+                            type="number"
+                            min="1"
+                            value={quantities[productKey] || 1}
+                            onChange={(e) =>
+                              handleQuantityChange(productKey, e.target.value)
+                            }
+                            disabled={addedItems[productKey]}
+                            className="quantity-input"
+                          />
+                          <button
+                            type="button"
+                            className="quantity-btn"
+                            onClick={() =>
+                              handleQuantityChange(
+                                productKey,
+                                (quantities[productKey] || 1) + 1
+                              )
+                            }
+                            disabled={addedItems[productKey]}
+                          >
+                            +
+                          </button>
+                        </div>
                       </td>
                       <td>
                         <button
-                          className={`add-to-cart-btn ${addedItems[productKey] ? 'added' : ''}`}
+                          className={`add-to-cart-btn ${
+                            addedItems[productKey] ? 'added' : ''
+                          }`}
                           onClick={() => handleAddToCart(product)}
                           disabled={addedItems[productKey]}
                         >
@@ -269,7 +284,8 @@ function AddProductsToCart() {
                         Статус: <strong>{activeOrder?.status || 'Неизвестен'}</strong>
                       </p>
                       <p>
-                        Ожидаемое время доставки: <span>{activeOrder?.delivery_time || 'Неизвестен'}</span>
+                        Ожидаемое время доставки:{' '}
+                        <span>{activeOrder?.delivery_time || 'Неизвестен'}</span>
                       </p>
                       <p>
                         Курьер: <span>{activeOrder?.courier || 'Неизвестен'}</span>
@@ -277,10 +293,34 @@ function AddProductsToCart() {
                     </div>
 
                     <div className="order_info">
-                      <OrderStep icon={<Clock3 />} label="В обработке" stepKey="processing" currentStatus={activeOrder?.status} />
-                      <OrderStep icon={<Truck />} label="Заказ собран" stepKey="assembled" currentStatus={activeOrder?.status} />
-                      <OrderStep icon={<Package />} label="Доставлено" stepKey="delivered" currentStatus={activeOrder?.status} />
-                      <OrderStep icon={<CircleCheck />} label="Выполнено" stepKey="completed" currentStatus={activeOrder?.status} />
+                      <OrderStep
+                        icon={<Clock3 />}
+                        label="В обработке"
+                        stepKey="pending"
+                        currentStatus={activeOrder?.status}
+                        isLast={false}
+                      />
+                      <OrderStep
+                        icon={<Truck />}
+                        label="Заказ собран"
+                        stepKey="assembled"
+                        currentStatus={activeOrder?.status}
+                        isLast={false}
+                      />
+                      <OrderStep
+                        icon={<Package />}
+                        label="Доставлено"
+                        stepKey="delivered"
+                        currentStatus={activeOrder?.status}
+                        isLast={false}
+                      />
+                      <OrderStep
+                        icon={<CircleCheck />}
+                        label="Выполнено"
+                        stepKey="completed"
+                        currentStatus={activeOrder?.status}
+                        isLast={true}
+                      />
                     </div>
                   </>
                 ) : (
@@ -293,7 +333,12 @@ function AddProductsToCart() {
             </div>
 
             <div>
-              <img src="./Frame 2131328827.png" width="580" height="290" alt="cart" />
+              <img
+                src="./Frame 2131328827.png"
+                width="580"
+                height="290"
+                alt="cart"
+              />
             </div>
           </div>
         )}
@@ -302,8 +347,8 @@ function AddProductsToCart() {
   );
 }
 
-function OrderStep({ icon, label, stepKey, currentStatus }) {
-  const statusOrder = ['processing', 'assembled', 'delivered', 'completed'];
+function OrderStep({ icon, label, stepKey, currentStatus, isLast }) {
+  const statusOrder = ['pending', 'assembled', 'delivered', 'completed'];
   const currentIndex = statusOrder.indexOf(currentStatus?.toLowerCase());
   const stepIndex = statusOrder.indexOf(stepKey);
 
@@ -312,11 +357,13 @@ function OrderStep({ icon, label, stepKey, currentStatus }) {
   else if (stepIndex === currentIndex) stepClass = 'step-active';
 
   return (
-    <div className={`oredrs_info ${stepClass}`}>
-      <div className="oredrs_bg">{icon}</div>
-      <p>{label}</p>
+    <div className={`order-step ${stepClass}`}>
+      <div className="order-step-icon">{icon}</div>
+      <span className="order-step-label">{label}</span>
+      {!isLast && <div className="order-step-line" />}
     </div>
   );
 }
+
 
 export default AddProductsToCart;
