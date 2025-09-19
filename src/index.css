@@ -149,10 +149,14 @@ html, body, #root {
 	margin-bottom: 30px;
 }
 
+.login_logo img{
+width: 100px;
+height: 100px;	
+margin-top: 30px;
+}
 .logo_img{
 	width: 48px;
 	margin-top: 8px;
-  background: #f9fbfb;
 }
 
 .order-error__overlay {
@@ -1083,7 +1087,11 @@ flex-direction:column;
   border-radius: 12px;
   box-shadow: 0 0 15px rgb(35 139 158 / 0.1);
 }
-
+.registration_paragraph{
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
 .products_table thead tr {
 }
 .even-row {
