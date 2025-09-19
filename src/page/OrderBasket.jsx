@@ -7,12 +7,11 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
 function OrderBasket() {
-  const { cartItems, increaseQuantity, decreaseQuantity } = useCart();
+  const { cartItems, increaseQuantity, decreaseQuantity, clearCart } = useCart();
   const { token } = useAuth();
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showErrorModal, setShowErrorModal] = useState(false);
-
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const calculateTotal = () => {
@@ -27,35 +26,50 @@ function OrderBasket() {
     return new Date(dateStr).toLocaleDateString('ru-RU');
   };
 
-  const handleSubmitOrder = async () => {
-    if (cartItems.length === 0 || !token) return;
+const handleSubmitOrder = async () => {
+  if (cartItems.length === 0 || !token || isSubmitting) return;
 
-    const payload = {
-      items: cartItems.map(item => ({
+  const payload = {
+    items: cartItems
+      .filter(item => item['Наименование'] && (item['Код'] || item['Артикул'] || item.id))
+      .map(item => ({
         name: item['Наименование'],
         price: parseFloat(item['Цена']) || 0,
         product_code: item['Код'] || item['Артикул'] || item.id,
-        quantity: item.quantity
+        quantity: item.quantity || 1
       }))
-    };
-
-    try {
-      const response = await axios.post(
-        'http://api.dustipharma.tj:1212/api/v1/app/orders',
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-      setShowSuccessModal(true);
-    } catch (error) {
-      const message = error.response?.data?.message || 'Ошибка при отправке заказа';
-      setErrorMessage(message);
-      setShowErrorModal(true);
-    }
   };
+
+  try {
+    setIsSubmitting(true);
+
+    const response = await axios.post(
+      'http://api.dustipharma.tj:1212/api/v1/app/orders',
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    setShowSuccessModal(true);
+    clearCart();
+  } catch (error) {
+    const message =
+      error.response?.data?.message ||
+      error.message ||
+      'Ошибка при отправке заказа';
+
+    setErrorMessage(message);
+    setShowErrorModal(true);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+
+
 
   return (
     <div className="OrderBasket_content">
@@ -85,7 +99,7 @@ function OrderBasket() {
               <tbody>
                 {cartItems.length === 0 ? (
                   <tr>
-                    <td colSpan="4">Корзина пуста</td>
+                    <td colSpan='4' className='basket_empty'>Корзина пуста</td>
                   </tr>
                 ) : (
                   cartItems.map((item, index) => (
@@ -117,12 +131,12 @@ function OrderBasket() {
               <p>Срок доставки:</p>
               <p>1–3 дня</p>
             </div>
-            <button
-              disabled={cartItems.length === 0}
-              onClick={handleSubmitOrder}
-            >
-              Оформить
-            </button>
+              <button
+                disabled={cartItems.length === 0 || isSubmitting}
+                onClick={handleSubmitOrder}
+              >
+                {isSubmitting ? 'Загрузка...' : 'Оформить'}
+              </button>
           </div>
         </div>
       </div>

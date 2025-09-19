@@ -13,9 +13,7 @@ export function CartProvider({ children, userId }) {
     try {
       const savedCart = localStorage.getItem(storageKey);
       const parsed = savedCart ? JSON.parse(savedCart) : [];
-
       const validItems = parsed.filter(item => item.id || item['Код'] || item['Артикул']);
-      console.log('Загружаем корзину один раз:', storageKey, validItems);
 
       setCartItems(validItems);
       hasLoadedCart.current = true;
@@ -31,12 +29,6 @@ export function CartProvider({ children, userId }) {
 
     const storageKey = `cart_${userId}`;
     try {
-      const current = localStorage.getItem(storageKey);
-      const currentParsed = current ? JSON.parse(current) : [];
-      const isEqual = JSON.stringify(currentParsed) === JSON.stringify(cartItems);
-      if (isEqual) return;
-
-      console.log('Сохраняем корзину:', storageKey, cartItems);
       localStorage.setItem(storageKey, JSON.stringify(cartItems));
     } catch (error) {
       console.error('Ошибка сохранения корзины', error);
@@ -45,6 +37,8 @@ export function CartProvider({ children, userId }) {
 
   function addToCart(product) {
     const productKey = product.id || product['Код'] || product['Артикул'];
+    const quantityToAdd = product.quantity || 1;
+
     if (!productKey) {
       console.warn('Нет ключа для товара:', product);
       return;
@@ -58,14 +52,17 @@ export function CartProvider({ children, userId }) {
       if (existing) {
         return prevItems.map(item =>
           (item.id || item['Код'] || item['Артикул']) === productKey
-            ? { ...item, quantity: (item.quantity || 1) + 1 }
+            ? { ...item, quantity: (item.quantity || 1) + quantityToAdd }
             : item
         );
       }
 
-      return [...prevItems, { ...product, id: productKey, quantity: 1 }];
+      return [...prevItems, { ...product, id: productKey, quantity: quantityToAdd }];
     });
   }
+  function clearCart() {
+  setCartItems([]);
+}
 
   function increaseQuantity(productId) {
     setCartItems(prevItems =>
@@ -82,9 +79,8 @@ export function CartProvider({ children, userId }) {
       prevItems.reduce((acc, item) => {
         const key = item.id || item['Код'] || item['Артикул'];
         if (key === productId) {
-          if ((item.quantity || 1) > 1) {
-            acc.push({ ...item, quantity: item.quantity - 1 });
-          }
+          const newQty = (item.quantity || 1) - 1;
+          if (newQty > 0) acc.push({ ...item, quantity: newQty });
         } else {
           acc.push(item);
         }
@@ -104,14 +100,17 @@ export function CartProvider({ children, userId }) {
   const cartCount = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
 
   return (
-    <CartContext.Provider value={{
-      cartItems,
-      cartCount,
-      addToCart,
-      removeFromCart,
-      increaseQuantity,
-      decreaseQuantity
-    }}>
+    <CartContext.Provider
+      value={{
+        cartItems,
+        cartCount,
+        addToCart,
+        removeFromCart,
+        increaseQuantity,
+        decreaseQuantity,
+        clearCart
+      }}
+    >
       {children}
     </CartContext.Provider>
   );

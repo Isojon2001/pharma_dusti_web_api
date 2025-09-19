@@ -25,6 +25,67 @@ html, body, #root {
   animation: fadeInOut 2.5s ease-in-out;
   font-family: 'Montserrat', sans-serif;
 }
+.quantity-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.add-to-cart-btn {
+  background-color: #007a74;
+  color: white;
+  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-to-cart-btn:hover:not(:disabled) {
+  background-color: #005f5a;
+}
+.basket_empty{
+	padding: 5px 30px 5px 0px;
+	text-align: center;
+}
+.add-to-cart-btn:disabled,
+.add-to-cart-btn.added {
+  background-color: #b2e0db;
+  color: #004642;
+  cursor: default;
+  opacity: 1;
+}
+
+
+.quantity-input {
+  width: 50px;
+  text-align: center;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.quantity-btn {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.quantity-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.quantity-btn:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
 .products_cart {
   position: relative;
   display: inline-block;

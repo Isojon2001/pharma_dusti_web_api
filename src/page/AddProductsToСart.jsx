@@ -9,6 +9,7 @@ import { useCart } from '../context/CartContext';
 function AddProductsToCart() {
   const { token } = useAuth();
   const { addToCart } = useCart();
+
   const [showModal, setShowModal] = useState(false);
   const [modalProductName, setModalProductName] = useState('');
   const [products, setProducts] = useState([]);
@@ -17,6 +18,8 @@ function AddProductsToCart() {
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('products');
   const [summa, setSumma] = useState('');
+  const [quantities, setQuantities] = useState({});
+  const [addedItems, setAddedItems] = useState({});
 
   useEffect(() => {
     if (!token) return;
@@ -27,6 +30,7 @@ function AddProductsToCart() {
       })
       .then((res) => setProducts(res?.data?.payload?.data || []))
       .catch((err) => console.error('Ошибка загрузки продуктов:', err));
+
     axios
       .get('http://api.dustipharma.tj:1212/api/v1/app/categories/all', {
         headers: { Authorization: `Bearer ${token}` },
@@ -76,42 +80,47 @@ function AddProductsToCart() {
     });
   };
 
-const handleAddToCart = (product) => {
-  const productKey = product.id || product['Код'] || product['Артикул'];
-  if (!productKey) {
-    console.warn('Пропущен уникальный ключ товара:', product);
-    return;
-  }
+  const handleQuantityChange = (productId, value) => {
+    const quantity = Math.max(1, parseInt(value) || 1);
+    setQuantities((prev) => ({
+      ...prev,
+      [productId]: quantity,
+    }));
+  };
 
-  addToCart({ ...product, id: productKey });
-  setModalProductName(product['Наименование'] || 'Товар');
-  setShowModal(true);
+  const handleAddToCart = (product) => {
+    const productKey = product.id || product['Код'] || product['Артикул'];
+    if (!productKey) {
+      console.warn('Пропущен уникальный ключ товара:', product);
+      return;
+    }
 
-  setTimeout(() => setShowModal(false), 2500);
-};
+    const quantity = quantities[productKey] || 1;
 
+    addToCart({ ...product, id: productKey, quantity });
+    setModalProductName(product['Наименование'] || 'Товар');
+    setShowModal(true);
+    setAddedItems((prev) => ({ ...prev, [productKey]: true }));
+
+    setTimeout(() => setShowModal(false), 2500);
+  };
 
   const filteredProducts = getFilteredProducts();
   const showTable = searchTerm.trim() !== '' || summa.trim() !== '';
 
-  const calculateTotalSum = (items) => {
-    return items
-      .reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0)
-      .toFixed(2);
-  };
-
   return (
     <div className="AddProductsToCart_content">
       <OrderHeader />
-            {showModal && (
+      {showModal && (
         <div className="cart-modal">
           <div className="cart-modal-content">
             <p>
-              ✅ <strong>{modalProductName}</strong> добавлен в корзину
+              <strong>{modalProductName}</strong> добавлен в корзину
             </p>
           </div>
         </div>
       )}
+
       <main className="products_main">
         <h1>
           Найдите продукты и добавьте в <span className="colors">корзину</span>
@@ -173,34 +182,64 @@ const handleAddToCart = (product) => {
                 <th>Производитель</th>
                 <th>Срок годности</th>
                 <th>Цена</th>
-                <th>Количество</th>
+                <th>Кол-во</th>
                 <th>Действие</th>
               </tr>
             </thead>
             <tbody>
               {filteredProducts.length > 0 ? (
-                filteredProducts.map((product, index) => (
-                  <tr
-                    key={product.id || product['Код'] || index}
-                    className={index % 2 === 0 ? 'even-row' : 'odd-row'}
-                  >
-                    <td>
-                      <strong>{product['Наименование']}</strong>
-                    </td>
-                    <td>{product['Производитель'] || '—'}</td>
-                    <td>{formatDate(product['Срок'])}</td>
-                    <td>{product['Цена']} сом</td>
-                    <td>{product['Количество'] ?? 'Не указано'}</td>
-                    <td>
-                      <button
-                        className="add-to-cart-btn"
-                        onClick={() => handleAddToCart(product)}
-                      >
-                        Добавить в корзину
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                filteredProducts.map((product, index) => {
+                  const productKey = product.id || product['Код'] || product['Артикул'];
+                  return (
+                    <tr key={productKey || index} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
+                      <td><strong>{product['Наименование']}</strong></td>
+                      <td>{product['Производитель'] || 'Неизвестен'}</td>
+                      <td>{formatDate(product['Срок'])}</td>
+                      <td>{product['Цена']} сом</td>
+                      <td>
+                        <div className="quantity-wrapper">
+                        <button
+                          type="button"
+                          className="quantity-btn"
+                          onClick={() =>
+                            handleQuantityChange(productKey, (quantities[productKey] || 1) - 1)
+                          }
+                          disabled={quantities[productKey] <= 1 || addedItems[productKey]}
+                        >
+                          −
+                        </button>
+                        <input
+                          type="number"
+                          min="1"
+                          value={quantities[productKey] || 1}
+                          onChange={(e) => handleQuantityChange(productKey, e.target.value)}
+                          disabled={addedItems[productKey]}
+                          className="quantity-input"
+                        />
+                        <button
+                          type="button"
+                          className="quantity-btn"
+                          onClick={() =>
+                            handleQuantityChange(productKey, (quantities[productKey] || 1) + 1)
+                          }
+                          disabled={addedItems[productKey]}
+                        >
+                          +
+                        </button>
+                      </div>
+                      </td>
+                      <td>
+                        <button
+                          className={`add-to-cart-btn ${addedItems[productKey] ? 'added' : ''}`}
+                          onClick={() => handleAddToCart(product)}
+                          disabled={addedItems[productKey]}
+                        >
+                          {addedItems[productKey] ? 'Добавлено' : 'Добавить в корзину'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan="6" className="no-results">
@@ -238,51 +277,23 @@ const handleAddToCart = (product) => {
                     </div>
 
                     <div className="order_info">
-                      <OrderStep
-                        icon={<Clock3 />}
-                        label="В обработке"
-                        stepKey="processing"
-                        currentStatus={activeOrder?.status}
-                      />
-                      <OrderStep
-                        icon={<Truck />}
-                        label="Заказ собран"
-                        stepKey="assembled"
-                        currentStatus={activeOrder?.status}
-                      />
-                      <OrderStep
-                        icon={<Package />}
-                        label="Доставлено"
-                        stepKey="delivered"
-                        currentStatus={activeOrder?.status}
-                      />
-                      <OrderStep
-                        icon={<CircleCheck />}
-                        label="Выполнено"
-                        stepKey="completed"
-                        currentStatus={activeOrder?.status}
-                      />
+                      <OrderStep icon={<Clock3 />} label="В обработке" stepKey="processing" currentStatus={activeOrder?.status} />
+                      <OrderStep icon={<Truck />} label="Заказ собран" stepKey="assembled" currentStatus={activeOrder?.status} />
+                      <OrderStep icon={<Package />} label="Доставлено" stepKey="delivered" currentStatus={activeOrder?.status} />
+                      <OrderStep icon={<CircleCheck />} label="Выполнено" stepKey="completed" currentStatus={activeOrder?.status} />
                     </div>
                   </>
                 ) : (
                   <div className="no_active_order">
                     <h1>Нет активных заказов</h1>
-                    <p>
-                      Сделайте новый заказ и здесь будет отображаться статус активного
-                      заказа
-                    </p>
+                    <p>Сделайте новый заказ и здесь будет отображаться статус активного заказа</p>
                   </div>
                 )}
               </div>
             </div>
 
             <div>
-              <img
-                src="./Frame 2131328827.png"
-                width="580"
-                height="290"
-                alt="cart"
-              />
+              <img src="./Frame 2131328827.png" width="580" height="290" alt="cart" />
             </div>
           </div>
         )}

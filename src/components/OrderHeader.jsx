@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import logo from '../assets/Logo.png';
+import logo from '../assets/Logo.svg';
 import '../index.css';
 
 function OrderHeader() {
@@ -47,10 +47,8 @@ function OrderHeader() {
     <div className="AddProductsToСart">
       <div className="logo_login">
         <div className="logo_img">
-          <img src={logo} alt="logo" />
+          <img src='./logo.svg' alt="logo" />
         </div>
-        <h3>ДУСТИ</h3>
-        <h3>Фарма</h3>
       </div>
 
       <div className="products_profile">
