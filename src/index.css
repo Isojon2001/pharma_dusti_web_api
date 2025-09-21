@@ -9,6 +9,7 @@ html, body, #root {
   display: flex;
   flex-direction:column;
   height: 70vh;
+  margin-top: 50px;
   justify-content: space-around;
   align-items: center;
 }
@@ -753,8 +754,21 @@ flex-direction:column;
 	border-radius:60px;
 	background-color:#FFF;
 }
-.bg_history,
+.bg_history{
+	height: 100vh;
+	padding: 0 40px 0;
+    margin: 0 -40px 0;
+	align-items:baseline;
+	background-color:#F3F6F6;	
+}
+.rdrMonthAndYearWrapper{
+	display: none !important;
+}
+.rdrMonthName{
+	text-align: center !important;
+}
 .profileOrder_header{
+	height: 100vh;
 	padding: 0 40px 0;
     margin: 0 -40px 0;
 	align-items:baseline;
@@ -871,7 +885,7 @@ flex-direction:column;
 
 .calendar-arrow-left {
 	position: absolute;
-	top: 70px;
+	top: 62px;
 	left: 15px;
 	border: none;
 	border-radius: 6px;
@@ -882,7 +896,7 @@ flex-direction:column;
 
 .calendar-arrow-right {
 	position: absolute;
-	top: 70px;
+	top: 62px;
 	right: 0px;
 	border: none;
 	border-radius: 6px;
@@ -912,7 +926,7 @@ flex-direction:column;
 
 .calendar-inputs-with-labels {
 	display: flex;
-	justify-content: space-between;
+	justify-content: space-around;
 	padding: 0 10px;
 	margin-bottom: 4px;
 }
