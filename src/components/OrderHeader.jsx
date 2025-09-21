@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import logo from '../assets/Logo.svg';
+import logo from '../assets/logo.svg';
 import '../index.css';
 
 function OrderHeader() {

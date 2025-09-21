@@ -265,6 +265,11 @@ margin: 0;
 	display: flex;
 	justify-content: center;
 }
+.logo_login img{
+	margin-top: 50px;
+	width: 80px;
+	height: 80px;	
+}
 .logo_login{
 	gap: 5px;
 	color: #000;

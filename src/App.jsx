@@ -39,7 +39,7 @@ function App() {
     <CartProvider userId={userId}>
       <Routes>
         
-        <Route path="/" element={token ? <Navigate to="/add-products-to-cart" /> : <LoginPage />} />
+        <Route path="/" element={<LoginPage />} />
         <Route path="/registration" element={<RegistrationPage />} />
         <Route path="/examination" element={<Examination />} />
         <Route path="/setPassword" element={<SetPassword />} />
