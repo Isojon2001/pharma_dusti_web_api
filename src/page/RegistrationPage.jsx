@@ -48,10 +48,10 @@ function RegistrationPage() {
     <div className="registration gap">
       <div className='logo_login margin_bottom'>
         <div className='logo_img'>   
-        <img src="./Logo.png" alt="logo"/>
+          <div className='login_logo'>   
+        <img src="./logo.svg" alt="logo"/>
         </div>
-        <h3>ДУСТИ</h3>
-        <h3>Фарма</h3>
+        </div>
       </div>
       <form onSubmit={handleSubmit}>
         <div className="registration_paragraph">
