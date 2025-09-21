@@ -303,6 +303,8 @@ margin: 0;
 }
 .buttons{
 	text-align: center;
+	    display: flex;
+    align-items: center;
 }
 .buttons>button:hover,
 .forms>button:hover,
@@ -787,6 +789,15 @@ flex-direction:column;
 	background-color: #0F7372;
 	border-radius: 16px;
 	color: #FFF;
+}
+.code-inputs input{
+    width: 120px;
+    height: 60px;
+    border: none;
+    background-color: #b9e2e9;
+    border-radius: 55px;
+    font-size: 32px;
+    text-align: center;
 }
 .code-inputs {
   display: flex;
