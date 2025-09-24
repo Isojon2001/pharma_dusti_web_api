@@ -64,7 +64,6 @@ function Reporting() {
       setError('');
     } catch (err) {
       console.error('Ошибка скачивания PDF:', err);
-      setError('Не удалось скачать отчет');
     }
   };
 

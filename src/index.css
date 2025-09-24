@@ -1,4 +1,4 @@
-html, body, #root {
+chtml, body, #root {
 	font-family: "Wix Madefor Display", sans-serif;
   margin: 0;
   padding: 0;
@@ -883,9 +883,9 @@ flex-direction:column;
   margin: 0 auto;
   font-size: 14px;
 }
-
 .submit-button-wrapper button{
-
+	padding: 7px 55px;
+	font-size: 18px;
 }
 .submit-button-wrapper {
   text-align: center;
@@ -937,6 +937,7 @@ flex-direction:column;
 
 .calendar-inputs-with-labels {
 	display: flex;
+	color: #007b83;
 	justify-content: space-around;
 	padding: 0 10px;
 	margin-bottom: 4px;
