@@ -87,7 +87,7 @@ function OrderHeader() {
               onMouseLeave={() => setIsHovering(false)}
             >
               <div className="logo_moadl">
-                <img src="./Logo.png" width="50" height="50" alt="logo" />
+                <img src={logo} width="50" height="50" alt="logo" />
                 <div>
                   <h2 className="user-modal__title">
                     {loading
