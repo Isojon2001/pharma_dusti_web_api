@@ -8,10 +8,9 @@ function DetailedHistory() {
   const { order_id } = useParams();
   const { token } = useAuth();
   const [order, setOrder] = useState(null);
-  const [orderCode, setOrderCode] = useState(null); // ← добавляем код
+  const [orderCode, setOrderCode] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Получаем детали заказа по ID
   useEffect(() => {
     if (!token || !order_id) return;
 
@@ -35,7 +34,6 @@ function DetailedHistory() {
       });
   }, [order_id, token]);
 
-  // Получаем code по ID из списка заказов
   useEffect(() => {
     if (!token || !order_id) return;
 
@@ -50,7 +48,7 @@ function DetailedHistory() {
         if (data?.code === 200 && Array.isArray(data.payload)) {
           const foundOrder = data.payload.find(o => o.id.toString() === order_id.toString());
           if (foundOrder) {
-            setOrderCode(foundOrder.code); // ← сохраняем код
+            setOrderCode(foundOrder.code);
           } else {
             console.warn('Заказ с таким ID не найден в списке');
           }
@@ -90,7 +88,7 @@ function DetailedHistory() {
             <div className="users_detailed">
               <div className="user_order">
                 <div>
-                  <h2>#{orderCode || '—'}</h2> {/* ← показываем code */}
+                  <h2>#{orderCode || '—'}</h2>
                   <ul>
                     <li>{order.status}</li>
                   </ul>
