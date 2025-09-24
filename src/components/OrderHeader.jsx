@@ -47,7 +47,7 @@ function OrderHeader() {
     <div className="AddProductsToСart">
       <div className="logo_login">
         <div className="logo_img">
-          <img src='./logo.svg' alt="logo" />
+          <img src={logo} alt="logo" />
         </div>
       </div>
 
