@@ -934,7 +934,9 @@ flex-direction:column;
 .submit-button:hover {
   background-color: #005e67;
 }
-
+.rdrDateDisplayItem input{
+	color: #8c8c8c !important;
+}
 .calendar-inputs-with-labels {
 	display: flex;
 	color: #007b83;
