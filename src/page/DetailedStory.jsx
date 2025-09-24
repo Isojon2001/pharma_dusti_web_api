@@ -8,8 +8,10 @@ function DetailedHistory() {
   const { order_id } = useParams();
   const { token } = useAuth();
   const [order, setOrder] = useState(null);
+  const [orderCode, setOrderCode] = useState(null); // ← добавляем код
   const [loading, setLoading] = useState(true);
 
+  // Получаем детали заказа по ID
   useEffect(() => {
     if (!token || !order_id) return;
 
@@ -27,10 +29,38 @@ function DetailedHistory() {
           console.warn('Пустой ответ от сервера или ошибка:', data);
           setOrder(null);
         }
-        setLoading(false);
       })
       .catch(err => {
         console.error('Ошибка загрузки данных:', err);
+      });
+  }, [order_id, token]);
+
+  // Получаем code по ID из списка заказов
+  useEffect(() => {
+    if (!token || !order_id) return;
+
+    fetch(`http://api.dustipharma.tj:1212/api/v1/app/orders/customer`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data?.code === 200 && Array.isArray(data.payload)) {
+          const foundOrder = data.payload.find(o => o.id.toString() === order_id.toString());
+          if (foundOrder) {
+            setOrderCode(foundOrder.code); // ← сохраняем код
+          } else {
+            console.warn('Заказ с таким ID не найден в списке');
+          }
+        } else {
+          console.warn('Ошибка получения списка заказов:', data);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Ошибка загрузки списка заказов:', err);
         setLoading(false);
       });
   }, [order_id, token]);
@@ -60,7 +90,7 @@ function DetailedHistory() {
             <div className="users_detailed">
               <div className="user_order">
                 <div>
-                  <h2>#{order.code}</h2>
+                  <h2>#{orderCode || '—'}</h2> {/* ← показываем code */}
                   <ul>
                     <li>{order.status}</li>
                   </ul>
