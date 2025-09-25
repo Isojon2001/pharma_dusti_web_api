@@ -24,6 +24,8 @@ function AddProductsToCart() {
   const [meta, setMeta] = useState({ current_page: 1, last_page: 1, total: 0 });
   const [loading, setLoading] = useState(false);
 
+  const [selectedProductByCode, setSelectedProductByCode] = useState({});
+
   useEffect(() => {
     if (!token) return;
     axios
@@ -84,45 +86,64 @@ function AddProductsToCart() {
       .then((res) => {
         setProducts(res?.data?.payload?.data || []);
         setMeta(res?.data?.payload?.meta || { current_page: 1, last_page: 1, total: 0 });
+
+        const grouped = groupProductsByCode(res?.data?.payload?.data || []);
+        const defaultSelected = {};
+        for (const code in grouped) {
+          defaultSelected[code] = grouped[code][0]?.id;
+        }
+        setSelectedProductByCode(defaultSelected);
       })
       .catch((err) => {
         console.error('Ошибка загрузки продуктов:', err);
         setProducts([]);
         setMeta({ current_page: 1, last_page: 1, total: 0 });
+        setSelectedProductByCode({});
       })
       .finally(() => setLoading(false));
   }, [token, searchTerm, category, summa, page]);
+
+  const groupProductsByCode = (productsList) => {
+    return productsList.reduce((acc, product) => {
+      const code = product.Код || product.id || product['Артикул'] || 'unknown';
+      if (!acc[code]) acc[code] = [];
+      acc[code].push(product);
+      return acc;
+    }, {});
+  };
 
   const formatDate = (dateStr) => {
     if (!dateStr || dateStr === '0001-01-01T00:00:00Z') return '—';
     return new Date(dateStr).toLocaleDateString('ru-RU');
   };
 
-  const handleQuantityChange = (productId, value) => {
+  const handleQuantityChange = (code, value) => {
     const quantity = Math.max(1, parseInt(value) || 1);
     setQuantities((prev) => ({
       ...prev,
-      [productId]: quantity,
+      [code]: quantity,
     }));
   };
 
-  const handleAddToCart = (product) => {
-    const productKey = product.id || product['Код'] || product['Артикул'];
-    if (!productKey) {
-      console.warn('Пропущен уникальный ключ товара:', product);
-      return;
-    }
+  const handleAddToCart = (code) => {
+    const productGroup = groupedProducts[code];
+    if (!productGroup) return;
 
-    const quantity = quantities[productKey] || 1;
-    addToCart({ ...product, id: productKey, quantity });
-    setModalProductName(product['Наименование'] || 'Товар');
+    const selectedId = selectedProductByCode[code];
+    const selectedProduct = productGroup.find((p) => p.id === selectedId) || productGroup[0];
+    const quantity = quantities[code] || 1;
+
+    addToCart({ ...selectedProduct, quantity });
+    setModalProductName(selectedProduct['Наименование'] || 'Товар');
     setShowModal(true);
-    setAddedItems((prev) => ({ ...prev, [productKey]: true }));
+    setAddedItems((prev) => ({ ...prev, [code]: true }));
 
     setTimeout(() => setShowModal(false), 2500);
   };
 
   const showTable = searchTerm.trim() !== '' || summa.trim() !== '' || category !== 'products';
+
+  const groupedProducts = groupProductsByCode(products);
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= meta.last_page && newPage !== page) {
@@ -220,55 +241,64 @@ function AddProductsToCart() {
               </tr>
             </thead>
             <tbody>
-              {products.length > 0 ? (
-                products.map((product, index) => {
-                  const productKey = product.id || product['Код'] || product['Артикул'];
+              {Object.entries(groupedProducts).length > 0 ? (
+                Object.entries(groupedProducts).map(([code, productGroup], index) => {
+                  const selectedId = selectedProductByCode[code] || productGroup[0].id;
+                  const selectedProduct = productGroup.find((p) => p.id === selectedId) || productGroup[0];
+                  const quantity = quantities[code] || 1;
+                  const isAdded = addedItems[code];
+
                   return (
-                    <tr
-                      key={productKey || index}
-                      className={index % 2 === 0 ? 'even-row' : 'odd-row'}
-                    >
+                    <tr key={code} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
                       <td>
-                        <strong>{product['Наименование']}</strong>
+                        <strong>{selectedProduct['Наименование']}</strong>
                       </td>
-                      <td>{product['Производитель'] || 'Неизвестен'}</td>
-                      <td>{formatDate(product['Срок'])}</td>
-                      <td>{product['Цена']} сом</td>
+                      <td>{selectedProduct['Производитель'] || 'Неизвестен'}</td>
+                      <td>
+                        {productGroup.length > 1 ? (
+                          <select
+                            value={selectedId}
+                            onChange={(e) =>
+                              setSelectedProductByCode((prev) => ({
+                                ...prev,
+                                [code]: e.target.value,
+                              }))
+                            }
+                            disabled={isAdded}
+                          >
+                            {productGroup.map((product) => (
+                              <option key={product.id} value={product.id}>
+                                {formatDate(product['Срок'])}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span>{formatDate(productGroup[0]['Срок'])}</span>
+                        )}
+                      </td>
                       <td>
                         <div className="quantity-wrapper">
                           <button
                             type="button"
                             className="quantity-btn"
-                            onClick={() =>
-                              handleQuantityChange(
-                                productKey,
-                                (quantities[productKey] || 1) - 1
-                              )
-                            }
-                            disabled={quantities[productKey] <= 1 || addedItems[productKey]}
+                            onClick={() => handleQuantityChange(code, quantity - 1)}
+                            disabled={quantity <= 1 || isAdded}
                           >
                             −
                           </button>
                           <input
                             type="number"
                             min="1"
-                            value={quantities[productKey] || 1}
-                            onChange={(e) =>
-                              handleQuantityChange(productKey, e.target.value)
-                            }
-                            disabled={addedItems[productKey]}
+                            value={quantity}
+                            onChange={(e) => handleQuantityChange(code, e.target.value)}
+                            disabled={isAdded}
                             className="quantity-input"
                           />
                           <button
                             type="button"
                             className="quantity-btn"
-                            onClick={() =>
-                              handleQuantityChange(
-                                productKey,
-                                (quantities[productKey] || 1) + 1
-                              )
-                            }
-                            disabled={addedItems[productKey]}
+                            onClick={() => handleQuantityChange(code, quantity + 1)}
+                            disabled={isAdded}
                           >
                             +
                           </button>
@@ -276,11 +306,11 @@ function AddProductsToCart() {
                       </td>
                       <td>
                         <button
-                          className={`add-to-cart-btn ${addedItems[productKey] ? 'added' : ''}`}
-                          onClick={() => handleAddToCart(product)}
-                          disabled={addedItems[productKey]}
+                          className={`add-to-cart-btn ${isAdded ? 'added' : ''}`}
+                          onClick={() => handleAddToCart(code)}
+                          disabled={isAdded}
                         >
-                          {addedItems[productKey] ? 'Добавлено' : 'Добавить в корзину'}
+                          {isAdded ? 'Добавлено' : 'Добавить в корзину'}
                         </button>
                       </td>
                     </tr>
