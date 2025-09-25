@@ -47,7 +47,9 @@ function OrderHeader() {
     <div className="AddProductsToСart">
       <div className="logo_login">
         <div className="logo_img">
+          <Link to={`/add-products-to-cart`}>
           <img src={logo} alt="logo" />
+          </Link>
         </div>
       </div>
 

@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MoveLeft } from 'lucide-react';
+import { MoveLeft, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import OrderHeader from '../components/OrderHeader';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
 function OrderBasket() {
-  const { cartItems, increaseQuantity, decreaseQuantity, clearCart } = useCart();
+  const {
+    cartItems,
+    increaseQuantity,
+    decreaseQuantity,
+    clearCart,
+    removeFromCart, // Новый метод
+  } = useCart();
   const { token } = useAuth();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -26,50 +33,47 @@ function OrderBasket() {
     return new Date(dateStr).toLocaleDateString('ru-RU');
   };
 
-const handleSubmitOrder = async () => {
-  if (cartItems.length === 0 || !token || isSubmitting) return;
+  const handleSubmitOrder = async () => {
+    if (cartItems.length === 0 || !token || isSubmitting) return;
 
-  const payload = {
-    items: cartItems
-      .filter(item => item['Наименование'] && (item['Код'] || item['Артикул'] || item.id))
-      .map(item => ({
-        name: item['Наименование'],
-        price: parseFloat(item['Цена']) || 0,
-        product_code: item['Код'] || item['Артикул'] || item.id,
-        quantity: item.quantity || 1
-      }))
-  };
+    const payload = {
+      items: cartItems
+        .filter(item => item['Наименование'] && (item['Код'] || item['Артикул'] || item.id))
+        .map(item => ({
+          name: item['Наименование'],
+          price: parseFloat(item['Цена']) || 0,
+          product_code: item['Код'] || item['Артикул'] || item.id,
+          quantity: item.quantity || 1,
+        })),
+    };
 
-  try {
-    setIsSubmitting(true);
+    try {
+      setIsSubmitting(true);
 
-    const response = await axios.post(
-      'http://api.dustipharma.tj:1212/api/v1/app/orders',
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
+      await axios.post(
+        'http://api.dustipharma.tj:1212/api/v1/app/orders',
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      }
-    );
+      );
 
-    setShowSuccessModal(true);
-    clearCart();
-  } catch (error) {
-    const message =
-      error.response?.data?.message ||
-      error.message ||
-      'Ошибка при отправке заказа';
+      setShowSuccessModal(true);
+      clearCart();
+    } catch (error) {
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        'Ошибка при отправке заказа';
 
-    setErrorMessage(message);
-    setShowErrorModal(true);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
-
-
+      setErrorMessage(message);
+      setShowErrorModal(true);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="OrderBasket_content">
@@ -91,6 +95,7 @@ const handleSubmitOrder = async () => {
               <thead>
                 <tr>
                   <th>Название продукта</th>
+                  <th>Производитель</th>
                   <th>Срок годности</th>
                   <th>Цена</th>
                   <th>Кол-во</th>
@@ -99,20 +104,29 @@ const handleSubmitOrder = async () => {
               <tbody>
                 {cartItems.length === 0 ? (
                   <tr>
-                    <td colSpan='4' className='basket_empty'>Корзина пуста</td>
+                    <td colSpan="5" className="basket_empty">Корзина пуста</td>
                   </tr>
                 ) : (
                   cartItems.map((item, index) => (
                     <tr key={item.id || index} className={index % 2 === 0 ? 'td_one' : 'td_two'}>
                       <td>{item['Наименование']}</td>
+                      <td>{item['Производитель']}</td>
                       <td>{formatDate(item['Срок'])}</td>
                       <td>{item['Цена']} сом</td>
-                      <td>
+                      <td className='delete_basket_product'>
+
                         <div className="counter_table">
                           <button onClick={() => decreaseQuantity(item.id)}>-</button>
                           <p>{item.quantity}</p>
                           <button onClick={() => increaseQuantity(item.id)}>+</button>
                         </div>
+                        <button
+                          className="remove-btn"
+                          onClick={() => removeFromCart(item.id)}
+                          title="Удалить из корзины"
+                        >
+                          <Trash2 size={25} />
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -127,16 +141,12 @@ const handleSubmitOrder = async () => {
               <p>Итоговая сумма:</p>
               <p>{calculateTotal().toFixed(2)} сом</p>
             </div>
-            <div>
-              <p>Срок доставки:</p>
-              <p>1–3 дня</p>
-            </div>
-              <button
-                disabled={cartItems.length === 0 || isSubmitting}
-                onClick={handleSubmitOrder}
-              >
-                {isSubmitting ? 'Загрузка...' : 'Оформить'}
-              </button>
+            <button
+              disabled={cartItems.length === 0 || isSubmitting}
+              onClick={handleSubmitOrder}
+            >
+              {isSubmitting ? 'Загрузка...' : 'Оформить'}
+            </button>
           </div>
         </div>
       </div>

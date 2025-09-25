@@ -20,36 +20,29 @@ function AddProductsToCart() {
   const [summa, setSumma] = useState('');
   const [quantities, setQuantities] = useState({});
   const [addedItems, setAddedItems] = useState({});
+  const [page, setPage] = useState(1);
+  const [meta, setMeta] = useState({ current_page: 1, last_page: 1, total: 0 });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!token) return;
-
-    axios
-      .get('http://api.dustipharma.tj:1212/api/v1/app/products/all', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setProducts(res?.data?.payload?.data || []))
-      .catch((err) => console.error('Ошибка загрузки продуктов:', err));
-
     axios
       .get('http://api.dustipharma.tj:1212/api/v1/app/categories/all', {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setCategories(res?.data?.payload?.data || []))
       .catch((err) => console.error('Ошибка загрузки категорий:', err));
+  }, [token]);
 
+  useEffect(() => {
+    if (!token) return;
     axios
       .get('http://api.dustipharma.tj:1212/api/v1/app/orders/customer', {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
         const orders = res?.data?.payload || [];
-        if (orders.length > 0) {
-          const active = orders[orders.length - 1];
-          setActiveOrder(active);
-        } else {
-          setActiveOrder(null);
-        }
+        setActiveOrder(orders.length > 0 ? orders[orders.length - 1] : null);
       })
       .catch((err) => {
         console.error('Ошибка загрузки заказов пользователя:', err);
@@ -57,27 +50,52 @@ function AddProductsToCart() {
       });
   }, [token]);
 
+  const parseSummaRange = (summaStr) => {
+    const nums = summaStr.match(/\d+/g) || [];
+    if (nums.length === 0) return [0, Infinity];
+    if (nums.length === 1) return [0, Number(nums[0])];
+    return [Number(nums[0]), Number(nums[1])];
+  };
+
+  useEffect(() => {
+    if (!token) return;
+
+    setLoading(true);
+    const [minSumma, maxSumma] = parseSummaRange(summa);
+
+    const params = { page };
+
+    if (searchTerm.trim() !== '') {
+      params.name = searchTerm.trim();
+    }
+
+    if (category !== 'products') {
+      params.category = category;
+    }
+
+    if (minSumma > 0) params.min_price = minSumma;
+    if (maxSumma !== Infinity) params.max_price = maxSumma;
+
+    axios
+      .get('http://api.dustipharma.tj:1212/api/v1/app/products/all', {
+        headers: { Authorization: `Bearer ${token}` },
+        params,
+      })
+      .then((res) => {
+        setProducts(res?.data?.payload?.data || []);
+        setMeta(res?.data?.payload?.meta || { current_page: 1, last_page: 1, total: 0 });
+      })
+      .catch((err) => {
+        console.error('Ошибка загрузки продуктов:', err);
+        setProducts([]);
+        setMeta({ current_page: 1, last_page: 1, total: 0 });
+      })
+      .finally(() => setLoading(false));
+  }, [token, searchTerm, category, summa, page]);
+
   const formatDate = (dateStr) => {
     if (!dateStr || dateStr === '0001-01-01T00:00:00Z') return '—';
     return new Date(dateStr).toLocaleDateString('ru-RU');
-  };
-
-  const getFilteredProducts = () => {
-    const term = searchTerm.toLowerCase();
-    const [min = 0, max = Infinity] = (summa.match(/\d+/g) || []).map(Number);
-
-    return products.filter((product) => {
-      const name = product['Наименование']?.toLowerCase() || '';
-      const price = parseFloat(product['Цена']) || 0;
-      const productCategoryKey = product.category || product.key || '';
-
-      return (
-        name.includes(term) &&
-        (category === 'products' || productCategoryKey === category) &&
-        price >= min &&
-        price <= max
-      );
-    });
   };
 
   const handleQuantityChange = (productId, value) => {
@@ -96,7 +114,6 @@ function AddProductsToCart() {
     }
 
     const quantity = quantities[productKey] || 1;
-
     addToCart({ ...product, id: productKey, quantity });
     setModalProductName(product['Наименование'] || 'Товар');
     setShowModal(true);
@@ -105,8 +122,13 @@ function AddProductsToCart() {
     setTimeout(() => setShowModal(false), 2500);
   };
 
-  const filteredProducts = getFilteredProducts();
-  const showTable = searchTerm.trim() !== '' || summa.trim() !== '';
+  const showTable = searchTerm.trim() !== '' || summa.trim() !== '' || category !== 'products';
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= meta.last_page && newPage !== page) {
+      setPage(newPage);
+    }
+  };
 
   return (
     <div className="AddProductsToCart_content">
@@ -134,7 +156,10 @@ function AddProductsToCart() {
               id="products_search"
               placeholder="Введите название продукта"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1);
+              }}
             />
           </div>
 
@@ -145,7 +170,10 @@ function AddProductsToCart() {
             <select
               id="products_category"
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setPage(1);
+              }}
             >
               <option value="products">Все</option>
               {categories.map((cat) => (
@@ -165,7 +193,10 @@ function AddProductsToCart() {
               id="products_summa"
               placeholder="0 сом – 5000 сом"
               value={summa}
-              onChange={(e) => setSumma(e.target.value)}
+              onChange={(e) => {
+                setSumma(e.target.value);
+                setPage(1);
+              }}
             />
           </div>
 
@@ -174,7 +205,9 @@ function AddProductsToCart() {
           </div>
         </div>
 
-        {showTable && (
+        {loading && <p>Загрузка...</p>}
+
+        {showTable && !loading && (
           <table className="products_table">
             <thead>
               <tr>
@@ -187,8 +220,8 @@ function AddProductsToCart() {
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.length > 0 ? (
-                filteredProducts.map((product, index) => {
+              {products.length > 0 ? (
+                products.map((product, index) => {
                   const productKey = product.id || product['Код'] || product['Артикул'];
                   return (
                     <tr
@@ -243,9 +276,7 @@ function AddProductsToCart() {
                       </td>
                       <td>
                         <button
-                          className={`add-to-cart-btn ${
-                            addedItems[productKey] ? 'added' : ''
-                          }`}
+                          className={`add-to-cart-btn ${addedItems[productKey] ? 'added' : ''}`}
                           onClick={() => handleAddToCart(product)}
                           disabled={addedItems[productKey]}
                         >
@@ -266,7 +297,7 @@ function AddProductsToCart() {
           </table>
         )}
 
-        {!showTable && (
+        {!showTable && !loading && (
           <div className="order">
             <div className="orders">
               <div className="ored_active">
@@ -284,8 +315,7 @@ function AddProductsToCart() {
                         Статус: <strong>{activeOrder?.status || 'Неизвестен'}</strong>
                       </p>
                       <p>
-                        Ожидаемое время доставки:{' '}
-                        <span>{activeOrder?.delivery_time || 'Неизвестен'}</span>
+                        Ожидаемое время доставки: <span>{activeOrder?.delivery_time || 'Неизвестен'}</span>
                       </p>
                       <p>
                         Курьер: <span>{activeOrder?.courier || 'Неизвестен'}</span>
@@ -333,13 +363,25 @@ function AddProductsToCart() {
             </div>
 
             <div>
-              <img
-                src="./Frame 2131328827.png"
-                width="580"
-                height="290"
-                alt="cart"
-              />
+              <img src="./Frame 2131328827.png" width="580" height="290" alt="cart" />
             </div>
+          </div>
+        )}
+
+        {showTable && !loading && meta.last_page > 1 && (
+          <div className="pagination">
+            <button onClick={() => handlePageChange(page - 1)} disabled={page === 1}>
+              Назад
+            </button>
+            <span>
+              Страница {page} из {meta.last_page}
+            </span>
+            <button
+              onClick={() => handlePageChange(page + 1)}
+              disabled={page === meta.last_page}
+            >
+              Вперед
+            </button>
           </div>
         )}
       </main>
@@ -364,6 +406,5 @@ function OrderStep({ icon, label, stepKey, currentStatus, isLast }) {
     </div>
   );
 }
-
 
 export default AddProductsToCart;
