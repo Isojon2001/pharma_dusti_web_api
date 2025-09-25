@@ -141,9 +141,10 @@ function AddProductsToCart() {
     setTimeout(() => setShowModal(false), 2500);
   };
 
-  const showTable = searchTerm.trim() !== '' || summa.trim() !== '' || category !== 'products';
-
   const groupedProducts = groupProductsByCode(products);
+
+  const showTable =
+    searchTerm.trim() !== '' || summa.trim() !== '' || category !== 'products';
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= meta.last_page && newPage !== page) {
@@ -228,7 +229,7 @@ function AddProductsToCart() {
 
         {loading && <p>Загрузка...</p>}
 
-        {showTable && !loading && (
+        {showTable && !loading && Object.keys(groupedProducts).length > 0 && (
           <table className="products_table">
             <thead>
               <tr>
@@ -241,90 +242,88 @@ function AddProductsToCart() {
               </tr>
             </thead>
             <tbody>
-              {Object.entries(groupedProducts).length > 0 ? (
-                Object.entries(groupedProducts).map(([code, productGroup], index) => {
-                  const selectedId = selectedProductByCode[code] || productGroup[0].id;
-                  const selectedProduct = productGroup.find((p) => p.id === selectedId) || productGroup[0];
-                  const quantity = quantities[code] || 1;
-                  const isAdded = addedItems[code];
+              {Object.entries(groupedProducts).map(([code, productGroup], index) => {
+                const selectedId = selectedProductByCode[code] || productGroup[0].id;
+                const selectedProduct =
+                  productGroup.find((p) => p.id === selectedId) || productGroup[0];
+                const quantity = quantities[code] || 1;
+                const isAdded = addedItems[code];
 
-                  return (
-                    <tr key={code} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
-                      <td>
-                        <strong>{selectedProduct['Наименование']}</strong>
-                      </td>
-                      <td>{selectedProduct['Производитель'] || 'Неизвестен'}</td>
-                      <td>
-                        {productGroup.length > 1 ? (
-                          <select
-                            value={selectedId}
-                            onChange={(e) =>
-                              setSelectedProductByCode((prev) => ({
-                                ...prev,
-                                [code]: e.target.value,
-                              }))
-                            }
-                            disabled={isAdded}
-                          >
-                            {productGroup.map((product) => (
-                              <option key={product.id} value={product.id}>
-                                {formatDate(product['Срок'])}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <span>{formatDate(productGroup[0]['Срок'])}</span>
-                        )}
-                      </td>
-                      <td>
-                        <div className="quantity-wrapper">
-                          <button
-                            type="button"
-                            className="quantity-btn"
-                            onClick={() => handleQuantityChange(code, quantity - 1)}
-                            disabled={quantity <= 1 || isAdded}
-                          >
-                            −
-                          </button>
-                          <input
-                            type="number"
-                            min="1"
-                            value={quantity}
-                            onChange={(e) => handleQuantityChange(code, e.target.value)}
-                            disabled={isAdded}
-                            className="quantity-input"
-                          />
-                          <button
-                            type="button"
-                            className="quantity-btn"
-                            onClick={() => handleQuantityChange(code, quantity + 1)}
-                            disabled={isAdded}
-                          >
-                            +
-                          </button>
-                        </div>
-                      </td>
-                      <td>
-                        <button
-                          className={`add-to-cart-btn ${isAdded ? 'added' : ''}`}
-                          onClick={() => handleAddToCart(code)}
+                return (
+                  <tr key={code} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
+                    <td>
+                      <strong>{selectedProduct['Наименование']}</strong>
+                    </td>
+                    <td>{selectedProduct['Производитель'] || 'Неизвестен'}</td>
+                    <td>
+                      {productGroup.length > 1 ? (
+                        <select
+                          value={selectedId}
+                          onChange={(e) =>
+                            setSelectedProductByCode((prev) => ({
+                              ...prev,
+                              [code]: e.target.value,
+                            }))
+                          }
                           disabled={isAdded}
                         >
-                          {isAdded ? 'Добавлено' : 'Добавить в корзину'}
+                          {productGroup.map((product) => (
+                            <option key={product.id} value={product.id}>
+                              {formatDate(product['Срок'])}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span>{formatDate(productGroup[0]['Срок'])}</span>
+                      )}
+                    </td>
+                    <td>{selectedProduct['Цена']} сом</td>
+                    <td>
+                      <div className="quantity-wrapper">
+                        <button
+                          type="button"
+                          className="quantity-btn"
+                          onClick={() => handleQuantityChange(code, quantity - 1)}
+                          disabled={quantity <= 1 || isAdded}
+                        >
+                          −
                         </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan="6" className="no-results">
-                    Нет совпадений
-                  </td>
-                </tr>
-              )}
+                        <input
+                          type="number"
+                          min="1"
+                          value={quantity}
+                          onChange={(e) => handleQuantityChange(code, e.target.value)}
+                          disabled={isAdded}
+                          className="quantity-input"
+                        />
+                        <button
+                          type="button"
+                          className="quantity-btn"
+                          onClick={() => handleQuantityChange(code, quantity + 1)}
+                          disabled={isAdded}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </td>
+                    <td>
+                      <button
+                        className={`add-to-cart-btn ${isAdded ? 'added' : ''}`}
+                        onClick={() => handleAddToCart(code)}
+                        disabled={isAdded}
+                      >
+                        {isAdded ? 'Добавлено' : 'Добавить в корзину'}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
+        )}
+
+        {showTable && !loading && Object.keys(groupedProducts).length === 0 && (
+          <p className="no-results-text">Продукты не найдены</p>
         )}
 
         {!showTable && !loading && (
@@ -353,34 +352,10 @@ function AddProductsToCart() {
                     </div>
 
                     <div className="order_info">
-                      <OrderStep
-                        icon={<Clock3 />}
-                        label="В обработке"
-                        stepKey="pending"
-                        currentStatus={activeOrder?.status}
-                        isLast={false}
-                      />
-                      <OrderStep
-                        icon={<Truck />}
-                        label="Заказ собран"
-                        stepKey="assembled"
-                        currentStatus={activeOrder?.status}
-                        isLast={false}
-                      />
-                      <OrderStep
-                        icon={<Package />}
-                        label="Доставлено"
-                        stepKey="delivered"
-                        currentStatus={activeOrder?.status}
-                        isLast={false}
-                      />
-                      <OrderStep
-                        icon={<CircleCheck />}
-                        label="Выполнено"
-                        stepKey="completed"
-                        currentStatus={activeOrder?.status}
-                        isLast={true}
-                      />
+                      <OrderStep icon={<Clock3 />} label="В обработке" stepKey="pending" currentStatus={activeOrder?.status} isLast={false} />
+                      <OrderStep icon={<Truck />} label="Заказ собран" stepKey="assembled" currentStatus={activeOrder?.status} isLast={false} />
+                      <OrderStep icon={<Package />} label="Доставлено" stepKey="delivered" currentStatus={activeOrder?.status} isLast={false} />
+                      <OrderStep icon={<CircleCheck />} label="Выполнено" stepKey="completed" currentStatus={activeOrder?.status} isLast={true} />
                     </div>
                   </>
                 ) : (
@@ -406,10 +381,7 @@ function AddProductsToCart() {
             <span>
               Страница {page} из {meta.last_page}
             </span>
-            <button
-              onClick={() => handlePageChange(page + 1)}
-              disabled={page === meta.last_page}
-            >
+            <button onClick={() => handlePageChange(page + 1)} disabled={page === meta.last_page}>
               Вперед
             </button>
           </div>
