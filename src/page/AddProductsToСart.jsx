@@ -338,12 +338,9 @@ function AddProductsToCart() {
               <div className="order_bg">
                 {activeOrder ? (
                   <>
-                    <div>
+                    <div className='active_order'>
                       <h1>Код заказа:</h1>
                       <h2>{activeOrder?.code || '—'}</h2>
-                      <p>
-                        Статус: <strong>{activeOrder?.status || 'Неизвестен'}</strong>
-                      </p>
                     </div>
 
                     <div className="order_info">

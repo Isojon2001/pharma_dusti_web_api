@@ -156,7 +156,11 @@ chtml, body, #root {
   max-width: 700px;
   margin-top: 20px;
 }
-
+.active_order{
+	display: flex;
+	align-items:center;
+	gap:10px;
+}
 .order-step {
   position: relative;
   display: flex;
