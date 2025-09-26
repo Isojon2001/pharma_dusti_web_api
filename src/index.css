@@ -312,6 +312,7 @@ chtml, body, #root {
 }
 .order-step-label{
 	padding: 15px 0;
+	height: 0;
 	font-size: 18px;
 }
 .order-step {
