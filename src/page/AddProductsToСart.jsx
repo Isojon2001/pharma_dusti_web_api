@@ -339,15 +339,10 @@ function AddProductsToCart() {
                 {activeOrder ? (
                   <>
                     <div>
+                      <h1>Код заказа:</h1>
                       <h2>{activeOrder?.code || '—'}</h2>
                       <p>
                         Статус: <strong>{activeOrder?.status || 'Неизвестен'}</strong>
-                      </p>
-                      <p>
-                        Ожидаемое время доставки: <span>{activeOrder?.delivery_time || 'Неизвестен'}</span>
-                      </p>
-                      <p>
-                        Курьер: <span>{activeOrder?.courier || 'Неизвестен'}</span>
                       </p>
                     </div>
 
