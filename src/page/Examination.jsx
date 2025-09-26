@@ -57,7 +57,7 @@ function Examination() {
           </div>
 
           <div className="code-inputs">
-            {[0, 1, 2, 3].map((i) => (
+            {[0, 1, 2, 3, 4, 5].map((i) => (
               <input
                 key={i}
                 type="text"
@@ -70,12 +70,6 @@ function Examination() {
           </div>
 
           <button type="submit">Войти</button>
-
-          <p className="resend-info">
-            {timer > 0
-              ? `Повторно отправить код через ${timer} сек.`
-              : 'Вы можете повторно отправить код'}
-          </p>
         </div>
       </form>
     </div>
