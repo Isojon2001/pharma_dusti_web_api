@@ -344,10 +344,11 @@ function AddProductsToCart() {
                     </div>
 
                     <div className="order_info">
+                      <OrderStep icon={<CircleCheck />} label="Оформлено" stepKey="issued" currentStatus={activeOrder?.status} isLast={false} />
                       <OrderStep icon={<Clock3 />} label="В обработке" stepKey="pending" currentStatus={activeOrder?.status} isLast={false} />
-                      <OrderStep icon={<Truck />} label="Заказ собран" stepKey="assembled" currentStatus={activeOrder?.status} isLast={false} />
-                      <OrderStep icon={<Package />} label="Доставлено" stepKey="delivered" currentStatus={activeOrder?.status} isLast={false} />
-                      <OrderStep icon={<CircleCheck />} label="Выполнено" stepKey="completed" currentStatus={activeOrder?.status} isLast={true} />
+                      <OrderStep icon={<Package />} label="В процессе доставки" stepKey="delivered" currentStatus={activeOrder?.status} isLast={false} />
+                      <OrderStep icon={<Truck />} label="В процессе сборки" stepKey="assembled" currentStatus={activeOrder?.status} isLast={false} />
+                      <OrderStep icon={<CircleCheck />} label="Доставлен" stepKey="completed" currentStatus={activeOrder?.status} isLast={true} />
                     </div>
                   </>
                 ) : (
@@ -383,22 +384,35 @@ function AddProductsToCart() {
   );
 }
 
+
 function OrderStep({ icon, label, stepKey, currentStatus, isLast }) {
-  const statusOrder = ['pending', 'assembled', 'delivered', 'completed'];
+  const statusOrder = ['issued', 'pending', 'assembled', 'delivered', 'completed'];
   const currentIndex = statusOrder.indexOf(currentStatus?.toLowerCase());
   const stepIndex = statusOrder.indexOf(stepKey);
 
-  let stepClass = 'step-pending';
-  if (stepIndex < currentIndex) stepClass = 'step-done';
-  else if (stepIndex === currentIndex) stepClass = 'step-active';
+  const isReached = stepIndex <= currentIndex;
+
+  const colorClassMap = {
+    issued: 'color-green',
+    pending: 'color-yellow',
+    assembled: 'color-orange',
+    delivered: 'color-blue',
+    completed: 'color-bright-green',
+  };
+
+  const stepClass = `
+    order-step 
+    ${isReached ? colorClassMap[stepKey] : 'color-gray'}
+  `.trim();
 
   return (
-    <div className={`order-step ${stepClass}`}>
+    <div className={stepClass}>
       <div className="order-step-icon">{icon}</div>
       <span className="order-step-label">{label}</span>
       {!isLast && <div className="order-step-line" />}
     </div>
   );
 }
+
 
 export default AddProductsToCart;
