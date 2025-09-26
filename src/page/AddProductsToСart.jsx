@@ -44,7 +44,7 @@ function AddProductsToCart() {
       })
       .then((res) => {
         const orders = res?.data?.payload || [];
-        setActiveOrder(orders.length > 0 ? orders[orders.length - 1] : null);
+        setActiveOrder(orders.length > 0 ? orders[0] : null);
       })
       .catch((err) => {
         console.error('Ошибка загрузки заказов пользователя:', err);
