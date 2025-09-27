@@ -167,7 +167,7 @@ chtml, body, #root {
 }
 .registration_forms{
 	display: flex;
-	gap: 40px;
+	gap: 20px;
 }
 .registration_acc{
 	display: flex;
