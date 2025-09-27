@@ -106,7 +106,7 @@ function RegistrationPage() {
 
       <form onSubmit={handleSubmit}>
         <div className="registration_paragraph">
-          <h1>Восстановление пароля</h1>
+          <h1>Зарегистрироваться</h1>
           <p>Введите номер телефона</p>
         </div>
 
