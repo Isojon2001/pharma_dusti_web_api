@@ -346,8 +346,8 @@ function AddProductsToCart() {
                     <div className="order_info">
                       <OrderStep icon={<CircleCheck />} label="Оформлено" stepKey="issued" currentStatus={activeOrder?.status} isLast={false} />
                       <OrderStep icon={<Clock3 />} label="В обработке" stepKey="pending" currentStatus={activeOrder?.status} isLast={false} />
-                      <OrderStep icon={<Package />} label="В процессе доставки" stepKey="delivered" currentStatus={activeOrder?.status} isLast={false} />
-                      <OrderStep icon={<Truck />} label="В процессе сборки" stepKey="assembled" currentStatus={activeOrder?.status} isLast={false} />
+                      <OrderStep icon={<Package />} label="В процессе сборки" stepKey="assembled" currentStatus={activeOrder?.status} isLast={false} />
+                      <OrderStep icon={<Truck />} label="В процессе доставки" stepKey="delivered" currentStatus={activeOrder?.status} isLast={false} />
                       <OrderStep icon={<CircleCheck />} label="Доставлен" stepKey="completed" currentStatus={activeOrder?.status} isLast={true} />
                     </div>
                   </>
