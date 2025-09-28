@@ -22,6 +22,7 @@ function Reporting() {
   ]);
   const [shownDate, setShownDate] = useState(new Date());
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const formatDate = (date) =>
     date instanceof Date && !isNaN(date) ? date.toISOString().slice(0, 10) : null;
@@ -46,6 +47,9 @@ function Reporting() {
     }
 
     try {
+      setIsLoading(true);
+      setError('');
+
       const response = await axios.get('http://api.dustipharma.tj:1212/api/v1/app/orders/reports', {
         params: { from, to },
         headers: { Authorization: `Bearer ${token}` },
@@ -61,9 +65,10 @@ function Reporting() {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      setError('');
     } catch (err) {
       console.error('Ошибка скачивания PDF:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -107,7 +112,13 @@ function Reporting() {
           </div>
 
           <div className="submit-button-wrapper">
-            <button type="submit" className="submit-button">Сформировать отчет</button>
+            <button
+              type="submit"
+              className="submit-button"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Загрузка...' : 'Сформировать отчет'}
+            </button>
           </div>
         </form>
 
