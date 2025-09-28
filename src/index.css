@@ -1132,6 +1132,40 @@ flex-direction:column;
 .logo_moadl{
 	display: flex;
 }
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal {
+  background: white;
+  padding: 20px 30px;
+  border-radius: 8px;
+  text-align: center;
+}
+.field{
+	height: 40px;
+}
+.modal button:hover{
+
+}
+.modal button {
+  padding: 8px 100px;
+  background-color: #0F7372;
+  color: white;
+  border: none;
+  font-size: 18px;
+  border-radius: 8px;
+  cursor: pointer;
+}
 
 .modal_line{
 	width: 240px;
