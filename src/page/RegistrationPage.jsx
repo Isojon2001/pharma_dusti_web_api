@@ -56,6 +56,7 @@ function RegistrationPage() {
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             required
+            placeholder='888xxxxxx(9цифр)'
           />
         </div>
 
