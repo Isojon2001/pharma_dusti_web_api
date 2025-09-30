@@ -731,6 +731,12 @@ flex-direction:column;
 	max-width: 1440px;
 	margin: 0 auto;
 }
+.order_basket_table{
+	height: 80vh;
+	margin: 0 -50px;
+	padding: 0 50px;
+	background-color:#F3F6F6;
+}
 .DetailedHistory_content{
 	height: 100vh;
 }
@@ -852,9 +858,6 @@ text-align: center;
 	width: 100%;
 	padding-top: 10px;
 	border-spacing: 0;
-}
-.table_basket{
-	padding-bottom: 50px;
 }
 .counter_table button{
 	border:none;

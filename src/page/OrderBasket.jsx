@@ -132,7 +132,7 @@ function OrderBasket() {
           <h1>Корзина</h1>
         </div>
       </div>
-
+      <div className='order_basket_table'>
       <div className="OrderBasket_Header">
         <div className="table_basket">
           <div className="table_scrollable">
@@ -237,6 +237,7 @@ function OrderBasket() {
               </div>
             </div>
         </div>
+      </div>
       </div>
 
       {showErrorModal && (
