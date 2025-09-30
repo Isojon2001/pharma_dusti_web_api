@@ -102,15 +102,25 @@ function AddProductsToCart() {
       })
       .finally(() => setLoading(false));
   }, [token, searchTerm, category, summa, page]);
-
   const groupProductsByCode = (productsList) => {
-    return productsList.reduce((acc, product) => {
-      const code = product.Код || product.id || product['Артикул'] || 'unknown';
-      if (!acc[code]) acc[code] = [];
-      acc[code].push(product);
-      return acc;
-    }, {});
-  };
+  const grouped = productsList.reduce((acc, product) => {
+    const code = product.Код || product.id || product['Артикул'] || 'unknown';
+    if (!acc[code]) acc[code] = [];
+    acc[code].push(product);
+    return acc;
+  }, {});
+
+  for (const code in grouped) {
+    grouped[code].sort((a, b) => {
+      const dateB = new Date(b['Срок']);
+      const dateA = new Date(a['Срок']);
+      return dateA - dateB;
+    });
+  }
+
+  return grouped;
+};
+
 
   const formatDate = (dateStr) => {
     if (!dateStr || dateStr === '0001-01-01T00:00:00Z') return '—';
