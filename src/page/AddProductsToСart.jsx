@@ -102,7 +102,7 @@ function AddProductsToCart() {
       })
       .finally(() => setLoading(false));
   }, [token, searchTerm, category, summa, page]);
-  const groupProductsByCode = (productsList) => {
+const groupProductsByCode = (productsList) => {
   const grouped = productsList.reduce((acc, product) => {
     const code = product.Код || product.id || product['Артикул'] || 'unknown';
     if (!acc[code]) acc[code] = [];
@@ -112,14 +112,17 @@ function AddProductsToCart() {
 
   for (const code in grouped) {
     grouped[code].sort((a, b) => {
-      const dateB = new Date(b['Срок']);
       const dateA = new Date(a['Срок']);
+      const dateB = new Date(b['Срок']);
       return dateA - dateB;
     });
+
+    grouped[code] = grouped[code].slice(0, 2);
   }
 
   return grouped;
 };
+
 
 
   const formatDate = (dateStr) => {
