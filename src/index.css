@@ -565,10 +565,15 @@ font-size: 20px;
 .products_category_block label,
 .products_info label{
 	padding-left: 9px;
+	padding-bottom: 30px;
 	color: #0F7372;
 	position:absolute;
 }
-
+.basket_backs{
+	display: flex;
+	justify-content: space-between;
+	flex-direction:row-reverse;
+}
 .products_name select{
 	padding-top: 20px;
 }
@@ -731,19 +736,15 @@ flex-direction:column;
 }
 .OrderBasket_Header{
     margin: 0 -48px 0px;
-    padding: 80px 60px 344px;
+    padding: 40px 60px 125px 60px;
 	background-color:#F3F6F6;
 }
+
 .delete_basket_product{
 	display: flex;
 }
 .basket_back h1{
 	font-size: 44px;
-}
-.table_basket{
-	display: flex;
-	justify-content: space-between;
-	align-items: flex-start;
 }
 .detail_basket>button:hover{
 	background-color: #145352;
@@ -761,7 +762,7 @@ flex-direction:column;
 .detail_basket>div{
 	display: flex;
 	margin: -10px;
-	justify-content: space-between;
+	gap: 900px;
 }
 .detail_basket p{
 	font-size: 22px;
@@ -780,39 +781,73 @@ flex-direction:column;
 
 .detail_basket p:nth-of-type(1){
 	color: #858585;
+	font-weight: bold;
 }
 
 .detail_basket h2{
 	font-size: 24px;
 	margin-left: -10px;
 }
-.detail_basket{
-	width: 443px;
-	display: flex;
-	right: 60px;
-	position: fixed;
-	border-radius: 24px;
-	border: 1px solid #DEDEDE;
-  flex-direction: column;
-	background-color:#FFF;
-	padding: 30px;
+.detail_basket p{
+	color: #000;
 }
+.detail_basket {
+	position:fixed;
+	bottom: 0;
+	left:0;
+	width: 100%;
+	padding:0 100px;
+  background-color: #fff;
+}
+
+
+
+
+.table_info thead th {
+  position: sticky;
+  top: 0;
+  background-color: #FFF;
+  z-index: 10;
+}
+
 .table_info th{
-	text-align: left;
+	text-align: center;
 	color: #0F7372;
-	padding: 10px 45px;
+	padding: 10px 25px;
 }
-.td_one td,
-.td_two td{
-	padding: 35px 35px;
+.td_even td,
+.td_odd td{
+	padding: 10px 0;
 }
-.td_one td{
+.counter_table input{
+width: 35px;
+text-align: center;
+}
+.detailed_btn button{
+	padding:5px 15px;
+	border-radius: 12px;
+	background-color: #0F7372;
+	color: #FFF;
+	font-size: 22px;
+	border:none;
+}
+.detailed_btn{
+	display: flex;
+	font-size: 18px;
+	gap: 30px;
+	align-items:center;
+}
+.td_even td{
 	background-color:#F3F6F6;
 }
 .table_info{
-	width: 100px;
+	text-align: center;
+	width: 100%;
 	padding-top: 10px;
 	border-spacing: 0;
+}
+.table_basket{
+	padding-bottom: 50px;
 }
 .counter_table button{
 	border:none;
@@ -832,6 +867,14 @@ flex-direction:column;
 	border-radius:24px;
 	border: 1px solid #DEDEDE;
 	background-color:#FFF;
+	max-width: 1360px;
+}
+.price_basket,
+.basket_price{
+	padding: 0 10px !important;
+}
+.basket_price{
+	font-weight: bold;
 }
 .basket_back{
 	display: flex;
@@ -1143,6 +1186,29 @@ flex-direction:column;
   align-items: center;
   justify-content: center;
   z-index: 999;
+}
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input-wrapper input {
+  padding-right: 30px; /* пространство для крестика */
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: #888;
+}
+
+.clear-search-btn:hover {
+  color: #000;
 }
 
 .modal {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import logo from '../assets/logo.svg';
@@ -11,7 +11,7 @@ function OrderHeader() {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
+  const location = useLocation();
   const { token, logout } = useAuth();
 
   const API_URL = 'http://api.dustipharma.tj:1212/api/v1/app/profile/users';
@@ -46,11 +46,13 @@ function OrderHeader() {
   return (
     <div className="AddProductsToСart">
       <div className="logo_login">
-        <div className="logo_img">
-          <Link to={`/add-products-to-cart`}>
-          <img src={logo} alt="logo" />
+        {location.pathname !== '/order-basket' && (
+          <div className="logo_img">
+            <Link to={`/add-products-to-cart`}>
+            <img src={logo} alt="logo" />
           </Link>
         </div>
+        )}
       </div>
 
       <div className="products_profile">

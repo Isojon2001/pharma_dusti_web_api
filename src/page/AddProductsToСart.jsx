@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Clock3, CircleCheck, Truck, Package } from 'lucide-react';
+import { Search, Clock3, CircleCheck, X, Truck, Package } from 'lucide-react';
 import OrderHeader from '../components/OrderHeader';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
@@ -172,17 +172,32 @@ function AddProductsToCart() {
 
         <div className="products_name">
           <div className="products_info">
+            <div className="search-input-wrapper">
             <label htmlFor="products_search">Найти продукт</label>
-            <input
-              type="text"
-              id="products_search"
-              placeholder="Введите название продукта"
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setPage(1);
-              }}
-            />
+  <input
+    type="text"
+    id="products_search"
+    placeholder="Введите название продукта"
+    value={searchTerm}
+    onChange={(e) => {
+      setSearchTerm(e.target.value);
+      setPage(1);
+    }}
+  />
+  {searchTerm && (
+    <button
+      className="clear-search-btn"
+      onClick={() => {
+        setSearchTerm('');
+        setPage(1);
+      }}
+      aria-label="Очистить поиск"
+    >
+      <X strokeWidth={3}/>
+    </button>
+  )}
+</div>
+
           </div>
 
           <div className="line_cart"></div>
