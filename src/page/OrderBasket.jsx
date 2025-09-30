@@ -16,7 +16,7 @@ function OrderBasket() {
     clearCart,
     removeFromCart,
     updateQuantity,
-    updateBatchIndex, // Предполагаем, что есть метод для обновления выбранной партии
+    updateBatchIndex,
   } = useCart();
   const { token } = useAuth();
 
@@ -25,15 +25,12 @@ function OrderBasket() {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // Локальное состояние для input количества — ключ: productId, значение: строка (позволяет пустое поле)
   const [inputValues, setInputValues] = useState({});
 
-  // Синхронизируем локальный inputValues с cartItems при изменении корзины
   useEffect(() => {
     const newInputValues = {};
     cartItems.forEach(item => {
       const key = item.id || item['Код'] || item['Артикул'];
-      // Берём количество выбранной партии или 1 по умолчанию
       const selectedIndex = item.selectedBatchIndex ?? 0;
       const qty = item.batches?.[selectedIndex]?.quantity ?? item.quantity ?? 1;
       newInputValues[key] = qty.toString();
@@ -41,13 +38,11 @@ function OrderBasket() {
     setInputValues(newInputValues);
   }, [cartItems]);
 
-  // Форматируем дату в читаемый формат
   const formatDate = (dateStr) => {
     if (!dateStr || dateStr === '0001-01-01T00:00:00Z') return '—';
     return new Date(dateStr).toLocaleDateString('ru-RU');
   };
 
-  // Подсчёт общей суммы по выбранным партиям и количеству
   const calculateTotal = () => {
     return cartItems.reduce((sum, item) => {
       const selectedIndex = item.selectedBatchIndex ?? 0;
@@ -146,10 +141,10 @@ function OrderBasket() {
                 <thead>
                   <tr className='table_infos'>
                     <th>№</th>
-                    <th>Производитель</th>
+                    <th className='pro_basket'>Производитель</th>
                     <th>Наименование</th>
                     <th>Кол-во</th>
-                    <th>Цена</th>
+                    <th className='price_basket'>Цена</th>
                     <th>Срок годности</th>
                     <th className='price_basket'>Сумма</th>
                     <th>Удалить</th>
@@ -174,7 +169,7 @@ function OrderBasket() {
                       return (
                         <tr key={key || index} className={index % 2 === 0 ? 'td_even' : 'td_odd'}>
                           <td>{index + 1}</td>
-                          <td>{item['Производитель'] || 'Неизвестен'}</td>
+                          <td className='pro_basket'>{item['Производитель'] || 'Неизвестен'}</td>
                           <td>{item['Наименование']}</td>
                           <td>
                             <div className="counter_table">
@@ -190,7 +185,7 @@ function OrderBasket() {
                               <button onClick={() => increaseQuantity(key)}>+</button>
                             </div>
                           </td>
-                          <td>{price.toFixed(2)}</td>
+                          <td className='plice_basket'>{price.toFixed(2)}</td>
                           <td>
                             {batchesSorted.length > 0 ? (
                               <select

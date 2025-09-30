@@ -735,7 +735,7 @@ flex-direction:column;
 	height: 100vh;
 }
 .OrderBasket_Header{
-    margin: 0 -48px 0px;
+    margin: 0 -40px;
     padding: 40px 60px 125px 60px;
 	background-color:#F3F6F6;
 }
@@ -800,9 +800,12 @@ flex-direction:column;
   background-color: #fff;
 }
 
-
-
-
+.plice_basket{
+	padding: 0 !important; 
+}
+.pro_basket{
+	padding: 0 !important;
+}
 .table_info thead th {
   position: sticky;
   top: 0;
@@ -817,10 +820,14 @@ flex-direction:column;
 }
 .td_even td,
 .td_odd td{
-	padding: 10px 0;
+	  word-break: break-word;
+  white-space: normal;
+	padding: 10px 0px;
 }
 .counter_table input{
 width: 35px;
+background: none;
+border:none;
 text-align: center;
 }
 .detailed_btn button{

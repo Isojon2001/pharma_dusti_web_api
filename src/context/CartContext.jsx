@@ -6,7 +6,6 @@ export function CartProvider({ children, userId }) {
   const [cartItems, setCartItems] = useState([]);
   const hasLoadedCart = useRef(false);
 
-  // Загрузка корзины из localStorage
   useEffect(() => {
     if (!userId || hasLoadedCart.current) return;
 
@@ -25,7 +24,6 @@ export function CartProvider({ children, userId }) {
     }
   }, [userId]);
 
-  // Сохранение корзины в localStorage при изменениях
   useEffect(() => {
     if (!userId || !hasLoadedCart.current) return;
 
@@ -37,10 +35,9 @@ export function CartProvider({ children, userId }) {
     }
   }, [cartItems, userId]);
 
-  // Функция для обновления количества товара
   function updateQuantity(productId, newQuantity) {
     const qty = Number(newQuantity);
-    if (qty < 1) return; // минимум 1
+    if (qty < 1) return;
 
     setCartItems(prevItems =>
       prevItems.map(item => {
