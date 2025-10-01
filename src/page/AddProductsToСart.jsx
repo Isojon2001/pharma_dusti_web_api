@@ -102,7 +102,7 @@ function AddProductsToCart() {
       })
       .finally(() => setLoading(false));
   }, [token, searchTerm, category, summa, page]);
-const groupProductsByCode = (productsList) => {
+    const groupProductsByCode = (productsList) => {
   const grouped = productsList.reduce((acc, product) => {
     const code = product.Код || product.id || product['Артикул'] || 'unknown';
     if (!acc[code]) acc[code] = [];
@@ -237,11 +237,11 @@ const groupProductsByCode = (productsList) => {
           <div className="line_cart"></div>
 
           <div className="summa_block">
-            <label htmlFor="products_summa">Сумма</label>
+            <label htmlFor="products_summa">МНН</label>
             <input
               type="text"
               id="products_summa"
-              placeholder="0 сом – 5000 сом"
+              placeholder="Введите название"
               value={summa}
               onChange={(e) => {
                 setSumma(e.target.value);
@@ -272,8 +272,7 @@ const groupProductsByCode = (productsList) => {
             <tbody>
               {Object.entries(groupedProducts).map(([code, productGroup], index) => {
                 const selectedId = selectedProductByCode[code] || productGroup[0].id;
-                const selectedProduct =
-                  productGroup.find((p) => p.id === selectedId) || productGroup[0];
+                const selectedProduct =  productGroup.find((p) => p.id === selectedId) || productGroup[0];
                 const quantity = quantities[code] || 1;
                 const isAdded = addedItems[code];
 
