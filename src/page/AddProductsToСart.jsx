@@ -23,8 +23,9 @@ function AddProductsToCart() {
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({ current_page: 1, last_page: 1, total: 0 });
   const [loading, setLoading] = useState(false);
-
   const [selectedProductByCode, setSelectedProductByCode] = useState({});
+
+  const showTable = searchTerm.trim() !== '' || summa.trim() !== '' || category !== 'products';
 
   useEffect(() => {
     if (!token) return;
@@ -66,15 +67,8 @@ function AddProductsToCart() {
     const [minSumma, maxSumma] = parseSummaRange(summa);
 
     const params = { page };
-
-    if (searchTerm.trim() !== '') {
-      params.name = searchTerm.trim();
-    }
-
-    if (category !== 'products') {
-      params.category = category;
-    }
-
+    if (searchTerm.trim() !== '') params.name = searchTerm.trim();
+    if (category !== 'products') params.category = category;
     if (minSumma > 0) params.min_price = minSumma;
     if (maxSumma !== Infinity) params.max_price = maxSumma;
 
@@ -84,10 +78,14 @@ function AddProductsToCart() {
         params,
       })
       .then((res) => {
-        setProducts(res?.data?.payload?.data || []);
-        setMeta(res?.data?.payload?.meta || { current_page: 1, last_page: 1, total: 0 });
+        const newProducts = res?.data?.payload?.data || [];
+        const newMeta = res?.data?.payload?.meta || { current_page: 1, last_page: 1, total: 0 };
 
-        const grouped = groupProductsByCode(res?.data?.payload?.data || []);
+        setMeta(newMeta);
+
+        setProducts((prev) => (page === 1 ? newProducts : [...prev, ...newProducts]));
+
+        const grouped = groupProductsByCode(page === 1 ? newProducts : [...products, ...newProducts]);
         const defaultSelected = {};
         for (const code in grouped) {
           defaultSelected[code] = grouped[code][0]?.id;
@@ -96,34 +94,60 @@ function AddProductsToCart() {
       })
       .catch((err) => {
         console.error('Ошибка загрузки продуктов:', err);
-        setProducts([]);
-        setMeta({ current_page: 1, last_page: 1, total: 0 });
-        setSelectedProductByCode({});
+        if (page === 1) {
+          setProducts([]);
+          setMeta({ current_page: 1, last_page: 1, total: 0 });
+          setSelectedProductByCode({});
+        }
       })
       .finally(() => setLoading(false));
   }, [token, searchTerm, category, summa, page]);
-    const groupProductsByCode = (productsList) => {
-  const grouped = productsList.reduce((acc, product) => {
-    const code = product.Код || product.id || product['Артикул'] || 'unknown';
-    if (!acc[code]) acc[code] = [];
-    acc[code].push(product);
-    return acc;
-  }, {});
 
-  for (const code in grouped) {
-    grouped[code].sort((a, b) => {
-      const dateA = new Date(a['Срок']);
-      const dateB = new Date(b['Срок']);
-      return dateA - dateB;
+  useEffect(() => {
+    if (!showTable) return;
+
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.body.scrollHeight;
+
+      const nearBottom = scrollTop + windowHeight >= documentHeight - 300;
+
+      if (nearBottom && page < meta.last_page && !loading) {
+        setPage((prev) => prev + 1);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [showTable, page, meta.last_page, loading]);
+
+  const groupProductsByCode = (productsList) => {
+    const grouped = {};
+    productsList.forEach((product) => {
+      const code = product.Код || product.id || product['Артикул'] || 'unknown';
+      const expiryRaw = product['Срок'];
+      if (!expiryRaw || expiryRaw === '0001-01-01T00:00:00Z') return;
+      const expiryDate = new Date(expiryRaw);
+      const year = expiryDate.getFullYear();
+      if (year < 2024 || year > 2030) return;
+
+      if (!grouped[code]) grouped[code] = [];
+
+      const alreadyExists = grouped[code].some(
+        (p) => new Date(p['Срок']).toISOString().split('T')[0] === expiryDate.toISOString().split('T')[0]
+      );
+      if (!alreadyExists) {
+        grouped[code].push(product);
+      }
     });
 
-    grouped[code] = grouped[code].slice(0, 2);
-  }
+    for (const code in grouped) {
+      grouped[code].sort((a, b) => new Date(a['Срок']) - new Date(b['Срок']));
+    }
 
-  return grouped;
-};
-
-
+    return grouped;
+  };
 
   const formatDate = (dateStr) => {
     if (!dateStr || dateStr === '0001-01-01T00:00:00Z') return '—';
@@ -132,10 +156,7 @@ function AddProductsToCart() {
 
   const handleQuantityChange = (code, value) => {
     const quantity = Math.max(1, parseInt(value) || 1);
-    setQuantities((prev) => ({
-      ...prev,
-      [code]: quantity,
-    }));
+    setQuantities((prev) => ({ ...prev, [code]: quantity }));
   };
 
   const handleAddToCart = (code) => {
@@ -155,15 +176,6 @@ function AddProductsToCart() {
   };
 
   const groupedProducts = groupProductsByCode(products);
-
-  const showTable =
-    searchTerm.trim() !== '' || summa.trim() !== '' || category !== 'products';
-
-  const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= meta.last_page && newPage !== page) {
-      setPage(newPage);
-    }
-  };
 
   return (
     <div className="AddProductsToCart_content">
@@ -186,31 +198,30 @@ function AddProductsToCart() {
         <div className="products_name">
           <div className="products_info">
             <div className="search-input-wrapper">
-            <label htmlFor="products_search">Найти продукт</label>
-  <input
-    type="text"
-    id="products_search"
-    placeholder="Введите название продукта"
-    value={searchTerm}
-    onChange={(e) => {
-      setSearchTerm(e.target.value);
-      setPage(1);
-    }}
-  />
-  {searchTerm && (
-    <button
-      className="clear-search-btn"
-      onClick={() => {
-        setSearchTerm('');
-        setPage(1);
-      }}
-      aria-label="Очистить поиск"
-    >
-      <X strokeWidth={3}/>
-    </button>
-  )}
-</div>
-
+              <label htmlFor="products_search">Найти продукт</label>
+              <input
+                type="text"
+                id="products_search"
+                placeholder="Введите название продукта"
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setPage(1);
+                }}
+              />
+              {searchTerm && (
+                <button
+                  className="clear-search-btn"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setPage(1);
+                  }}
+                  aria-label="Очистить поиск"
+                >
+                  <X strokeWidth={3} />
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="line_cart"></div>
@@ -255,7 +266,7 @@ function AddProductsToCart() {
           </div>
         </div>
 
-        {loading && <p>Загрузка...</p>}
+        {loading && page === 1 && <p>Загрузка...</p>}
 
         {showTable && !loading && Object.keys(groupedProducts).length > 0 && (
           <table className="products_table">
@@ -272,15 +283,13 @@ function AddProductsToCart() {
             <tbody>
               {Object.entries(groupedProducts).map(([code, productGroup], index) => {
                 const selectedId = selectedProductByCode[code] || productGroup[0].id;
-                const selectedProduct =  productGroup.find((p) => p.id === selectedId) || productGroup[0];
+                const selectedProduct = productGroup.find((p) => p.id === selectedId) || productGroup[0];
                 const quantity = quantities[code] || 1;
                 const isAdded = addedItems[code];
 
                 return (
                   <tr key={code} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
-                    <td>
-                      <strong>{selectedProduct['Наименование']}</strong>
-                    </td>
+                    <td><strong>{selectedProduct['Наименование']}</strong></td>
                     <td>{selectedProduct['Производитель'] || 'Неизвестен'}</td>
                     <td>
                       {productGroup.length > 1 ? (
@@ -349,6 +358,10 @@ function AddProductsToCart() {
           </table>
         )}
 
+        {loading && page > 1 && (
+          <p className="loading-more">Загрузка ещё продуктов...</p>
+        )}
+
         {showTable && !loading && Object.keys(groupedProducts).length === 0 && (
           <p className="no-results-text">Продукты не найдены</p>
         )}
@@ -386,31 +399,15 @@ function AddProductsToCart() {
                 )}
               </div>
             </div>
-
             <div>
               <img src="./Frame 2131328827.png" width="580" height="290" alt="cart" />
             </div>
-          </div>
-        )}
-
-        {showTable && !loading && meta.last_page > 1 && (
-          <div className="pagination">
-            <button onClick={() => handlePageChange(page - 1)} disabled={page === 1}>
-              Назад
-            </button>
-            <span>
-              Страница {page} из {meta.last_page}
-            </span>
-            <button onClick={() => handlePageChange(page + 1)} disabled={page === meta.last_page}>
-              Вперед
-            </button>
           </div>
         )}
       </main>
     </div>
   );
 }
-
 
 function OrderStep({ icon, label, stepKey, currentStatus, isLast }) {
   const statusOrder = ['issued', 'pending', 'assembled', 'delivered', 'completed'];
@@ -440,6 +437,5 @@ function OrderStep({ icon, label, stepKey, currentStatus, isLast }) {
     </div>
   );
 }
-
 
 export default AddProductsToCart;
