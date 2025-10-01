@@ -136,16 +136,15 @@ function OrderBasket() {
       <div className="OrderBasket_Header">
         <div className="table_basket">
           <div className="table_scrollable">
-            <div className="bg_table">
               <table className="table_info">
                 <thead>
                   <tr className='table_infos'>
-                    <th>№</th>
+                    <th className='numeration_basket'>№</th>
                     <th className='pro_basket'>Производитель</th>
                     <th>Наименование</th>
-                    <th>Кол-во</th>
+                    <th className='expiration_date'>Кол-во</th>
                     <th className='price_basket'>Цена</th>
-                    <th>Срок годности</th>
+                    <th className='expiration_date'>Срок годности</th>
                     <th className='price_basket'>Сумма</th>
                     <th>Удалить</th>
                   </tr>
@@ -156,7 +155,10 @@ function OrderBasket() {
                       <td colSpan="8" className="basket_empty">Корзина пуста</td>
                     </tr>
                   ) : (
-                    cartItems.map((item, index) => {
+                      cartItems
+                      .slice()
+                      .sort((a, b) => a['Наименование'].localeCompare(b['Наименование']))
+                      .map((item, index) => {
                       const key = item.id || item['Код'] || item['Артикул'];
                       const selectedIndex = item.selectedBatchIndex ?? 0;
                       const batchesSorted = (item.batches || []).slice().sort((a, b) => new Date(a.expiry) - new Date(b.expiry));
@@ -168,7 +170,7 @@ function OrderBasket() {
 
                       return (
                         <tr key={key || index} className={index % 2 === 0 ? 'td_even' : 'td_odd'}>
-                          <td>{index + 1}</td>
+                          <td className='numeration_basket'>{index + 1}</td>
                           <td className='pro_basket'>{item['Производитель'] || 'Неизвестен'}</td>
                           <td>{item['Наименование']}</td>
                           <td>
@@ -186,7 +188,7 @@ function OrderBasket() {
                             </div>
                           </td>
                           <td className='plice_basket'>{price.toFixed(2)}</td>
-                          <td>
+                          <td className='expiration_date'>
                             {batchesSorted.length > 0 ? (
                               <select
                                 value={selectedIndex}
@@ -218,7 +220,6 @@ function OrderBasket() {
                   )}
                 </tbody>
               </table>
-            </div>
 
           </div>
             <div className="detail_basket">

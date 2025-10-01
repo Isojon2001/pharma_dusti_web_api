@@ -737,9 +737,6 @@ flex-direction:column;
 	padding: 0 50px;
 	background-color:#F3F6F6;
 }
-.DetailedHistory_content{
-	height: 100vh;
-}
 .OrderBasket_Header{
     margin: 0 -40px;
     padding: 30px 60px 130px 60px;
@@ -768,7 +765,7 @@ flex-direction:column;
 .detail_basket>div{
 	display: flex;
 	margin: -10px;
-	gap: 900px;
+	gap: 970px;
 }
 .detail_basket p{
 	font-size: 22px;
@@ -805,9 +802,13 @@ flex-direction:column;
 	padding:0 100px;
   background-color: #fff;
 }
-
+.numeration_basket,
+.price_basket{
+	text-align: center;
+	padding: 0 5px !important;
+}
 .plice_basket{
-	padding: 0 !important; 
+text-align: center; 
 }
 .pro_basket{
 	padding: 0 !important;
@@ -820,18 +821,20 @@ flex-direction:column;
 }
 
 .table_info th{
-	text-align: center;
 	color: #0F7372;
-	padding: 10px 25px;
+	padding: 10px 0px;
+}
+.td_odd {
+	background-color:#FFF;
 }
 .td_even td,
 .td_odd td{
 	  word-break: break-word;
   white-space: normal;
-	padding: 10px 0px;
+	padding: 5px 0px;
 }
 .counter_table input{
-width: 35px;
+width: 60px;
 background: none;
 border:none;
 text-align: center;
@@ -854,10 +857,12 @@ text-align: center;
 	background-color:#F3F6F6;
 }
 .table_info{
-	text-align: center;
-	width: 100%;
-	padding-top: 10px;
-	border-spacing: 0;
+	text-align: left;
+    padding: 10px 0px;
+    width: 1370px;
+    border-radius: 24px;
+    background: #FFF;
+    border-spacing: 0;
 }
 .counter_table button{
 	border:none;
@@ -869,7 +874,6 @@ text-align: center;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 10px;
 	border-radius:60px;
 	border: 1px solid #0F7372;
 }
@@ -879,12 +883,36 @@ text-align: center;
 	background-color:#FFF;
 	max-width: 1360px;
 }
-.price_basket,
 .basket_price{
-	padding: 0 10px !important;
-}
-.basket_price{
+	text-align: center;
 	font-weight: bold;
+}
+
+.order_basket_step{
+	display: flex;
+}
+.detailed_bg{
+	    margin-top: 20px;
+    right: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: fixed;
+}
+
+.detailed_bg button{
+    background: #0F7372;
+    color: #FFF;
+    font-size: 18px;
+    margin-top: 20px;
+    border:none;
+    border-radius:12px;
+    padding: 10px 50px;
+    align-items:center;
+    display: flex;
+}
+.expiration_date{
+	text-align: center;
 }
 .basket_back{
 	display: flex;
@@ -946,12 +974,15 @@ text-align: center;
 	border-radius:60px;
 	background-color:#FFF;
 }
-.bg_history{
-	height: 275vh;
+.bg_history,
+.bg_detailed{
 	padding: 0 40px 0;
     margin: 0 -40px 0;
 	align-items:baseline;
 	background-color:#F3F6F6;	
+}
+.bg_history{
+	height: 275vh
 }
 .rdrMonthAndYearWrapper{
 	display: none !important;
