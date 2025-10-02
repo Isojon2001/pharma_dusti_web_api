@@ -46,7 +46,7 @@ function RegistrationPage() {
       <form onSubmit={handleSubmit} className="forms registration_forms">
         <div className="registration_paragraph">
           <h1>Зарегистрироваться</h1>
-          <p>Мы отправим код подтверждения для сброса пароля</p>
+          <p>Мы отправим код подтверждения для регистрации</p>
         </div>
 
         <div className="form">
@@ -56,7 +56,7 @@ function RegistrationPage() {
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             required
-            placeholder='888xxxxxx(9цифр)'
+            placeholder='Введите номер телефона'
           />
         </div>
 

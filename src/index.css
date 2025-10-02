@@ -40,8 +40,8 @@ chtml, body, #root {
 
 .cart-modal {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: 5px;
+  right: 570px;
   background: rgba(15, 115, 114, 0.95);
   color: #fff;
   padding: 16px 24px;
@@ -731,18 +731,17 @@ flex-direction:column;
 	max-width: 1440px;
 	margin: 0 auto;
 }
+.order_basket_tables{
+	background-color:#F3F6F6;
+	height: 70vh;
+	margin: 0 -40px;
+	padding: 0 47px;
+}
 .order_basket_table{
-	height: 80vh;
-	margin: 0 -50px;
-	padding: 0 50px;
+	margin:0 -47px;
 	background-color:#F3F6F6;
+padding: 30px 47px 130px 47px; 
 }
-.OrderBasket_Header{
-    margin: 0 -40px;
-    padding: 30px 60px 130px 60px;
-	background-color:#F3F6F6;
-}
-
 .delete_basket_product{
 	display: flex;
 }
@@ -796,6 +795,8 @@ flex-direction:column;
 
 .detail_basket p:nth-of-type(1){
 	color: #858585;
+	margin: 17px 0;
+	text-align: center;
 	font-weight: bold;
 }
 
@@ -809,11 +810,14 @@ flex-direction:column;
 .detail_basket {
 	position:fixed;
 	bottom: 0;
+	gap: 550px;
+	display: flex;
 	left:0;
 	width: 100%;
 	padding:0 100px;
   background-color: #fff;
 }
+
 .numeration_basket,
 .price_basket{
 	text-align: center;
@@ -831,7 +835,10 @@ text-align: center;
   background-color: #FFF;
   z-index: 10;
 }
-
+.table_scrollable{
+	display: flex;
+	justify-content: center;
+}
 .table_info th{
 	color: #0F7372;
 	padding: 10px 0px;
@@ -902,14 +909,13 @@ text-align: center;
 
 .order_basket_step{
 	display: flex;
+	justify-self: center;
 }
 .detailed_bg{
-	    margin-top: 20px;
-    right: 50px;
+	  margin-top: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    position: fixed;
 }
 
 .detailed_bg button{
@@ -939,6 +945,10 @@ text-align: center;
 	padding:0 60px;
 	justify-content: space-around;
 }
+.detailed_rows{
+	display: flex;
+	gap: 70px;
+}
 .detailed_line{
 	width: 540px;
 	border: 1px solid #DEDEDE;
@@ -957,12 +967,6 @@ text-align: center;
 	display: flex;
 	justify-content: center;
 	gap: 10px;
-}
-.users_detailed{
-	padding: 0px 30px;
-	background-color:#FFF;
-	margin-top: 20px;
-	border-radius:16px;
 }
 .users_order{
 	text-decoration:none;
@@ -991,6 +995,7 @@ text-align: center;
 	padding: 0 40px 0;
     margin: 0 -40px 0;
 	align-items:baseline;
+	height: 87vh;
 	background-color:#F3F6F6;	
 }
 .bg_history{
@@ -1012,7 +1017,18 @@ text-align: center;
 .results_searching{
 	margin: 20px 0 50px 0;
 	display: flex;
+	text-align: center;
 	flex-direction:column;
+}
+.load-more-container button{
+	padding: 10px 60px;
+	font-size: 16px;
+	color: #FFF;
+	border: none;
+	border-radius:10px;
+	background-color:#0F7372;
+	margin:40px 0;
+	margin-right: 90px;
 }
 .forms>button{
 	padding: 14px 0px;
@@ -1232,6 +1248,56 @@ text-align: center;
   position: fixed;
   top: 0;
   left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px 30px;
+  border-radius: 8px;
+  max-width: 400px;
+  text-align: center;
+}
+
+.modal-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-around;
+}
+
+.confirm-btn:hover{
+background-color:#235858;
+}
+.cancel-btn:hover{
+background-color:#ff1100;
+}
+
+.confirm-btn {
+  background-color: #0F7372;
+}
+.cancel-btn {
+  background-color: #f44336;
+}
+
+.confirm-btn,
+.cancel-btn {
+	cursor:pointer;
+	border-radius: 8px;
+  color: white;
+  border:none;
+  padding: 10px 30px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
@@ -1429,8 +1495,6 @@ text-align: center;
 	flex-direction: column;
 	align-items: center;
 }
-.products_table thead tr {
-}
 .even-row {
   background-color: #f1f1f1;
 }
@@ -1438,15 +1502,27 @@ text-align: center;
 .odd-row {
   background-color: #ffffff;
 }
-
 .products_table th {
   padding: 12px 20px;
+  padding: 12px 20px;
   font-weight: 600;
-  font-size: 13px;
+  position: sticky;
+  top: 0;
+  background-color: #FFF;
+  z-index: 10;
   color: #0F7372;
-  text-align: left;
+  text-align: center;
   border-bottom: 1px solid #c7d5d9;
   user-select: none;
+  font-weight: 600;
+  color: #0F7372;
+  text-align: center;
+  border-bottom: 1px solid #c7d5d9;
+  user-select: none;
+}
+
+.products_names{
+	text-align: left !important;
 }
 
 .products_table tbody tr {
@@ -1470,9 +1546,7 @@ text-align: center;
 	border-radius:12px;
 }
 .products_table tbody td {
-  padding: 7px 0px;
-  font-size: 14px;
-  vertical-align: middle;
+  padding: 7px 20px;
   border-bottom: 1px solid #eee;
 }
 

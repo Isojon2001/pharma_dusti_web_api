@@ -9,7 +9,6 @@ function OrderSuccessModal({ onClose }) {
         </div>
         <h2 class="order-success__title">Заказ оформлен</h2>
         <p class="order-success__message">Спасибо за ваш заказ!</p>
-        <p class="order-success__message">Наши менеджеры скоро с вами свяжуться</p>
         <button class="order-success__button" onClick={onClose}>Закрыть</button>
       </div>
     </div>

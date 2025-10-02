@@ -139,43 +139,12 @@ function DetailedHistory() {
           ) : orderDetails ? (
             <div className="detailed_info">
               <div className="users_detailed">
-                <div className="user_order">
-                  <div>
-                    <h2>#{orderDetails.code || '—'}</h2>
-                  </div>
-                </div>
-
-                <div>
-                  <h2>Детали заказа</h2>
-                  {groupedItems.map((item, index) => (
-                    <div key={index}>
-                      {shouldShowName(index) ? (
-                        <p>Наименование товара: <span>{item.name}</span></p>
-                      ) : (
-                        <div style={{ height: '1.5em' }}></div>
-                      )}
-                      <p>Кол-во товара: <span>{item.quantity}</span></p>
-                      <p>Сумма товара : <span>{(item.price).toFixed(2)} сом</span></p>
-                      {item.expiration_date && (
-                        <p>Срок годности: <span>{new Date(item.expiration_date).toLocaleDateString('ru-RU')}</span></p>
-                      )}
-                      <div className="detailed_line"></div>
-                    </div>
-                  ))}
-                  <h3>Общая сумма: <span>{getTotalPrice(orderDetails.items).toFixed(2)} сом</span></h3>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <p>Данные заказа не найдены.</p>
-          )}
-          <div className="order_bg detailed_bg">
-            {orderDetails ? (
-              <>
-                <div className='active_order'>
-                  <h1>Статус заказа:</h1>
-                </div>
-
+                <div className="order_bg users_detailed detailed_bg">
+                    {orderDetails ? (
+                      <>
+                        <div className='active_order'>
+                          <h1>Статус заказа:</h1>
+                        </div>
                 <div className="order_info">
                   <OrderStep 
                     icon={<CircleCheck />} 
@@ -224,6 +193,11 @@ function DetailedHistory() {
               </div>
             )}
           </div>
+              </div>
+            </div>
+          ) : (
+            <p>Данные заказа не найдены.</p>
+          )}
         </div>
       </div>
     </div>
