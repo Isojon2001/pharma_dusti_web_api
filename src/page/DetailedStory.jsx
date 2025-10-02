@@ -72,32 +72,29 @@ function DetailedHistory() {
 
       if (expiryYear < 2024 || expiryYear > 2030) return;
 
-      const key = item.name;
+      const key = `${item.name}_${expiry}`;
 
       if (!grouped[key]) {
-        grouped[key] = {
-          name: item.name,
-          quantity: 0,
-          price: item.price,
-          expiration_dates: []
-        };
-      }
-
-      grouped[key].quantity += item.quantity;
-      if (!grouped[key].expiration_dates.includes(expiry)) {
-        grouped[key].expiration_dates.push(expiry);
+        grouped[key] = { ...item };
       }
     });
 
-    Object.values(grouped).forEach(item => {
-      item.expiration_dates.sort((a, b) => new Date(a) - new Date(b));
-    });
-
-    return Object.values(grouped);
+    return Object.values(grouped).sort(
+      (a, b) => new Date(a.expiration_date) - new Date(b.expiration_date)
+    );
   };
 
   const groupedItems = orderDetails?.items ? groupItems(orderDetails.items) : [];
   
+  const shouldShowName = (currentIndex) => {
+    if (currentIndex === 0) return true;
+    
+    const currentItem = groupedItems[currentIndex];
+    const previousItem = groupedItems[currentIndex - 1];
+    
+    return currentItem.name !== previousItem.name;
+  };
+
   const mapStatusToKey = (status) => {
     if (!status) return '';
     console.log('Статус из orders/customer:', status);
@@ -152,20 +149,15 @@ function DetailedHistory() {
                   <h2>Детали заказа</h2>
                   {groupedItems.map((item, index) => (
                     <div key={index}>
-                      <p>Наименование товара: <span>{item.name}</span></p>
+                      {shouldShowName(index) ? (
+                        <p>Наименование товара: <span>{item.name}</span></p>
+                      ) : (
+                        <div style={{ height: '1.5em' }}></div>
+                      )}
                       <p>Кол-во товара: <span>{item.quantity}</span></p>
-                      <p>Сумма товара: <span>{(item.price * item.quantity).toFixed(2)} сом</span></p>
-                      {item.expiration_dates.length > 0 && (
-                        <div className="expiration-dates">
-                          <p>Сроки годности:</p>
-                          <div className="dates-list">
-                            {item.expiration_dates.map((date, i) => (
-                              <div key={i} className="date-item">
-                                {new Date(date).toLocaleDateString('ru-RU')}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
+                      <p>Сумма товара : <span>{(item.price).toFixed(2)} сом</span></p>
+                      {item.expiration_date && (
+                        <p>Срок годности: <span>{new Date(item.expiration_date).toLocaleDateString('ru-RU')}</span></p>
                       )}
                       <div className="detailed_line"></div>
                     </div>
