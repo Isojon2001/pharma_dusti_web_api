@@ -24,6 +24,8 @@ function AddProductsToCart() {
   const [meta, setMeta] = useState({ current_page: 1, last_page: 1, total: 0 });
   const [loading, setLoading] = useState(false);
   const [selectedProductByCode, setSelectedProductByCode] = useState({});
+  const [banner, setBanner] = useState(null);
+  const [bannerLoading, setBannerLoading] = useState(true);
 
   const showTable = searchTerm.trim() !== '' || summa.trim() !== '' || category !== 'products';
 
@@ -35,6 +37,31 @@ function AddProductsToCart() {
       })
       .then((res) => setCategories(res?.data?.payload?.data || []))
       .catch((err) => console.error('Ошибка загрузки категорий:', err));
+    setBannerLoading(true);
+    axios
+      .get('http://api.dustipharma.tj:1212/api/v1/app/banners', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        const banners = res?.data?.payload?.data || [];
+        console.log('Баннеры от API:', banners);
+        
+        const activeBanner = banners.find(banner => banner.is_active) || banners[0];
+        
+        if (activeBanner) {
+          setBanner({
+            ...activeBanner,
+            fullImageUrl: `http://api.dustipharma.tj:1212${activeBanner.poster_path}`
+          });
+        } else {
+          setBanner(null);
+        }
+      })
+      .catch((err) => {
+        console.error('Ошибка загрузки баннера:', err);
+        setBanner(null);
+      })
+      .finally(() => setBannerLoading(false));
   }, [token]);
 
   useEffect(() => {
@@ -400,7 +427,28 @@ function AddProductsToCart() {
               </div>
             </div>
             <div>
-              <img src="./Frame 2131328827.png" width="580" height="290" alt="cart" />
+              {bannerLoading ? (
+                <div>
+                  <p>Загрузка баннера...</p>
+                </div>
+              ) : banner ? (
+                <img 
+                  src={banner.fullImageUrl} 
+                  alt={banner.title || 'Баннер'} 
+                  width="580" 
+                  height="290" 
+                  style={{borderRadius: '16px' }}
+                  onError={(e) => {
+                    console.error('Ошибка загрузки изображения баннера');
+                    e.target.style.display = 'none';
+                  }}
+                  crossOrigin="anonymous"
+                />
+              ) : (
+                <div>
+                  <p>Баннер не найден</p>
+                </div>
+              )}
             </div>
           </div>
         )}
