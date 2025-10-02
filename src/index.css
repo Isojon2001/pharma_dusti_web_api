@@ -749,6 +749,18 @@ flex-direction:column;
 .basket_back h1{
 	font-size: 44px;
 }
+.expiration-dates {
+  margin: 8px 0;
+}
+
+.dates-list {
+  margin-left: 20px;
+}
+
+.date-item {
+  padding: 2px 0;
+  color: #666;
+}
 .detail_basket>button:hover{
 	background-color: #145352;
 }

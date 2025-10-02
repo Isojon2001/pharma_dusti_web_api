@@ -8,7 +8,6 @@ function DetailedHistory() {
   const { order_id } = useParams();
   const { token } = useAuth();
 
-  const [orderStatus, setOrderStatus] = useState(null);
   const [orderDetails, setOrderDetails] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -19,22 +18,6 @@ function DetailedHistory() {
       setLoading(true);
 
       try {
-        const statusRes = await fetch(`http://api.dustipharma.tj:1212/api/v1/app/orders/status/${order_id}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const statusData = await statusRes.json();
-
-        if (statusData?.code === 200 && statusData.payload) {
-          setOrderStatus(statusData.payload.status);
-        } else {
-          setOrderStatus(null);
-          console.warn('Ошибка при получении статуса заказа:', statusData);
-        }
-
         const ordersRes = await fetch(`http://api.dustipharma.tj:1212/api/v1/app/orders/customer`, {
           headers: {
             'Content-Type': 'application/json',
@@ -43,6 +26,7 @@ function DetailedHistory() {
         });
 
         const ordersData = await ordersRes.json();
+        console.log('Все заказы от API:', ordersData);
 
         if (ordersData?.code === 200 && Array.isArray(ordersData.payload)) {
           const foundOrder = ordersData.payload.find(
@@ -50,6 +34,7 @@ function DetailedHistory() {
           );
 
           if (foundOrder) {
+            console.log('Найденный заказ:', foundOrder);
             setOrderDetails(foundOrder);
           } else {
             setOrderDetails(null);
@@ -61,7 +46,6 @@ function DetailedHistory() {
         }
       } catch (error) {
         console.error('Ошибка при загрузке данных:', error);
-        setOrderStatus(null);
         setOrderDetails(null);
       } finally {
         setLoading(false);
@@ -76,57 +60,69 @@ function DetailedHistory() {
     return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   };
 
-const groupItems = (items) => {
-  const grouped = {};
+  const groupItems = (items) => {
+    const grouped = {};
 
-  items.forEach((item) => {
-    const expiry = item.expiration_date;
+    items.forEach((item) => {
+      const expiry = item.expiration_date;
 
-    if (!expiry) return;
+      if (!expiry) return;
 
-    const expiryYear = new Date(expiry).getFullYear();
+      const expiryYear = new Date(expiry).getFullYear();
 
-    if (expiryYear < 2024 || expiryYear > 2030) return;
+      if (expiryYear < 2024 || expiryYear > 2030) return;
 
-    const key = `${item.name}_${expiry}`;
+      const key = item.name;
 
-    if (!grouped[key]) {
-      grouped[key] = { ...item };
-    }
-  });
+      if (!grouped[key]) {
+        grouped[key] = {
+          name: item.name,
+          quantity: 0,
+          price: item.price,
+          expiration_dates: []
+        };
+      }
 
-  return Object.values(grouped).sort(
-    (a, b) => new Date(a.expiration_date) - new Date(b.expiration_date)
-  );
-};
+      grouped[key].quantity += item.quantity;
+      if (!grouped[key].expiration_dates.includes(expiry)) {
+        grouped[key].expiration_dates.push(expiry);
+      }
+    });
 
+    Object.values(grouped).forEach(item => {
+      item.expiration_dates.sort((a, b) => new Date(a) - new Date(b));
+    });
 
-  const groupedItems = orderDetails?.items ? groupItems(orderDetails.items) : [];
-  const activeOrder = orderDetails ? { ...orderDetails, status: orderStatus } : null;
-
-  const mapStatusToKey = (status) => {
-    if (!status) return '';
-    const normalized = status.toLowerCase();
-
-    switch (normalized) {
-      case 'оформлено':
-        return 'issued';
-      case 'в обработке':
-        return 'pending';
-      case 'в процессе сборки':
-        return 'assembled';
-      case 'в процессе доставки':
-        return 'delivered';
-      case 'доставлен':
-        return 'completed';
-      case 'к отгрузке':
-        return 'pending';
-      default:
-        return '';
-    }
+    return Object.values(grouped);
   };
 
-  const currentStatusKey = mapStatusToKey(orderStatus);
+  const groupedItems = orderDetails?.items ? groupItems(orderDetails.items) : [];
+  
+  const mapStatusToKey = (status) => {
+    if (!status) return '';
+    console.log('Статус из orders/customer:', status);
+    const normalized = status.toLowerCase().trim();
+    const statusMap = {
+      'pending': 'pending',
+      'assembled': 'assembled', 
+      'in_transit': 'delivered',
+      'completed': 'completed',
+      'delivered': 'delivered',
+      'issued': 'issued'
+    };
+
+    const mappedKey = statusMap[normalized] || 'pending';
+    console.log('Сопоставленный ключ:', mappedKey);
+    
+    return mappedKey;
+  };
+
+  const currentStatusKey = mapStatusToKey(orderDetails?.status);
+
+  console.log('Финальный статус для отображения:', {
+    originalStatus: orderDetails?.status,
+    mappedKey: currentStatusKey
+  });
 
   return (
     <div className="DetailedHistory">
@@ -158,9 +154,18 @@ const groupItems = (items) => {
                     <div key={index}>
                       <p>Наименование товара: <span>{item.name}</span></p>
                       <p>Кол-во товара: <span>{item.quantity}</span></p>
-                      <p>Сумма товара : <span>{(item.price).toFixed(2)} сом</span></p>
-                      {item.expiration_date && (
-                        <p>Срок годности: <span>{item.expiration_date}</span></p>
+                      <p>Сумма товара: <span>{(item.price * item.quantity).toFixed(2)} сом</span></p>
+                      {item.expiration_dates.length > 0 && (
+                        <div className="expiration-dates">
+                          <p>Сроки годности:</p>
+                          <div className="dates-list">
+                            {item.expiration_dates.map((date, i) => (
+                              <div key={i} className="date-item">
+                                {new Date(date).toLocaleDateString('ru-RU')}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       )}
                       <div className="detailed_line"></div>
                     </div>
@@ -173,20 +178,52 @@ const groupItems = (items) => {
             <p>Данные заказа не найдены.</p>
           )}
           <div className="order_bg detailed_bg">
-            {activeOrder ? (
+            {orderDetails ? (
               <>
                 <div className='active_order'>
                   <h1>Статус заказа:</h1>
                 </div>
 
                 <div className="order_info">
-                  <OrderStep icon={<CircleCheck />} label="Оформлено" stepKey="issued" currentStatus={currentStatusKey} isLast={false} />
-                  <OrderStep icon={<Clock3 />} label="В обработке" stepKey="pending" currentStatus={currentStatusKey} isLast={false} />
-                  <OrderStep icon={<Package />} label="В процессе сборки" stepKey="assembled" currentStatus={currentStatusKey} isLast={false} />
-                  <OrderStep icon={<Truck />} label="В процессе доставки" stepKey="delivered" currentStatus={currentStatusKey} isLast={false} />
-                  <OrderStep icon={<CircleCheck />} label="Доставлен" stepKey="completed" currentStatus={currentStatusKey} isLast={true} />
+                  <OrderStep 
+                    icon={<CircleCheck />} 
+                    label="Оформлено" 
+                    stepKey="issued" 
+                    currentStatus={currentStatusKey} 
+                    isLast={false} 
+                  />
+                  <OrderStep 
+                    icon={<Clock3 />} 
+                    label="В обработке" 
+                    stepKey="pending" 
+                    currentStatus={currentStatusKey} 
+                    isLast={false} 
+                  />
+                  <OrderStep 
+                    icon={<Package />} 
+                    label="К отгрузке" 
+                    stepKey="assembled" 
+                    currentStatus={currentStatusKey} 
+                    isLast={false} 
+                  />
+                  <OrderStep 
+                    icon={<Truck />} 
+                    label="В процессе доставки" 
+                    stepKey="delivered" 
+                    currentStatus={currentStatusKey} 
+                    isLast={false} 
+                  />
+                  <OrderStep 
+                    icon={<CircleCheck />} 
+                    label="Доставлен" 
+                    stepKey="completed" 
+                    currentStatus={currentStatusKey} 
+                    isLast={true} 
+                  />
                 </div>
-                <button>Потвердить получении</button>
+                {currentStatusKey === 'delivered' && (
+                  <button>Подтвердить получение</button>
+                )}
               </>
             ) : (
               <div className="no_active_order">
@@ -206,7 +243,16 @@ function OrderStep({ icon, label, stepKey, currentStatus, isLast }) {
   const currentIndex = statusOrder.indexOf(currentStatus);
   const stepIndex = statusOrder.indexOf(stepKey);
 
-  const isReached = stepIndex <= currentIndex;
+  console.log('OrderStep:', { 
+    stepKey, 
+    label,
+    currentStatus, 
+    currentIndex, 
+    stepIndex,
+    isReached: stepIndex <= currentIndex
+  });
+
+  const isReached = stepIndex <= currentIndex && currentIndex !== -1;
 
   const colorClassMap = {
     issued: 'color-green',

@@ -55,11 +55,66 @@ function HistoryOrder() {
     return items.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
   };
 
+  const mapStatusToDisplay = (status) => {
+    if (!status) return 'Неизвестно';
+    
+    const normalized = status.toLowerCase().trim();
+
+    const statusMap = {
+      'оформлено': 'Оформлено',
+      'в обработке': 'В обработке',
+      'к отгрузке': 'К отгрузке',
+      'в процессе сборки': 'В процессе сборки',
+      'в процессе доставки': 'В процессе доставки',
+      'доставлен': 'Доставлен',
+      'обработан': 'В обработке',
+      'собран': 'К отгрузке',
+      'доставляется': 'В процессе доставки',
+      'завершен': 'Доставлен',
+      'выполнен': 'Доставлен',
+      'issued': 'Оформлено',
+      'pending': 'В обработке',
+      'assembled': 'К отгрузке',
+      'delivered': 'В процессе доставки',
+      'completed': 'Доставлен',
+      'in_transit': 'В процессе доставки'
+    };
+
+    return statusMap[normalized] || status;
+  };
+
+  const mapStatusToFilterKey = (status) => {
+    if (!status) return 'other';
+    
+    const normalized = status.toLowerCase().trim();
+
+    const statusMap = {
+      'оформлено': 'pending',
+      'в обработке': 'pending',
+      'к отгрузке': 'assembled',
+      'в процессе сборки': 'assembled',
+      'в процессе доставки': 'in_transit',
+      'доставлен': 'completed',
+      'обработан': 'pending',
+      'собран': 'assembled',
+      'доставляется': 'in_transit',
+      'завершен': 'completed',
+      'выполнен': 'completed',
+      'issued': 'pending',
+      'pending': 'pending',
+      'assembled': 'assembled',
+      'delivered': 'in_transit',
+      'completed': 'completed',
+      'in_transit': 'in_transit'
+    };
+
+    return statusMap[normalized] || 'other';
+  };
+
   const filteredOrders = orders.filter(order => {
     if (filterStatus !== 'all') {
-      if (filterStatus === 'pending' && order.status !== 'pending') return false;
-      if (filterStatus === 'assembled' && order.status !== 'assembled') return false;
-      if (filterStatus === 'in_transit' && order.status !== 'in_transit') return false;
+      const orderFilterKey = mapStatusToFilterKey(order.status);
+      if (filterStatus !== orderFilterKey) return false;
     }
 
     if (searchTerm.trim() !== '') {
@@ -102,14 +157,14 @@ function HistoryOrder() {
               className={filterStatus === 'assembled' ? 'active' : ''}
               onClick={() => setFilterStatus('assembled')}
             >
-              Заказ собран
+              К отгрузке
             </button>
             <div className='history_line'></div>
             <button
               className={filterStatus === 'in_transit' ? 'active' : ''}
               onClick={() => setFilterStatus('in_transit')}
             >
-              В пути
+              В процессе доставки
             </button>
           </div>
 
@@ -138,7 +193,7 @@ function HistoryOrder() {
                     <div>
                       <h2>#{order.code}</h2>
                       <ul>
-                        <li>{order.status === "pending" ? "В обработке" : order.status}</li>
+                        <li>{mapStatusToDisplay(order.status)}</li>
                       </ul>
                     </div>
                     <div>
