@@ -440,18 +440,24 @@ function AddProductsToCart() {
                   <p>Загрузка баннера...</p>
                 </div>
               ) : banner ? (
-                <img 
-                  src={banner.fullImageUrl} 
-                  alt={banner.title || 'Баннер'} 
-                  width="580" 
-                  height="290" 
-                  style={{borderRadius: '16px' }}
-                  onError={(e) => {
-                    console.error('Ошибка загрузки изображения баннера');
-                    e.target.style.display = 'none';
-                  }}
-                  crossOrigin="anonymous"
-                />
+                <a 
+                  href="http://api.dustipharma.tj:1212/api/uploads/a52be164-3b1c-4123-976d-29a1102f77ce.pdf" 
+                  download 
+                  rel="noopener noreferrer"
+                >
+                  <img 
+                    src={banner.fullImageUrl} 
+                    alt={banner.title || 'Баннер'} 
+                    width="580" 
+                    height="290" 
+                    style={{ borderRadius: '16px', cursor: 'pointer' }}
+                    onError={(e) => {
+                      console.error('Ошибка загрузки изображения баннера');
+                      e.target.style.display = 'none';
+                    }}
+                    crossOrigin="anonymous"
+                  />
+                </a>
               ) : (
                 <div>
                   <p>Баннер не найден</p>

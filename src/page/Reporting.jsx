@@ -6,6 +6,7 @@ import { ru } from 'date-fns/locale';
 import axios from 'axios';
 import OrderHeader from '../components/OrderHeader';
 import { useAuth } from '../context/AuthContext';
+
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 import '../index.css';
@@ -23,6 +24,7 @@ function Reporting() {
   const [shownDate, setShownDate] = useState(new Date());
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [reportFormat, setReportFormat] = useState('pdf');
 
   const formatDate = (date) =>
     date instanceof Date && !isNaN(date) ? date.toISOString().slice(0, 10) : null;
@@ -50,23 +52,34 @@ function Reporting() {
       setIsLoading(true);
       setError('');
 
-      const response = await axios.get('http://api.dustipharma.tj:1212/api/v1/app/orders/reports', {
-        params: { from, to },
-        headers: { Authorization: `Bearer ${token}` },
-        responseType: 'blob',
-      });
+      const response = await axios.get(
+        'http://api.dustipharma.tj:1212/api/v1/app/orders/reports',
+        {
+          params: { from, to, format: reportFormat },
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: 'blob',
+        }
+      );
 
-      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const contentType =
+        reportFormat === 'pdf'
+          ? 'application/pdf'
+          : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+      const extension = reportFormat === 'pdf' ? 'pdf' : 'xlsx';
+
+      const blob = new Blob([response.data], { type: contentType });
       const url = window.URL.createObjectURL(blob);
 
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `Отчет_${from}_до_${to}.pdf`);
+      link.setAttribute('download', `Отчет_${from}_до_${to}.${extension}`);
       document.body.appendChild(link);
       link.click();
       link.remove();
     } catch (err) {
-      console.error('Ошибка скачивания PDF:', err);
+      console.error('Ошибка скачивания отчета:', err);
+      setError('Не удалось скачать отчет. Попробуйте позже.');
     } finally {
       setIsLoading(false);
     }
@@ -93,8 +106,20 @@ function Reporting() {
           </div>
 
           <div className="calendar-with-arrows">
-            <button type="button" className="calendar-arrow-left" onClick={() => handleMonthChange(-1)}>←</button>
-            <button type="button" className="calendar-arrow-right" onClick={() => handleMonthChange(1)}>→</button>
+            <button
+              type="button"
+              className="calendar-arrow-left"
+              onClick={() => handleMonthChange(-1)}
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              className="calendar-arrow-right"
+              onClick={() => handleMonthChange(1)}
+            >
+              →
+            </button>
 
             <DateRange
               key={shownDate.toString()}
@@ -111,12 +136,21 @@ function Reporting() {
             />
           </div>
 
-          <div className="submit-button-wrapper">
-            <button
-              type="submit"
-              className="submit-button"
-              disabled={isLoading}
+          {/* Выбор формата отчета */}
+          <div className="report-format-selector">
+            <label htmlFor="reportFormat">Формат отчета:</label>
+            <select
+              id="reportFormat"
+              value={reportFormat}
+              onChange={(e) => setReportFormat(e.target.value)}
             >
+              <option value="pdf">PDF</option>
+              <option value="xlsx">Excel (XLSX)</option>
+            </select>
+          </div>
+
+          <div className="submit-button-wrapper">
+            <button type="submit" className="submit-button" disabled={isLoading}>
               {isLoading ? 'Загрузка...' : 'Сформировать отчет'}
             </button>
           </div>

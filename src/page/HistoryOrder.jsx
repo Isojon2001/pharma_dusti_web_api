@@ -144,16 +144,13 @@ function HistoryOrder() {
                   <div className="user_order">
                     <div>
                       <h2>#{order.code}</h2>
-                      <ul>
-                        <li>{order.status === "pending" ? "В обработке" : order.status}</li>
-                      </ul>
                     </div>
                     <div>
                       <p>{formatDate(order.created_at)}</p>
                     </div>
                   </div>
                   <p>
-                    Итоговая сумма: <span>{getTotalPrice(order.items).toFixed(2)} сом</span>
+                    <strong>Итоговая сумма:</strong> <span>{getTotalPrice(order.items).toFixed(2)} Cомони</span>
                   </p>
                 </Link>
               ))

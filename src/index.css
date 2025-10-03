@@ -965,7 +965,7 @@ text-align: center;
 }
 .users_order{
 	text-decoration:none;
-	margin: 0px -57px;
+	margin: 0px -20px;
   color: #000;
   padding: 0 30px;
 	background-color:#FFF;
@@ -1127,6 +1127,36 @@ text-align: center;
   margin: 0 auto;
   font-size: 14px;
 }
+.report-format-selector {
+  margin: 16px 0;
+  display: flex;
+  justify-content: center;
+  align-items:center;
+  flex-direction: row;
+  gap: 6px;
+}
+
+.report-format-selector label {
+  font-weight: 500;
+  color: #232323;
+  font-size: 14px;
+}
+
+.report-format-selector select {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border 0.2s ease;
+  max-width: 200px;
+}
+
+.report-format-selector select:focus {
+  border-color: #007b83;
+  box-shadow: 0 0 0 2px rgba(0, 123, 131, 0.2);
+}
+
 .submit-button-wrapper button{
 	padding: 7px 55px;
 	font-size: 18px;
