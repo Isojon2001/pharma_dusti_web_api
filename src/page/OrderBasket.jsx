@@ -238,13 +238,13 @@ function OrderBasket() {
                 <div className='detailed_inf'>
                   <div className='detailed_rows'>
                     <div className='detailed_row'>
-                      <p>Общее кол-во упаковок:</p>
                       <p>{calculateTotalQuantity()} шт.</p>
+                      <p>Общее кол-во упаковок.</p>
                     </div>
                     <div className='detailed_row'>
                       <p>{calculateTotal().toFixed(2)}</p>
                       <div className='detailed_btn'>
-                        <p>Итоговая сумма</p>
+                        <p>Итоговая сумма.</p>
                         <button
                           disabled={cartItems.length === 0 || isSubmitting}
                           onClick={() => setShowConfirmModal(true)}
