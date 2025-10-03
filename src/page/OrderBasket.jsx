@@ -239,7 +239,7 @@ function OrderBasket() {
                   <div className='detailed_rows'>
                     <div className='detailed_row'>
                       <p>{calculateTotalQuantity()} шт.</p>
-                      <p>Общее кол-во упаковок.</p>
+                      <p>Общее кол-во.</p>
                     </div>
                     <div className='detailed_row'>
                       <p>{calculateTotal().toFixed(2)}</p>
