@@ -45,17 +45,16 @@ function HistoryOrder() {
       });
   }, [token, page, limit]);
 
- const formatDate = (isoDate) => {
-  const date = new Date(isoDate);
-  date.setHours(date.getHours() - 5);
+  const formatDate = (isoDate) => {
+    const date = new Date(isoDate);
+    date.setHours(date.getHours() - 5);
 
-  return `${date.toLocaleDateString()} | ${date.toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })}`;
-};
-
+    return `${date.toLocaleDateString()} | ${date.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    })}`;
+  };
 
   const getTotalPrice = (items = []) => {
     if (!Array.isArray(items)) return 0;
@@ -90,36 +89,27 @@ function HistoryOrder() {
 
         <div>
           <h1>История заказов</h1>
+
+          {/* Фильтр по статусу */}
           <div className='history_filter'>
-            <button
-              className={filterStatus === 'all' ? 'active' : ''}
-              onClick={() => setFilterStatus('all')}
-            >
+            <button className={filterStatus === 'all' ? 'active' : ''} onClick={() => setFilterStatus('all')}>
               Все
             </button>
             <div className='history_line'></div>
-            <button
-              className={filterStatus === 'pending' ? 'active' : ''}
-              onClick={() => setFilterStatus('pending')}
-            >
+            <button className={filterStatus === 'pending' ? 'active' : ''} onClick={() => setFilterStatus('pending')}>
               В обработке
             </button>
             <div className='history_line'></div>
-            <button
-              className={filterStatus === 'assembled' ? 'active' : ''}
-              onClick={() => setFilterStatus('assembled')}
-            >
+            <button className={filterStatus === 'assembled' ? 'active' : ''} onClick={() => setFilterStatus('assembled')}>
               Заказ собран
             </button>
             <div className='history_line'></div>
-            <button
-              className={filterStatus === 'in_transit' ? 'active' : ''}
-              onClick={() => setFilterStatus('in_transit')}
-            >
+            <button className={filterStatus === 'in_transit' ? 'active' : ''} onClick={() => setFilterStatus('in_transit')}>
               В пути
             </button>
           </div>
 
+          {/* Поиск */}
           <div className='results_searching'>
             <input
               type="text"
@@ -130,17 +120,14 @@ function HistoryOrder() {
               onChange={e => setSearchTerm(e.target.value)}
             />
 
+            {/* Список заказов */}
             {loading ? (
               <p>Загрузка...</p>
             ) : filteredOrders.length === 0 ? (
               <p>Заказы не найдены</p>
             ) : (
               filteredOrders.map(order => (
-                <Link
-                  key={order.id}
-                  to={`/detailed-history/${order.id}`}
-                  className="users_order"
-                >
+                <div key={order.id} className="users_order">
                   <div className="user_order">
                     <div>
                       <h2>#{order.code}</h2>
@@ -150,9 +137,15 @@ function HistoryOrder() {
                     </div>
                   </div>
                   <p>
-                    <strong>Итоговая сумма:</strong> <span>{getTotalPrice(order.items).toFixed(2)} Cомони</span>
+                    <strong>Итоговая сумма:</strong>{' '}
+                    <span>{getTotalPrice(order.items).toFixed(2)} Cомони</span>
                   </p>
-                </Link>
+                  <div>
+                    <Link to={`/detailed-history/${order.id}`} className="details_button">
+                      Подробнее
+                    </Link>
+                  </div>
+                </div>
               ))
             )}
 

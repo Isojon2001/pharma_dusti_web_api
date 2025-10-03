@@ -951,9 +951,23 @@ text-align: center;
 .history_filter button{
 	border: none;
 	cursor: pointer;
-	color: #636363;
 	background:none;
 }
+.details_button {
+	margin: 10px;
+  padding: 7px 15px;
+  background-color: #0F7372;
+  color: white;
+  font-size: 18px;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.details_button:hover {
+  background-color: #214444;
+}
+
 .history_line{
 	height: 10px;
 	border: 1px solid #636363;
@@ -967,7 +981,7 @@ text-align: center;
 	text-decoration:none;
 	margin: 0px -20px;
   color: #000;
-  padding: 0 30px;
+  padding: 20px 30px;
 	background-color:#FFF;
 	margin-top: 20px;
 	border-radius:16px;
