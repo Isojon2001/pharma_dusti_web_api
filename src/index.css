@@ -773,11 +773,6 @@ padding: 30px 47px 130px 47px;
 	border: none;
 	background-color:#0F7372;
 }
-.detail_basket>div{
-	display: flex;
-	margin: -10px;
-	gap: 970px;
-}
 .detail_basket p{
 	font-size: 22px;
 }
@@ -793,7 +788,7 @@ padding: 30px 47px 130px 47px;
   color: #004746;
 }
 
-.detail_basket p:nth-of-type(1){
+.detail_basket p{
 	color: #858585;
 	margin: 17px 0;
 	text-align: center;
@@ -804,13 +799,10 @@ padding: 30px 47px 130px 47px;
 	font-size: 24px;
 	margin-left: -10px;
 }
-.detail_basket p{
-	color: #000;
-}
 .detail_basket {
 	position:fixed;
 	bottom: 0;
-	gap: 550px;
+	gap: 480px;
 	display: flex;
 	left:0;
 	width: 100%;
@@ -947,7 +939,7 @@ text-align: center;
 }
 .detailed_rows{
 	display: flex;
-	gap: 70px;
+	gap: 120px;
 }
 .detailed_line{
 	width: 540px;
