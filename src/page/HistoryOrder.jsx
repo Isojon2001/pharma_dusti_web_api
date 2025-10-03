@@ -45,10 +45,17 @@ function HistoryOrder() {
       });
   }, [token, page, limit]);
 
-  const formatDate = (isoDate) => {
-    const date = new Date(isoDate);
-    return `${date.toLocaleDateString()} | ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-  };
+ const formatDate = (isoDate) => {
+  const date = new Date(isoDate);
+  date.setHours(date.getHours() - 5);
+
+  return `${date.toLocaleDateString()} | ${date.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  })}`;
+};
+
 
   const getTotalPrice = (items = []) => {
     if (!Array.isArray(items)) return 0;
