@@ -986,6 +986,9 @@ text-align: center;
 	margin-top: 20px;
 	border-radius:16px;
 }
+.users_order p{
+	text-align: left;
+}
 .user_order{
 	display: flex;
 	align-items:center;
@@ -1133,7 +1136,7 @@ text-align: center;
 }
 
 
-.report-range-calendar {
+.range-calendar {
   background-color: #fff;
   border-radius: 16px;
   padding: 10px;
@@ -1165,7 +1168,14 @@ text-align: center;
   transition: border 0.2s ease;
   max-width: 200px;
 }
-
+.report-buttons button:hover{
+	background-color: #214e4e;
+	cursor: pointer;
+}
+.report-buttons{
+	display: flex;
+	gap:50px;
+}
 .report-format-selector select:focus {
   border-color: #007b83;
   box-shadow: 0 0 0 2px rgba(0, 123, 131, 0.2);
