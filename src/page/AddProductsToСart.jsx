@@ -18,7 +18,7 @@
     'Оформлено': 'Оформлено',
     'В обработке': 'В обработке',
     'К отгрузке': 'В процессе сборки',
-    'Отгружён': 'В процессе Доставки',
+    'Отгружен': 'В процессе Доставки',
     'Доставлен': 'Доставлен',
   };
 
@@ -130,7 +130,7 @@ useEffect(() => {
         return;
       }
 
-      const latestOrder = orders[0];
+      const latestOrder = orders[0]; 
 
       try {
         const statusRes = await axios.get(`http://api.dustipharma.tj:1212/api/v1/app/orders/status/${latestOrder.id}`, {
@@ -141,6 +141,7 @@ useEffect(() => {
 
         setActiveOrder({
           ...latestOrder,
+          status, 
         });
       } catch (statusErr) {
         console.error('Ошибка при загрузке статуса по ID:', statusErr);
