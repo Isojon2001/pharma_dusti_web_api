@@ -5,23 +5,28 @@ import OrderHeader from '../components/OrderHeader';
 import { useAuth } from '../context/AuthContext';
 import { saveAs } from 'file-saver';
 
-const STATUS_ORDER = ['issued', 'pending', 'assembled', 'delivered', 'completed'];
+const STATUS_ORDER = [
+  'Оформлено',
+  'В обработке',
+  'В процессе сборки',
+  'В процессе Доставки',
+  'Доставлен',
+];
 
-const STATUS_COLOR_MAP = {
-  issued: 'color-green',
-  pending: 'color-yellow',
-  assembled: 'color-orange',
-  delivered: 'color-blue',
-  completed: 'color-bright-green',
+const API_STATUS_TO_STEP_STATUS = {
+  'Оформлено': 'Оформлено',
+  'В обработке': 'В обработке',
+  'К отгрузке': 'В процессе сборки',
+  'Отгружён': 'В процессе Доставки',
+  'Доставлен': 'Доставлен',
 };
 
-const STATUS_MAP = {
-  pending: 'pending',
-  assembled: 'assembled',
-  in_transit: 'delivered',
-  completed: 'completed',
-  delivered: 'delivered',
-  issued: 'issued',
+const STATUS_COLOR_MAP = {
+  'Оформлено': 'color-green',
+  'В обработке': 'color-yellow',
+  'В процессе сборки': 'color-orange',
+  'В процессе Доставки': 'color-blue',
+  'Доставлен': 'color-bright-green',
 };
 
 function DetailedHistory() {
@@ -34,11 +39,11 @@ function DetailedHistory() {
   useEffect(() => {
     if (!token || !order_id) return;
 
-    const fetchOrderData = async () => {
+    const fetchOrderStatus = async () => {
       setLoading(true);
       try {
         const res = await fetch(
-          'http://api.dustipharma.tj:1212/api/v1/app/orders/customer',
+          `http://api.dustipharma.tj:1212/api/v1/app/orders/status/${order_id}`,
           {
             headers: {
               'Content-Type': 'application/json',
@@ -46,13 +51,15 @@ function DetailedHistory() {
             },
           }
         );
+
+        if (!res.ok) {
+          throw new Error(`Ошибка сервера: ${res.status}`);
+        }
+
         const data = await res.json();
 
-        if (data?.code === 200 && Array.isArray(data.payload)) {
-          const foundOrder = data.payload.find(
-            (order) => order.id.toString() === order_id.toString()
-          );
-          setOrderDetails(foundOrder || null);
+        if (data?.code === 200 && data.payload) {
+          setOrderDetails(data.payload);
         } else {
           setOrderDetails(null);
         }
@@ -64,8 +71,12 @@ function DetailedHistory() {
       }
     };
 
-    fetchOrderData();
+    fetchOrderStatus();
   }, [order_id, token]);
+
+  const currentStatus = orderDetails
+    ? API_STATUS_TO_STEP_STATUS[orderDetails.status] || null
+    : null;
 
   const downloadReportFromServer = async (orderCode, format = 'pdf') => {
     try {
@@ -91,10 +102,6 @@ function DetailedHistory() {
     }
   };
 
-  const currentStatusKey = orderDetails
-    ? STATUS_MAP[orderDetails.status] || 'issued'
-    : 'issued';
-
   return (
     <div className="DetailedHistory">
       <OrderHeader />
@@ -106,6 +113,8 @@ function DetailedHistory() {
             </Link>
           </div>
           <h1>Статус заявки</h1>
+          {/* Текущий статус на русском */}
+          <h2>Текущий статус: {orderDetails?.status || 'нет данных'}</h2>
         </div>
 
         <div className="order_basket_step">
@@ -116,50 +125,39 @@ function DetailedHistory() {
               <div className="users_detailed order_bg detailed_bg">
                 <div className="active_order"></div>
                 <div className="order_info">
-                  <OrderStep
-                    icon={<CircleCheck />}
-                    label="Оформлено"
-                    stepKey="issued"
-                    currentStatus={currentStatusKey}
-                  />
-                  <OrderStep
-                    icon={<Clock3 />}
-                    label="В обработке"
-                    stepKey="pending"
-                    currentStatus={currentStatusKey}
-                  />
-                  <OrderStep
-                    icon={<Package />}
-                    label="В процессе сборки"
-                    stepKey="assembled"
-                    currentStatus={currentStatusKey}
-                  />
-                  <OrderStep
-                    icon={<Truck />}
-                    label="В процессе доставки"
-                    stepKey="delivered"
-                    currentStatus={currentStatusKey}
-                  />
-                  <OrderStep
-                    icon={<CircleCheck />}
-                    label="Доставлен"
-                    stepKey="completed"
-                    currentStatus={currentStatusKey}
-                    isLast
-                  />
+                  {STATUS_ORDER.map((status, index) => (
+                    <OrderStep
+                      key={status}
+                      icon={
+                        index === 0 || index === STATUS_ORDER.length - 1 ? (
+                          <CircleCheck />
+                        ) : index === 1 ? (
+                          <Clock3 />
+                        ) : index === 2 ? (
+                          <Package />
+                        ) : (
+                          <Truck />
+                        )
+                      }
+                      label={status}
+                      stepKey={status}
+                      currentStatus={currentStatus}
+                      isLast={index === STATUS_ORDER.length - 1}
+                    />
+                  ))}
                 </div>
 
                 <div className="report-buttons">
                   <button
                     onClick={() =>
-                      downloadReportFromServer(orderDetails.code, 'pdf')
+                      downloadReportFromServer(orderDetails.order_id, 'pdf')
                     }
                   >
                     Скачать PDF
                   </button>
                   <button
                     onClick={() =>
-                      downloadReportFromServer(orderDetails.code, 'xlsx')
+                      downloadReportFromServer(orderDetails.order_id, 'xlsx')
                     }
                   >
                     Скачать Excel
