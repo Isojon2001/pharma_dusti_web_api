@@ -3,74 +3,10 @@ import { Link, useParams } from 'react-router-dom';
 import { MoveLeft, CircleCheck, Clock3, Package, Truck } from 'lucide-react';
 import OrderHeader from '../components/OrderHeader';
 import { useAuth } from '../context/AuthContext';
-import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
-import {
-  Document,
-  Page,
-  Text,
-  View,
-  Font,
-  StyleSheet,
-  pdf,
-} from '@react-pdf/renderer';
-
-Font.register({
-  family: 'Roboto',
-  src: '/fonts/ofont.ru_Roboto.ttf',
-});
-const stylesPDF = StyleSheet.create({
-  page: {
-    fontFamily: 'Roboto',
-    fontSize: 11,
-    padding: 30,
-    lineHeight: 1.5,
-  },
-  title: {
-    fontSize: 18,
-    marginBottom: 15,
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  infoBlock: {
-    marginBottom: 20,
-  },
-  tableTitle: {
-    marginBottom: 10,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    borderBottom: '1 solid #000',
-    paddingBottom: 5,
-    marginBottom: 5,
-  },
-  tableRow: {
-    flexDirection: 'row',
-    borderBottom: '0.5 solid #ccc',
-    paddingVertical: 3,
-  },
-  cell: {
-    flex: 1,
-    paddingRight: 5,
-  },
-  bold: {
-    fontWeight: 'bold',
-  },
-  totalBlock: {
-    marginTop: 15,
-    borderTop: '1 solid #000',
-    paddingTop: 8,
-  },
-  totalText: {
-    fontSize: 13,
-    textAlign: 'right',
-  },
-});
-
 
 const STATUS_ORDER = ['issued', 'pending', 'assembled', 'delivered', 'completed'];
+
 const STATUS_COLOR_MAP = {
   issued: 'color-green',
   pending: 'color-yellow',
@@ -87,54 +23,6 @@ const STATUS_MAP = {
   delivered: 'delivered',
   issued: 'issued',
 };
-function OrderPDFDocument({ order }) {
-  const total = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-  return (
-    <Document>
-      <Page style={stylesPDF.page}>
-        {/* Заголовок */}
-        <Text style={stylesPDF.title}>Отчёт по заказу №{order.id}</Text>
-
-        {/* Информация о заказе */}
-        <View style={stylesPDF.infoBlock}>
-          <Text>Дата заказа: <Text style={stylesPDF.bold}>{new Date(order.created_at).toLocaleDateString()}</Text></Text>
-          <Text>Статус: <Text style={stylesPDF.bold}>{order.status}</Text></Text>
-        </View>
-
-        {/* Таблица товаров */}
-        <Text style={[stylesPDF.tableTitle]}>Список товаров:</Text>
-        <View style={stylesPDF.tableHeader}>
-          <Text style={[stylesPDF.cell, stylesPDF.bold, { flex: 0.5 }]}>#</Text>
-          <Text style={[stylesPDF.cell, stylesPDF.bold, { flex: 2 }]}>Наименование</Text>
-          <Text style={[stylesPDF.cell, stylesPDF.bold]}>Кол-во</Text>
-          <Text style={[stylesPDF.cell, stylesPDF.bold]}>Цена</Text>
-          <Text style={[stylesPDF.cell, stylesPDF.bold]}>Срок годности</Text>
-        </View>
-
-        {order.items.map((item, index) => (
-          <View style={stylesPDF.tableRow} key={index}>
-            <Text style={[stylesPDF.cell, { flex: 0.5 }]}>{index + 1}</Text>
-            <Text style={[stylesPDF.cell, { flex: 2 }]}>{item.name}</Text>
-            <Text style={stylesPDF.cell}>{item.quantity}</Text>
-            <Text style={stylesPDF.cell}>{item.price} сом</Text>
-            <Text style={stylesPDF.cell}>
-              {item.expiration_date
-                ? new Date(item.expiration_date).toLocaleDateString()
-                : '-'}
-            </Text>
-          </View>
-        ))}
-
-        {/* Итого */}
-        <View style={stylesPDF.totalBlock}>
-          <Text style={stylesPDF.totalText}>Итого: <Text style={stylesPDF.bold}>{total} сом</Text></Text>
-        </View>
-      </Page>
-    </Document>
-  );
-}
-
 
 function DetailedHistory() {
   const { order_id } = useParams();
@@ -179,38 +67,28 @@ function DetailedHistory() {
     fetchOrderData();
   }, [order_id, token]);
 
-  const getTotalPrice = (items = []) =>
-    items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const downloadReportFromServer = async (orderCode, format = 'pdf') => {
+    try {
+      const response = await fetch(
+        `http://api.dustipharma.tj:1212/api/v1/app/orders/reports/${orderCode}?format=${format}`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-  const downloadPDF = async (order) => {
-    const blob = await pdf(<OrderPDFDocument order={order} />).toBlob();
-    saveAs(blob, `Заказ_${order.id}.pdf`);
-  };
+      if (!response.ok) {
+        throw new Error('Ошибка при получении отчёта с сервера');
+      }
 
-  const downloadExcel = (order) => {
-    const data = [
-      ['#', 'Товар', 'Количество', 'Цена', 'Срок годности'],
-      ...order.items.map(({ name, quantity, price, expiration_date }, i) => [
-        i + 1,
-        name,
-        quantity,
-        price,
-        expiration_date ? new Date(expiration_date).toLocaleDateString() : '-',
-      ]),
-    ];
-
-    const worksheet = XLSX.utils.aoa_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Заказ');
-
-    const excelBuffer = XLSX.write(workbook, {
-      bookType: 'xlsx',
-      type: 'array',
-    });
-    saveAs(
-      new Blob([excelBuffer], { type: 'application/octet-stream' }),
-      `Заказ_${order.id}.xlsx`
-    );
+      const blob = await response.blob();
+      const extension = format === 'xlsx' ? 'xlsx' : 'pdf';
+      saveAs(blob, `Заказ_${orderCode}.${extension}`);
+    } catch (error) {
+      console.error('Ошибка при загрузке отчёта:', error);
+    }
   };
 
   const currentStatusKey = orderDetails
@@ -236,8 +114,7 @@ function DetailedHistory() {
           ) : orderDetails ? (
             <div className="detailed_info">
               <div className="users_detailed order_bg detailed_bg">
-                <div className="active_order">
-                </div>
+                <div className="active_order"></div>
                 <div className="order_info">
                   <OrderStep
                     icon={<CircleCheck />}
@@ -273,8 +150,20 @@ function DetailedHistory() {
                 </div>
 
                 <div className="report-buttons">
-                  <button onClick={() => downloadPDF(orderDetails)}>Скачать PDF</button>
-                  <button onClick={() => downloadExcel(orderDetails)}>Скачать Excel</button>
+                  <button
+                    onClick={() =>
+                      downloadReportFromServer(orderDetails.code, 'pdf')
+                    }
+                  >
+                    Скачать PDF
+                  </button>
+                  <button
+                    onClick={() =>
+                      downloadReportFromServer(orderDetails.code, 'xlsx')
+                    }
+                  >
+                    Скачать Excel
+                  </button>
                 </div>
               </div>
             </div>
@@ -293,7 +182,11 @@ function OrderStep({ icon, label, stepKey, currentStatus, isLast = false }) {
   const isReached = stepIndex !== -1 && currentIndex !== -1 && stepIndex <= currentIndex;
 
   return (
-    <div className={`order-step ${isReached ? STATUS_COLOR_MAP[stepKey] : 'color-gray'}`}>
+    <div
+      className={`order-step ${
+        isReached ? STATUS_COLOR_MAP[stepKey] : 'color-gray'
+      }`}
+    >
       <div className="order-step-icon">{icon}</div>
       <span className="order-step-label">{label}</span>
       {!isLast && <div className="order-step-line" />}
