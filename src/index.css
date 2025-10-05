@@ -1202,7 +1202,12 @@ text-align: center;
 	right: -40px;
   gap: 590px
 }
-
+.report-range-calendar{
+    display: flex;
+    width: 500px;
+    align-items: center;
+    flex-direction: column;
+}
 .banner-controls button {
   background-color: #ffffff;
   border: 1px solid #ccc;
