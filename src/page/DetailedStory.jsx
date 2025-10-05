@@ -113,8 +113,6 @@ function DetailedHistory() {
             </Link>
           </div>
           <h1>Статус заявки</h1>
-          {/* Текущий статус на русском */}
-          <h2>Текущий статус: {orderDetails?.status || 'нет данных'}</h2>
         </div>
 
         <div className="order_basket_step">
