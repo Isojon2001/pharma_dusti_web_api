@@ -79,7 +79,6 @@ function Reporting() {
       link.remove();
     } catch (err) {
       console.error('Ошибка скачивания отчета:', err);
-      setError('Не удалось скачать отчет. Попробуйте позже.');
     } finally {
       setIsLoading(false);
     }

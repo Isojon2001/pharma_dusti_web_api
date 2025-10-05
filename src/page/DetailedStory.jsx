@@ -39,10 +39,33 @@ function DetailedHistory() {
   useEffect(() => {
     if (!token || !order_id) return;
 
-    const fetchOrderStatus = async () => {
+    const fetchOrderDetails = async () => {
       setLoading(true);
       try {
-        const res = await fetch(
+        const customerRes = await fetch(
+          'http://api.dustipharma.tj:1212/api/v1/app/orders/customer',
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!customerRes.ok) {
+          throw new Error(`Ошибка сервера (customer): ${customerRes.status}`);
+        }
+
+        const customerData = await customerRes.json();
+        const foundOrder = customerData.payload?.find(
+          (order) => order.id === order_id
+        );
+
+        if (!foundOrder) {
+          throw new Error('Заказ не найден в списке заказов');
+        }
+
+        const statusRes = await fetch(
           `http://api.dustipharma.tj:1212/api/v1/app/orders/status/${order_id}`,
           {
             headers: {
@@ -52,26 +75,29 @@ function DetailedHistory() {
           }
         );
 
-        if (!res.ok) {
-          throw new Error(`Ошибка сервера: ${res.status}`);
+        if (!statusRes.ok) {
+          throw new Error(`Ошибка сервера (status): ${statusRes.status}`);
         }
 
-        const data = await res.json();
+        const statusData = await statusRes.json();
 
-        if (data?.code === 200 && data.payload) {
-          setOrderDetails(data.payload);
+        if (statusData?.code === 200 && statusData.payload) {
+          setOrderDetails({
+            ...statusData.payload,
+            code: foundOrder.code,
+          });
         } else {
           setOrderDetails(null);
         }
       } catch (error) {
-        console.error('Ошибка при загрузке данных:', error);
+        console.error('Ошибка при загрузке деталей заказа:', error);
         setOrderDetails(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchOrderStatus();
+    fetchOrderDetails();
   }, [order_id, token]);
 
   const currentStatus = orderDetails
@@ -79,19 +105,20 @@ function DetailedHistory() {
     : null;
 
   const downloadReportFromServer = async (orderCode, format = 'pdf') => {
+    const baseUrl = `http://api.dustipharma.tj:1212/api/v1/app/orders/reports/${orderCode}`;
+    const url = `${baseUrl}?format=${format}`;
+
     try {
-      const response = await fetch(
-        `http://api.dustipharma.tj:1212/api/v1/app/orders/reports/${orderCode}?format=${format}`,
-        {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/octet-stream',
+        },
+      });
 
       if (!response.ok) {
-        throw new Error('Ошибка при получении отчёта с сервера');
+        throw new Error(`Ошибка при получении отчёта (${response.status})`);
       }
 
       const blob = await response.blob();
@@ -144,18 +171,18 @@ function DetailedHistory() {
                     />
                   ))}
                 </div>
-
+                <h2>Детали заявки</h2>
                 <div className="report-buttons">
                   <button
                     onClick={() =>
-                      downloadReportFromServer(orderDetails.order_id, 'pdf')
+                      downloadReportFromServer(orderDetails.code, 'pdf')
                     }
                   >
                     Скачать PDF
                   </button>
                   <button
                     onClick={() =>
-                      downloadReportFromServer(orderDetails.order_id, 'xlsx')
+                      downloadReportFromServer(orderDetails.code, 'xlsx')
                     }
                   >
                     Скачать Excel
@@ -175,7 +202,8 @@ function DetailedHistory() {
 function OrderStep({ icon, label, stepKey, currentStatus, isLast = false }) {
   const currentIndex = STATUS_ORDER.indexOf(currentStatus);
   const stepIndex = STATUS_ORDER.indexOf(stepKey);
-  const isReached = stepIndex !== -1 && currentIndex !== -1 && stepIndex <= currentIndex;
+  const isReached =
+    stepIndex !== -1 && currentIndex !== -1 && stepIndex <= currentIndex;
 
   return (
     <div

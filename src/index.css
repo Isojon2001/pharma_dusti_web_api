@@ -917,12 +917,14 @@ text-align: center;
     background: #0F7372;
     color: #FFF;
     font-size: 18px;
-    margin-top: 20px;
     border:none;
     border-radius:12px;
     padding: 10px 50px;
     align-items:center;
     display: flex;
+}
+.detailed_bg h2{
+	margin: 15px 0;
 }
 .expiration_date{
 	text-align: center;
