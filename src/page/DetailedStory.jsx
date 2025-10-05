@@ -253,7 +253,7 @@ function DetailedHistory() {
                   />
                   <OrderStep
                     icon={<Package />}
-                    label="К отгрузке"
+                    label="В процессе сборки"
                     stepKey="assembled"
                     currentStatus={currentStatusKey}
                   />

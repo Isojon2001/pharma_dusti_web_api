@@ -9,7 +9,6 @@ import { useCart } from '../context/CartContext';
 function AddProductsToCart() {
   const { token } = useAuth();
   const { addToCart } = useCart();
-
   const [showModal, setShowModal] = useState(false);
   const [modalProductName, setModalProductName] = useState('');
   const [products, setProducts] = useState([]);
@@ -26,43 +25,54 @@ function AddProductsToCart() {
   const [selectedProductByCode, setSelectedProductByCode] = useState({});
   const [banner, setBanner] = useState(null);
   const [bannerLoading, setBannerLoading] = useState(true);
-
   const showTable = searchTerm.trim() !== '' || summa.trim() !== '' || category !== 'products';
 
-  useEffect(() => {
-    if (!token) return;
-    axios
-      .get('http://api.dustipharma.tj:1212/api/v1/app/categories/all', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setCategories(res?.data?.payload?.data || []))
-      .catch((err) => console.error('Ошибка загрузки категорий:', err));
-    setBannerLoading(true);
-    axios
-      .get('http://api.dustipharma.tj:1212/api/v1/app/banners', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        const banners = res?.data?.payload?.data || [];
-        console.log('Баннеры от API:', banners);
-        
-        const activeBanner = banners.find(banner => banner.is_active) || banners[0];
-        
-        if (activeBanner) {
-          setBanner({
-            ...activeBanner,
-            fullImageUrl: `http://api.dustipharma.tj:1212${activeBanner.poster_path}`
-          });
-        } else {
-          setBanner(null);
-        }
-      })
-      .catch((err) => {
-        console.error('Ошибка загрузки баннера:', err);
-        setBanner(null);
-      })
-      .finally(() => setBannerLoading(false));
-  }, [token]);
+  const handlePrevBanner = () => {
+  setCurrentBannerIndex((prev) => (prev - 1 + banner.length) % banner.length);
+};
+
+const handleNextBanner = () => {
+  setCurrentBannerIndex((prev) => (prev + 1) % banner.length);
+};
+
+useEffect(() => {
+  if (!token) return;
+  setBannerLoading(true);
+  axios
+    .get('http://api.dustipharma.tj:1212/api/v1/app/banners', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    .then((res) => {
+      const banners = res?.data?.payload?.data || [];
+      const activeBanners = banners.filter((banner) => banner.is_active);
+
+      const enrichedBanners = activeBanners.map((banner) => ({
+        ...banner,
+        fullImageUrl: `http://api.dustipharma.tj:1212${banner.poster_path}`,
+        fullFileUrl: `http://api.dustipharma.tj:1212${banner.file_path}`,
+      }));
+
+      setBanner(enrichedBanners);
+    })
+    .catch((err) => {
+      console.error('Ошибка загрузки баннеров:', err);
+      setBanner([]);
+    })
+    .finally(() => setBannerLoading(false));
+}, [token]);
+
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+
+useEffect(() => {
+  if (!banner || banner.length === 0) return;
+
+  const interval = setInterval(() => {
+    setCurrentBannerIndex((prevIndex) => (prevIndex + 1) % banner.length);
+  }, 10000); 
+
+  return () => clearInterval(interval);
+}, [banner]);
+
 
   useEffect(() => {
     if (!token) return;
@@ -434,35 +444,36 @@ function AddProductsToCart() {
                 )}
               </div>
             </div>
-            <div>
-              {bannerLoading ? (
-                <div>
-                  <p>Загрузка баннера...</p>
+            <div className='banners_products'>
+                {bannerLoading ? (
+                  <div><p>Загрузка баннеров...</p></div>
+                ) : banner && banner.length > 0 ? (
+                  <a
+                    href={banner[currentBannerIndex].fullFileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download
+                  >
+                    <img
+                      src={banner[currentBannerIndex].fullImageUrl}
+                      alt={banner[currentBannerIndex].title || 'Баннер'}
+                      width="580"
+                      height="290"
+                      style={{ borderRadius: '16px', cursor: 'pointer' }}
+                      onError={(e) => {
+                        console.error('Ошибка загрузки изображения баннера');
+                        e.target.style.display = 'none';
+                      }}
+                      crossOrigin="anonymous"
+                    />
+                  </a>
+                ) : (
+                  <div><p>Баннеры не найдены</p></div>
+                )}
+                <div className="banner-controls">
+                  <button onClick={handlePrevBanner}>&lt;</button>
+                  <button onClick={handleNextBanner}>&gt;</button>
                 </div>
-              ) : banner ? (
-                <a 
-                  href="http://api.dustipharma.tj:1212/api/uploads/a52be164-3b1c-4123-976d-29a1102f77ce.pdf" 
-                  download 
-                  rel="noopener noreferrer"
-                >
-                  <img 
-                    src={banner.fullImageUrl} 
-                    alt={banner.title || 'Баннер'} 
-                    width="580" 
-                    height="290" 
-                    style={{ borderRadius: '16px', cursor: 'pointer' }}
-                    onError={(e) => {
-                      console.error('Ошибка загрузки изображения баннера');
-                      e.target.style.display = 'none';
-                    }}
-                    crossOrigin="anonymous"
-                  />
-                </a>
-              ) : (
-                <div>
-                  <p>Баннер не найден</p>
-                </div>
-              )}
             </div>
           </div>
         )}

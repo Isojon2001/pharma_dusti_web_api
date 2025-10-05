@@ -1192,6 +1192,41 @@ text-align: center;
 	position: relative;
 }
 
+.banners_products{
+	position: relative;
+}
+.banner-controls {
+	display: flex;
+	position: absolute;
+  top: 120px;
+	right: -40px;
+  gap: 590px
+}
+
+.banner-controls button {
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.banner-controls button:hover {
+  background-color: #f0f0f0;
+  transform: scale(1.05);
+}
+
+.banner-controls button:active {
+  background-color: #e0e0e0;
+  transform: scale(0.95);
+}
+
+
 .calendar-arrow-left {
 	position: absolute;
 	top: 62px;
