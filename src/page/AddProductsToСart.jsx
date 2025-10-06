@@ -77,6 +77,7 @@
     setCurrentBannerIndex((prev) => (prev + 1) % banner.length);
   };
 
+  
   useEffect(() => {
     if (!token) return;
     setBannerLoading(true);
@@ -167,6 +168,23 @@ useEffect(() => {
 }, [token]);
 
 
+  useEffect(() => {
+  if (!token) return;
+
+  axios
+    .get('http://api.dustipharma.tj:1212/api/v1/app/categories/all', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    .then((res) => {
+      const allCategories = res?.data?.payload?.data || [];
+      setCategories(allCategories);
+    })
+    .catch((err) => {
+      console.error('Ошибка загрузки категорий:', err);
+      setCategories([]);
+    });
+}, [token]);
+
 
     const parseSummaRange = (summaStr) => {
       const nums = summaStr.match(/\d+/g) || [];
@@ -174,7 +192,7 @@ useEffect(() => {
       if (nums.length === 1) return [0, Number(nums[0])];
       return [Number(nums[0]), Number(nums[1])];
     };
-
+    
     useEffect(() => {
       if (!token) return;
 
