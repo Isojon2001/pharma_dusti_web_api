@@ -130,18 +130,30 @@ useEffect(() => {
         return;
       }
 
-      const latestOrder = orders[0]; 
+      const latestOrder = orders[0];
 
       try {
-        const statusRes = await axios.get(`http://api.dustipharma.tj:1212/api/v1/app/orders/status/${latestOrder.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const statusRes = await axios.get(
+          `http://api.dustipharma.tj:1212/api/v1/app/orders/status/${latestOrder.id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
-        const status = statusRes?.data?.payload?.status || null;
+        const rawStatus = statusRes?.data?.payload?.status || null;
+
+        let finalStatus = latestOrder.status;
+
+        if (
+          rawStatus &&
+          ['К отгрузке', 'Отгружен', 'Доставлен'].includes(rawStatus)
+        ) {
+          finalStatus = rawStatus;
+        }
 
         setActiveOrder({
           ...latestOrder,
-          status, 
+          status: finalStatus,
         });
       } catch (statusErr) {
         console.error('Ошибка при загрузке статуса по ID:', statusErr);
@@ -153,6 +165,7 @@ useEffect(() => {
       setActiveOrder(null);
     });
 }, [token]);
+
 
 
     const parseSummaRange = (summaStr) => {
