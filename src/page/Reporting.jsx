@@ -1,219 +1,164 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { MoveLeft, CircleCheck, Clock3, Package, Truck } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { MoveLeft } from 'lucide-react';
+import { DateRange } from 'react-date-range';
+import { ru } from 'date-fns/locale';
+import axios from 'axios';
 import OrderHeader from '../components/OrderHeader';
 import { useAuth } from '../context/AuthContext';
-import { saveAs } from 'file-saver';
 
-const STATUS_ORDER = [
-  'Оформлено',
-  'В обработке',
-  'В процессе сборки',
-  'В процессе Доставки',
-  'Доставлен',
-];
+import 'react-date-range/dist/styles.css';
+import 'react-date-range/dist/theme/default.css';
+import '../index.css';
 
-const CUSTOMER_STATUS_MAP = {
-  pending: 'Оформлено',
-  processing: 'В обработке',
-};
-
-const API_STATUS_MAP = {
-  'К отгрузке': 'В процессе сборки',
-  'Отгружен': 'В процессе Доставки',
-  'Доставлен': 'Доставлен',
-};
-
-const STATUS_COLOR_MAP = {
-  'Оформлено': 'color-green',
-  'В обработке': 'color-yellow',
-  'В процессе сборки': 'color-orange',
-  'В процессе Доставки': 'color-blue',
-  'Доставлен': 'color-bright-green',
-};
-
-function DetailedHistory() {
-  const { order_id } = useParams();
+function Reporting() {
   const { token } = useAuth();
 
-  const [orderDetails, setOrderDetails] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [range, setRange] = useState([
+    {
+      startDate: new Date(),
+      endDate: new Date(),
+      key: 'selection',
+    },
+  ]);
+  const [shownDate, setShownDate] = useState(new Date());
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [reportFormat, setReportFormat] = useState('pdf');
 
-  useEffect(() => {
-    if (!token || !order_id) return;
+  const formatDate = (date) =>
+    date instanceof Date && !isNaN(date) ? date.toISOString().slice(0, 10) : null;
 
-    const fetchOrderDetails = async () => {
-      setLoading(true);
-      try {
-        const customerRes = await fetch(
-          'http://api.dustipharma.tj:1212/api/v1/app/orders/customer',
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+  const handleMonthChange = (direction) => {
+    setShownDate((prev) => {
+      const updated = new Date(prev);
+      updated.setMonth(prev.getMonth() + direction);
+      return updated;
+    });
+  };
 
-        const customerData = await customerRes.json();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const { startDate, endDate } = range[0];
+    const from = formatDate(startDate);
+    const to = formatDate(endDate);
 
-        const foundOrder = customerData.payload?.find(
-          (order) => order.id === order_id
-        );
-
-        if (!foundOrder) {
-          throw new Error('Заказ не найден');
-        }
-
-        const baseStatus =
-          CUSTOMER_STATUS_MAP[foundOrder.status] || 'Оформлено';
-
-        let fullStatus = baseStatus;
-
-        const statusRes = await fetch(
-          `http://api.dustipharma.tj:1212/api/v1/app/orders/status/${order_id}`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (statusRes.ok) {
-          const statusData = await statusRes.json();
-          const secondStatus = API_STATUS_MAP[statusData?.payload?.status];
-
-          if (secondStatus) {
-            fullStatus = secondStatus; // если есть — заменяем
-          }
-        }
-
-        setOrderDetails({
-          ...foundOrder,
-          fullStatus,
-        });
-      } catch (error) {
-        console.error('Ошибка при загрузке заказа:', error);
-        setOrderDetails(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrderDetails();
-  }, [order_id, token]);
-
-  const downloadReportFromServer = async (orderCode, format = 'pdf') => {
-    const url = `http://api.dustipharma.tj:1212/api/v1/app/orders/reports/${orderCode}?format=${format}`;
+    if (!from || !to) {
+      setError('Неверный формат даты. Используйте YYYY-MM-DD.');
+      return;
+    }
 
     try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/octet-stream',
-        },
-      });
+      setIsLoading(true);
+      setError('');
 
-      if (!response.ok) {
-        throw new Error(`Ошибка при получении отчёта (${response.status})`);
-      }
+      const response = await axios.get(
+        'http://api.dustipharma.tj:1212/api/v1/app/orders/reports',
+        {
+          params: { from, to, format: reportFormat },
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: 'blob',
+        }
+      );
 
-      const blob = await response.blob();
-      const extension = format === 'xlsx' ? 'xlsx' : 'pdf';
-      saveAs(blob, `Заказ_${orderCode}.${extension}`);
-    } catch (error) {
-      console.error('Ошибка при загрузке отчёта:', error);
+      const contentType =
+        reportFormat === 'pdf'
+          ? 'application/pdf'
+          : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+      const extension = reportFormat === 'pdf' ? 'pdf' : 'xlsx';
+
+      const blob = new Blob([response.data], { type: contentType });
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Отчет_${from}_до_${to}.${extension}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error('Ошибка скачивания отчета:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="DetailedHistory">
+    <div className="profileOrder_content">
       <OrderHeader />
-      <div className="DetailedHistory_content bg_detailed">
+
+      <div className="profileOrder_header">
         <div className="basket_back">
           <div className="examination_backspace">
-            <Link to="/history-order">
+            <Link to="/add-products-to-cart">
               <MoveLeft stroke="#232323" /> Назад
             </Link>
           </div>
-          <h1>Статус заявки</h1>
+          <h1>Отчетность</h1>
         </div>
 
-        <div className="order_basket_step">
-          {loading ? (
-            <p>Загрузка...</p>
-          ) : orderDetails ? (
-            <div className="detailed_info">
-              <div className="users_detailed order_bg detailed_bg">
-                <div className="order_info">
-                  {STATUS_ORDER.map((status, index) => (
-                    <OrderStep
-                      key={status}
-                      icon={
-                        index === 0 || index === STATUS_ORDER.length - 1 ? (
-                          <CircleCheck />
-                        ) : index === 1 ? (
-                          <Clock3 />
-                        ) : index === 2 ? (
-                          <Package />
-                        ) : (
-                          <Truck />
-                        )
-                      }
-                      label={status}
-                      stepKey={status}
-                      currentStatus={orderDetails.fullStatus}
-                      isLast={index === STATUS_ORDER.length - 1}
-                    />
-                  ))}
-                </div>
+        <form className="report-range-calendar" onSubmit={handleSubmit}>
+          <div className="calendar-inputs-with-labels">
+            <label>От</label>
+            <label>До</label>
+          </div>
 
-                <div className="report-buttons">
-                  <button
-                    onClick={() =>
-                      downloadReportFromServer(orderDetails.code, 'pdf')
-                    }
-                  >
-                    Скачать PDF
-                  </button>
-                  <button
-                    onClick={() =>
-                      downloadReportFromServer(orderDetails.code, 'xlsx')
-                    }
-                  >
-                    Скачать Excel
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <p>Данные заказа не найдены.</p>
-          )}
-        </div>
+          <div className="calendar-with-arrows">
+            <button
+              type="button"
+              className="calendar-arrow-left"
+              onClick={() => handleMonthChange(-1)}
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              className="calendar-arrow-right"
+              onClick={() => handleMonthChange(1)}
+            >
+              →
+            </button>
+
+            <DateRange
+              key={shownDate.toString()}
+              editableDateInputs
+              onChange={(item) => setRange([item.selection])}
+              moveRangeOnFirstSelection={false}
+              ranges={range}
+              locale={ru}
+              months={2}
+              shownDate={shownDate}
+              onShownDateChange={setShownDate}
+              direction="horizontal"
+              rangeColors={['#007b83']}
+            />
+          </div>
+
+          {/* Выбор формата отчета */}
+          <div className="report-format-selector">
+            <label htmlFor="reportFormat">Формат отчета:</label>
+            <select
+              id="reportFormat"
+              value={reportFormat}
+              onChange={(e) => setReportFormat(e.target.value)}
+            >
+              <option value="pdf">PDF</option>
+              <option value="xlsx">Excel (XLSX)</option>
+            </select>
+          </div>
+
+          <div className="submit-button-wrapper">
+            <button type="submit" className="submit-button" disabled={isLoading}>
+              {isLoading ? 'Загрузка...' : 'Сформировать отчет'}
+            </button>
+          </div>
+        </form>
+
+        {error && <p className="report-error">{error}</p>}
       </div>
     </div>
   );
 }
 
-function OrderStep({ icon, label, stepKey, currentStatus, isLast = false }) {
-  const currentIndex = STATUS_ORDER.indexOf(currentStatus);
-  const stepIndex = STATUS_ORDER.indexOf(stepKey);
-  const isReached =
-    stepIndex !== -1 && currentIndex !== -1 && stepIndex <= currentIndex;
-
-  return (
-    <div
-      className={`order-step ${
-        isReached ? STATUS_COLOR_MAP[stepKey] : 'color-gray'
-      }`}
-    >
-      <div className="order-step-icon">{icon}</div>
-      <span className="order-step-label">{label}</span>
-      {!isLast && <div className="order-step-line" />}
-    </div>
-  );
-}
-
-export default DetailedHistory;
+export default Reporting;
