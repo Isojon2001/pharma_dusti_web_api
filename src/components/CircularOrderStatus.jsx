@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { CircleCheck, Clock3, Package, Truck, Route } from 'lucide-react';
+
 const STATUS_ORDER = [
   'Оформлено',
   'В обработке',
@@ -8,6 +9,7 @@ const STATUS_ORDER = [
   'В пути',
   'Доставлен',
 ];
+
 const API_STATUS_TO_STEP_STATUS = {
   'Оформлено': 'Оформлено',
   'В обработке': 'В обработке',
@@ -52,8 +54,14 @@ function polarToCartesian(cx, cy, r, angleDeg) {
   };
 }
 
-function CircularOrderStatus({ apiStatus, onConfirm }) {
-  const currentStatus = API_STATUS_TO_STEP_STATUS[apiStatus] || null;
+function CircularOrderStatus({ apiStatus: initialApiStatus }) {
+  const [localStatus, setLocalStatus] = useState(initialApiStatus);
+
+  useEffect(() => {
+    setLocalStatus(initialApiStatus);
+  }, [initialApiStatus]);
+
+  const currentStatus = API_STATUS_TO_STEP_STATUS[localStatus] || null;
   const currentIndex = STATUS_ORDER.indexOf(currentStatus);
   const totalSteps = STATUS_ORDER.length;
   const angleStep = (END_ANGLE - START_ANGLE) / (totalSteps - 1);
@@ -64,6 +72,10 @@ function CircularOrderStatus({ apiStatus, onConfirm }) {
   });
 
   const isDelivered = currentStatus === 'Доставлен';
+
+  const handleConfirm = () => {
+    setLocalStatus('Доставлен');
+  };
 
   return (
     <div className="STATUS_ORDERS">
@@ -125,10 +137,11 @@ function CircularOrderStatus({ apiStatus, onConfirm }) {
         })}
       </svg>
 
-      <button
-        onClick={onConfirm}>
-        Подтвердить получение
-      </button>
+      {!isDelivered && (
+        <button onClick={handleConfirm} className="confirm_button">
+          Подтвердить получение
+        </button>
+      )}
     </div>
   );
 }

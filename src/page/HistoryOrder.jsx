@@ -166,9 +166,7 @@ function HistoryOrder() {
             })
           )}
         </div>
-      </div>
-
-      <div className="pagination_controls">
+              <div className="pagination_controls">
         <button onClick={() => setPage(prev => Math.max(prev - 1, 1))} disabled={page === 1}>
           Назад
         </button>
@@ -176,6 +174,7 @@ function HistoryOrder() {
         <button onClick={() => setPage(prev => Math.min(prev + 1, totalPages))} disabled={page === totalPages}>
           Вперед
         </button>
+      </div>
       </div>
     </div>
   );

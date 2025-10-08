@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { MoveLeft, CircleCheck, Clock3, Package, Truck } from 'lucide-react';
+import { MoveLeft } from 'lucide-react';
 import OrderHeader from '../components/OrderHeader';
 import { useAuth } from '../context/AuthContext';
 import { saveAs } from 'file-saver';
@@ -20,7 +20,7 @@ const API_STATUS_TO_STEP_STATUS = {
   'В обработке': 'В обработке',
   'К отгрузке': 'В сборке',
   'Отгружен': 'Готов к доставке',
-  'Доставлен': 'В пути',
+  'В пути': 'В пути',
   'Доставлен': 'Доставлен',
 };
 
@@ -32,13 +32,13 @@ const STATUS_COLOR_MAP = {
   'Доставлен': 'color-bright-green',
 };
 
-
 function DetailedHistory() {
   const { order_id } = useParams();
   const { token } = useAuth();
 
   const [orderDetails, setOrderDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     if (!token || !order_id) return;
@@ -112,6 +112,7 @@ function DetailedHistory() {
     const baseUrl = `http://api.dustipharma.tj:1212/api/v1/app/orders/reports/${orderCode}`;
     const url = `${baseUrl}?format=${format}`;
 
+    setIsDownloading(true);
     try {
       const response = await fetch(url, {
         method: 'GET',
@@ -130,6 +131,8 @@ function DetailedHistory() {
       saveAs(blob, `Заказ_${orderCode}.${extension}`);
     } catch (error) {
       console.error('Ошибка при загрузке отчёта:', error);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -151,29 +154,31 @@ function DetailedHistory() {
             <p>Загрузка...</p>
           ) : orderDetails ? (
             <CircularOrderStatus apiStatus={orderDetails.status} />
-
           ) : (
             <p>Данные заказа не найдены.</p>
           )}
-                  {!loading && orderDetails && (
-          <div className="order_details_block">
-            <h2>Детали заявки</h2>
-            <div className="download_buttons">
-              <button
-                onClick={() => downloadReportFromServer(orderDetails.code, 'pdf')}
-                className="details_button"
-              >
-                Скачать PDF
-              </button>
-              <button
-                onClick={() => downloadReportFromServer(orderDetails.code, 'xlsx')}
-                className="details_button"
-              >
-                Скачать Excel
-              </button>
+
+          {!loading && orderDetails && (
+            <div className="order_details_block">
+              <h2>Детали заявки</h2>
+              <div className="download_buttons">
+                <button
+                  onClick={() => downloadReportFromServer(orderDetails.code, 'pdf')}
+                  disabled={isDownloading}
+                  className="details_button"
+                >
+                  {isDownloading ? 'Загрузка...' : 'Скачать PDF'}
+                </button>
+                <button
+                  onClick={() => downloadReportFromServer(orderDetails.code, 'xlsx')}
+                  disabled={isDownloading}
+                  className="details_button"
+                >
+                  {isDownloading ? 'Загрузка...' : 'Скачать Excel'}
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
         </div>
       </div>
     </div>
