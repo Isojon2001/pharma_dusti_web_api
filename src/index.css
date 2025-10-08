@@ -861,11 +861,15 @@ background: none;
 border:none;
 text-align: center;
 }
+.detailed_btn button:hover{
+  background-color:#183636;
+}
 .detailed_btn button{
 	padding:5px 15px;
 	border-radius: 12px;
 	background-color: #0F7372;
 	color: #FFF;
+  cursor: pointer;
 	font-size: 22px;
 	border:none;
 }

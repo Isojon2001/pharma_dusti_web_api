@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 function HistoryOrder() {
   const { token } = useAuth();
   const [orders, setOrders] = useState([]);
+  const [orderStatuses, setOrderStatuses] = useState({});
   const [totalOrders, setTotalOrders] = useState(0);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -28,13 +29,40 @@ function HistoryOrder() {
       },
     })
       .then(res => res.json())
-      .then(data => {
+      .then(async data => {
         if (data.code === 200) {
-          setOrders(data.payload || []);
+          const fetchedOrders = data.payload || [];
+          setOrders(fetchedOrders);
           setTotalOrders(data.total || 0);
+
+          const statusesObj = {};
+          await Promise.all(
+            fetchedOrders.map(order =>
+              fetch(`http://api.dustipharma.tj:1212/api/v1/app/orders/status/${order.id}`, {
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${token}`,
+                },
+              })
+                .then(res => res.json())
+                .then(statusData => {
+                  if (statusData.code === 200 && statusData.payload?.status) {
+                    statusesObj[order.id] = statusData.payload.status;
+                  } else {
+                    statusesObj[order.id] = 'unknown';
+                  }
+                })
+                .catch(() => {
+                  statusesObj[order.id] = 'unknown';
+                })
+            )
+          );
+
+          setOrderStatuses(statusesObj);
         } else {
           setOrders([]);
           setTotalOrders(0);
+          setOrderStatuses({});
         }
         setLoading(false);
       })
@@ -42,6 +70,7 @@ function HistoryOrder() {
         console.error('Ошибка загрузки заказов:', err);
         setOrders([]);
         setTotalOrders(0);
+        setOrderStatuses({});
         setLoading(false);
       });
   }, [token, page, limit]);
@@ -61,11 +90,14 @@ function HistoryOrder() {
   };
 
   const filteredOrders = orders.filter(order => {
+    const currentStatus = orderStatuses[order.id] || 'pending';
+
     const matchesStatus =
       filterStatus === 'all' ||
-      (filterStatus === 'pending' && order.status === 'pending') ||
-      (filterStatus === 'assembled' && order.status === 'assembled') ||
-      (filterStatus === 'in_transit' && order.status === 'in_transit');
+      (filterStatus === 'К отгрузке' && currentStatus === 'К отгрузке') ||
+      (filterStatus === 'Отгружен' && currentStatus === 'Отгружен') ||
+      (filterStatus === 'Отгружен' && currentStatus === 'В пути') ||
+      (filterStatus === 'Доставлен' && currentStatus === 'Доставлен');
 
     const matchesSearch = searchTerm.trim() === '' || order.code.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -90,13 +122,40 @@ function HistoryOrder() {
           <h1>История заказов</h1>
 
           <div className="history_filter">
-            <button className={filterStatus === 'all' ? 'active' : ''} onClick={() => setFilterStatus('all')}>Все</button>
+            <button
+              className={filterStatus === 'all' ? 'active' : ''}
+              onClick={() => setFilterStatus('all')}
+            >
+              Все
+            </button>
             <div className="history_line"></div>
-            <button className={filterStatus === 'pending' ? 'active' : ''} onClick={() => setFilterStatus('pending')}>В обработке</button>
+            <button
+              className={filterStatus === 'К отгрузке' ? 'active' : ''}
+              onClick={() => setFilterStatus('К отгрузке')}
+            >
+              В сборке
+            </button>
             <div className="history_line"></div>
-            <button className={filterStatus === 'assembled' ? 'active' : ''} onClick={() => setFilterStatus('assembled')}>Заказ собран</button>
+            <button
+              className={filterStatus === 'Отгружен' ? 'active' : ''}
+              onClick={() => setFilterStatus('Отгружен')}
+            >
+              Готов к доставке
+            </button>
             <div className="history_line"></div>
-            <button className={filterStatus === 'in_transit' ? 'active' : ''} onClick={() => setFilterStatus('in_transit')}>В пути</button>
+            <button
+              className={filterStatus === 'В пути' ? 'active' : ''}
+              onClick={() => setFilterStatus('В пути')}
+            >
+              В пути
+            </button>
+            <div className="history_line"></div>
+            <button
+              className={filterStatus === 'Доставлен' ? 'active' : ''}
+              onClick={() => setFilterStatus('Доставлен')}
+            >
+              Доставлен
+            </button>
           </div>
 
           <div className="results_searching">
@@ -150,31 +209,32 @@ function HistoryOrder() {
                     <div className="history_info"><strong>№ Заявки:</strong> #{order.code}</div>
                     <div className="history_info"><strong>Кол-во наименование:</strong> {itemCount} / {totalQuantity}</div>
                     <div className="history_info"><strong>Сумма:</strong> {total} Сомони</div>
+                    <div className="history_info"><strong>Статус:</strong> {orderStatuses[order.id] || 'pending'}</div>
                   </Link>
                   <div className="history_lines"></div>
                   <Link
                     to={`/detail-realisations/${order.id}`}
                     className="history_infos"
                   >
-                  <div>
-                    <h2>Детали реализации</h2>
-                  </div>
+                    <div>
+                      <h2>Детали реализации</h2>
+                    </div>
                   </Link>
-
                 </div>
               );
             })
           )}
         </div>
-              <div className="pagination_controls">
-        <button onClick={() => setPage(prev => Math.max(prev - 1, 1))} disabled={page === 1}>
-          Назад
-        </button>
-        <span>Страница {page} из {totalPages}</span>
-        <button onClick={() => setPage(prev => Math.min(prev + 1, totalPages))} disabled={page === totalPages}>
-          Вперед
-        </button>
-      </div>
+
+        <div className="pagination_controls">
+          <button onClick={() => setPage(prev => Math.max(prev - 1, 1))} disabled={page === 1}>
+            Назад
+          </button>
+          <span>Страница {page} из {totalPages}</span>
+          <button onClick={() => setPage(prev => Math.min(prev + 1, totalPages))} disabled={page === totalPages}>
+            Вперед
+          </button>
+        </div>
       </div>
     </div>
   );
