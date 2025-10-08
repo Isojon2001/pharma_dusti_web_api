@@ -2,14 +2,11 @@ import React, { useMemo, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
-
 import RequireAuth from './components/RequireAuth';
-
 import LoginPage from './page/LoginPage';
 import RegistrationPage from './page/RegistrationPage';
 import Examination from './page/Examination';
 import SetPassword from './page/SetPassword';
-
 import AddProductsToCart from './page/AddProductsToСart';
 import OrderBasket from './page/OrderBasket';
 import HistoryOrder from './page/HistoryOrder';
@@ -17,6 +14,7 @@ import DetailedStory from './page/DetailedStory';
 import ProfileOrder from './page/ProfileOrder';
 import ChangePassword from './page/ChangePassword';
 import Reporting from './page/Reporting';
+import DetailRealisations from './page/DetailRealisations';
 
 import './index.css';
 
@@ -38,16 +36,15 @@ function App() {
   return (
     <CartProvider userId={userId}>
       <Routes>
-        
         <Route path="/" element={<LoginPage />} />
         <Route path="/registration" element={<RegistrationPage />} />
         <Route path="/examination" element={<Examination />} />
         <Route path="/setPassword" element={<SetPassword />} />
-
         <Route path="/add-products-to-cart" element={<RequireAuth><AddProductsToCart /></RequireAuth>} />
         <Route path="/order-basket" element={<RequireAuth><OrderBasket /></RequireAuth>} />
         <Route path="/history-order" element={<RequireAuth><HistoryOrder /></RequireAuth>} />
         <Route path="/detailed-history/:order_id" element={<RequireAuth><DetailedStory /></RequireAuth>} />
+        <Route path="/detail-realisations/:order_id" element={<RequireAuth><DetailRealisations /></RequireAuth>} />
         <Route path="/profile-order" element={<RequireAuth><ProfileOrder /></RequireAuth>} />
         <Route path="/change-password" element={<RequireAuth><ChangePassword /></RequireAuth>} />
         <Route path="/reporting" element={<RequireAuth><Reporting /></RequireAuth>} />

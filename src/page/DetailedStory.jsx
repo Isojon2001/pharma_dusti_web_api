@@ -4,20 +4,23 @@ import { MoveLeft, CircleCheck, Clock3, Package, Truck } from 'lucide-react';
 import OrderHeader from '../components/OrderHeader';
 import { useAuth } from '../context/AuthContext';
 import { saveAs } from 'file-saver';
+import CircularOrderStatus from '../components/CircularOrderStatus';
 
 const STATUS_ORDER = [
   'Оформлено',
   'В обработке',
-  'В процессе сборки',
-  'В процессе Доставки',
+  'В сборке',
+  'Готов к доставке',
+  'В пути',
   'Доставлен',
 ];
 
 const API_STATUS_TO_STEP_STATUS = {
   'Оформлено': 'Оформлено',
   'В обработке': 'В обработке',
-  'К отгрузке': 'В процессе сборки',
-  'Отгружен': 'В процессе Доставки',
+  'К отгрузке': 'В сборке',
+  'Отгружен': 'Готов к доставке',
+  'Доставлен': 'В пути',
   'Доставлен': 'Доставлен',
 };
 
@@ -28,6 +31,7 @@ const STATUS_COLOR_MAP = {
   'В процессе Доставки': 'color-blue',
   'Доставлен': 'color-bright-green',
 };
+
 
 function DetailedHistory() {
   const { order_id } = useParams();
@@ -146,74 +150,32 @@ function DetailedHistory() {
           {loading ? (
             <p>Загрузка...</p>
           ) : orderDetails ? (
-            <div className="detailed_info">
-              <div className="users_detailed order_bg detailed_bg">
-                <div className="active_order"></div>
-                <div className="order_info">
-                  {STATUS_ORDER.map((status, index) => (
-                    <OrderStep
-                      key={status}
-                      icon={
-                        index === 0 || index === STATUS_ORDER.length - 1 ? (
-                          <CircleCheck />
-                        ) : index === 1 ? (
-                          <Clock3 />
-                        ) : index === 2 ? (
-                          <Package />
-                        ) : (
-                          <Truck />
-                        )
-                      }
-                      label={status}
-                      stepKey={status}
-                      currentStatus={currentStatus}
-                      isLast={index === STATUS_ORDER.length - 1}
-                    />
-                  ))}
-                </div>
-                <h2>Детали заявки</h2>
-                <div className="report-buttons">
-                  <button
-                    onClick={() =>
-                      downloadReportFromServer(orderDetails.code, 'pdf')
-                    }
-                  >
-                    Скачать PDF
-                  </button>
-                  <button
-                    onClick={() =>
-                      downloadReportFromServer(orderDetails.code, 'xlsx')
-                    }
-                  >
-                    Скачать Excel
-                  </button>
-                </div>
-              </div>
-            </div>
+            <CircularOrderStatus apiStatus={orderDetails.status} />
+
           ) : (
             <p>Данные заказа не найдены.</p>
           )}
+                  {!loading && orderDetails && (
+          <div className="order_details_block">
+            <h2>Детали заявки</h2>
+            <div className="download_buttons">
+              <button
+                onClick={() => downloadReportFromServer(orderDetails.code, 'pdf')}
+                className="details_button"
+              >
+                Скачать PDF
+              </button>
+              <button
+                onClick={() => downloadReportFromServer(orderDetails.code, 'xlsx')}
+                className="details_button"
+              >
+                Скачать Excel
+              </button>
+            </div>
+          </div>
+        )}
         </div>
       </div>
-    </div>
-  );
-}
-
-function OrderStep({ icon, label, stepKey, currentStatus, isLast = false }) {
-  const currentIndex = STATUS_ORDER.indexOf(currentStatus);
-  const stepIndex = STATUS_ORDER.indexOf(stepKey);
-  const isReached =
-    stepIndex !== -1 && currentIndex !== -1 && stepIndex <= currentIndex;
-
-  return (
-    <div
-      className={`order-step ${
-        isReached ? STATUS_COLOR_MAP[stepKey] : 'color-gray'
-      }`}
-    >
-      <div className="order-step-icon">{icon}</div>
-      <span className="order-step-label">{label}</span>
-      {!isLast && <div className="order-step-line" />}
     </div>
   );
 }

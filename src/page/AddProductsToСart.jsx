@@ -5,20 +5,23 @@
   import { Link } from 'react-router-dom';
   import { useAuth } from '../context/AuthContext';
   import { useCart } from '../context/CartContext';
+  import CircularOrderStatus from '../components/CircularOrderStatus';
 
   const STATUS_ORDER = [
     'Оформлено',
     'В обработке',
-    'В процессе сборки',
-    'В процессе Доставки',
+    'В сборке',
+    'Готов к доставке',
+    'В пути',
     'Доставлен',
   ];
 
   const API_STATUS_TO_STEP_STATUS = {
     'Оформлено': 'Оформлено',
     'В обработке': 'В обработке',
-    'К отгрузке': 'В процессе сборки',
-    'Отгружен': 'В процессе Доставки',
+    'К отгрузке': 'В сборке',
+    'Отгружен': 'Готов к доставке',
+    'В пути': 'В пути',
     'Доставлен': 'Доставлен',
   };
 
@@ -77,7 +80,7 @@
     setCurrentBannerIndex((prev) => (prev + 1) % banner.length);
   };
 
-  
+
   useEffect(() => {
     if (!token) return;
     setBannerLoading(true);
@@ -192,7 +195,7 @@ useEffect(() => {
       if (nums.length === 1) return [0, Number(nums[0])];
       return [Number(nums[0]), Number(nums[1])];
     };
-    
+
     useEffect(() => {
       if (!token) return;
 
@@ -201,12 +204,13 @@ useEffect(() => {
 
       const params = { 
         page,
-        size: 50
+        size: 10
       };
       if (searchTerm.trim() !== '') params.name = searchTerm.trim();
       if (category !== 'products') params.category = category;
       if (minSumma > 0) params.min_price = minSumma;
       if (maxSumma !== Infinity) params.max_price = maxSumma;
+        console.log('Запрашиваем продукты с параметрами:', params)
 
       axios
         .get('http://api.dustipharma.tj:1212/api/v1/app/products/all', {
@@ -249,32 +253,29 @@ useEffect(() => {
     };
 
     const groupProductsByCode = (productsList) => {
-      const grouped = {};
-      
-      productsList.forEach((product) => {
-        const uniqueKey = `${product.Код || 'unknown'}-${product['Наименование']}-${product['Производитель']}`;
-        
-        if (!grouped[uniqueKey]) {
-          grouped[uniqueKey] = [product];
-        } else {
-          const existingProduct = grouped[uniqueKey][0];
-          if (product['Срок'] !== existingProduct['Срок']) {
-            grouped[uniqueKey].push(product);
-          }
-        }
-      });
+  const grouped = {};
 
-      for (const key in grouped) {
-        grouped[key].sort((a, b) => {
-          const dateA = a['Срок'] && a['Срок'] !== '0001-01-01T00:00:00Z' ? new Date(a['Срок']) : new Date(0);
-          const dateB = b['Срок'] && b['Срок'] !== '0001-01-01T00:00:00Z' ? new Date(b['Срок']) : new Date(0);
-          return dateA - dateB;
-        });
-      }
+  productsList.forEach((product) => {
+    const uniqueKey = `${product.Код || 'unknown'}-${product['Наименование']}-${product['Производитель']}`;
 
-      console.log('Сгруппированные продукты:', Object.keys(grouped).length, grouped);
-      return grouped;
-    };
+    if (!grouped[uniqueKey]) {
+      grouped[uniqueKey] = [product];
+    } else {
+      grouped[uniqueKey].push(product);
+    }
+  });
+
+  for (const key in grouped) {
+    grouped[key].sort((a, b) => {
+      const dateA = a['Срок'] && a['Срок'] !== '0001-01-01T00:00:00Z' ? new Date(a['Срок']) : new Date(0);
+      const dateB = b['Срок'] && b['Срок'] !== '0001-01-01T00:00:00Z' ? new Date(b['Срок']) : new Date(0);
+      return dateA - dateB;
+    });
+  }
+
+  return grouped;
+};
+
 
     const formatDate = (dateStr) => {
       if (!dateStr || dateStr === '0001-01-01T00:00:00Z') return '—';
@@ -518,20 +519,7 @@ useEffect(() => {
                 </div>
                 <div className="order_bg">
                   {activeOrder ? (
-                    <>
-                      <div className='active_order'>
-                        <h1>Код заказа:</h1>
-                        <h2>{activeOrder?.code || '—'}</h2>
-                      </div>
-
-                      <div className="order_info">
-                        <OrderStep icon={<CircleCheck />} label="Оформлено" stepKey="Оформлено" currentStatus={activeOrder?.status} isLast={false} />
-                        <OrderStep icon={<Clock3 />} label="В обработке" stepKey="В обработке" currentStatus={activeOrder?.status} isLast={false} />
-                        <OrderStep icon={<Package />} label="В процессе сборки" stepKey="В процессе сборки" currentStatus={activeOrder?.status} isLast={false} />
-                        <OrderStep icon={<Truck />} label="В процессе Доставки" stepKey="В процессе Доставки" currentStatus={activeOrder?.status} isLast={false} />
-                        <OrderStep icon={<CircleCheck />} label="Доставлен" stepKey="Доставлен" currentStatus={activeOrder?.status} isLast={true} />
-                      </div>
-                    </>
+                  <CircularOrderStatus apiStatus={activeOrder?.status}/>
                   ) : (
                     <div className="no_active_order">
                       <h1>Нет активных заказов</h1>
