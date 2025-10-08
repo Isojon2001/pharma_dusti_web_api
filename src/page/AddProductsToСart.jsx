@@ -251,16 +251,23 @@ useEffect(() => {
         setPage(prev => prev + 1);
       }
     };
-
-    const groupProductsByCode = (productsList) => {
+const groupProductsByCode = (productsList) => {
   const grouped = {};
 
   productsList.forEach((product) => {
     const uniqueKey = `${product.Код || 'unknown'}-${product['Наименование']}-${product['Производитель']}`;
 
     if (!grouped[uniqueKey]) {
-      grouped[uniqueKey] = [product];
-    } else {
+      grouped[uniqueKey] = [];
+    }
+
+    const formattedDate = formatDate(product['Срок']);
+
+    const isDuplicate = grouped[uniqueKey].some(
+      (p) => formatDate(p['Срок']) === formattedDate
+    );
+
+    if (!isDuplicate) {
       grouped[uniqueKey].push(product);
     }
   });
@@ -275,6 +282,7 @@ useEffect(() => {
 
   return grouped;
 };
+
 
 
     const formatDate = (dateStr) => {

@@ -209,7 +209,6 @@ function HistoryOrder() {
                     <div className="history_info"><strong>№ Заявки:</strong> #{order.code}</div>
                     <div className="history_info"><strong>Кол-во наименование:</strong> {itemCount} / {totalQuantity}</div>
                     <div className="history_info"><strong>Сумма:</strong> {total} Сомони</div>
-                    <div className="history_info"><strong>Статус:</strong> {orderStatuses[order.id] || 'pending'}</div>
                   </Link>
                   <div className="history_lines"></div>
                   <Link
