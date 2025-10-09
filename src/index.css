@@ -203,10 +203,10 @@ chtml, body, #root {
 	position: absolute;
 	top: 240px;
 	left:213px;
-  marginTop: 30;
+  margin-top: 30;
   background-color:#0F7372;
 	padding: 12px 20px;
-  fontSize: 18;
+  font-size: 18;
   color: white;
   border: none;
   border-radius:16px;
