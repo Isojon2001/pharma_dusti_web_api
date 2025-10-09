@@ -206,8 +206,16 @@ useEffect(() => {
         page,
         size: 10
       };
-      if (searchTerm.trim() !== '') params.name = searchTerm.trim();
-      if (category !== 'products') params.category = category;
+                  let nameQuery = searchTerm.trim();
+            if (category !== 'products') {
+              const selectedCategory = categories.find((cat) => cat.key === category);
+              if (selectedCategory) {
+                nameQuery = nameQuery ? `${nameQuery} ${selectedCategory.name}` : selectedCategory.name;
+              }
+            }
+            if (nameQuery !== '') {
+              params.name = nameQuery;
+            }
       if (minSumma > 0) params.min_price = minSumma;
       if (maxSumma !== Infinity) params.max_price = maxSumma;
         console.log('Запрашиваем продукты с параметрами:', params)
