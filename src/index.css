@@ -1347,7 +1347,6 @@ text-align: center;
 }
 .report-range-calendar{
     display: flex;
-    width: 500px;
     align-items: center;
     flex-direction: column;
 }
