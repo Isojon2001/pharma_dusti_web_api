@@ -75,6 +75,13 @@
     const handlePrevBanner = () => {
     setCurrentBannerIndex((prev) => (prev - 1 + banner.length) % banner.length);
   };
+  const highlightMatch = (text, query) => {
+  if (!query) return text;
+
+  const regex = new RegExp(`(${query})`, 'gi');
+  const highlighted = text.replace(regex, '<mark class="highlight">$1</mark>');
+  return highlighted;
+};
 
   const handleNextBanner = () => {
     setCurrentBannerIndex((prev) => (prev + 1) % banner.length);
@@ -438,7 +445,13 @@ const groupProductsByCode = (productsList) => {
 
                     return (
                       <tr key={code} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
-                        <td><strong>{selectedProduct['Наименование']}</strong></td>
+                        <td>
+                        <strong
+                          dangerouslySetInnerHTML={{
+                            __html: highlightMatch(selectedProduct['Наименование'], searchTerm),
+                          }}
+                        />
+                      </td>
                         <td>{selectedProduct['Производитель'] || 'Неизвестен'}</td>
                         <td>
                           {productGroup.length > 1 ? (

@@ -1357,6 +1357,12 @@ text-align: center;
     flex-direction: column !important;
     width: 500px !important;
 }
+.highlight {
+  background-color: yellow;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
 .banner-controls button {
   background-color: #ffffff;
   border: 1px solid #ccc;
