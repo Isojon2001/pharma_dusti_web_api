@@ -80,7 +80,7 @@ function HistoryOrder() {
     date.setHours(date.getHours() - 5);
     return {
       date: date.toLocaleDateString(),
-      time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      time: date.toLocaleTimeString([]),
     };
   };
 

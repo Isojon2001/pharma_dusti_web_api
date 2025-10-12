@@ -559,6 +559,7 @@ function AddProductsToCart() {
                       <CircularOrderStatus 
                         apiStatus={activeOrder.statusData}
                         orderId={activeOrder.id}
+                          token={token}
                         />
                 ) : (
                   <div className="no_active_order">

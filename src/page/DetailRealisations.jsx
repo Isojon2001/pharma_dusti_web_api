@@ -5,6 +5,13 @@ import OrderHeader from '../components/OrderHeader';
 import { useAuth } from '../context/AuthContext';
 import CircularOrderStatus from '../components/CircularOrderStatus';
 
+const normalizeDate = (dateStr) => {
+  if (!dateStr || dateStr === '01.01.0001 0:00:00' || dateStr.trim() === '') {
+    return '—';
+  }
+  return dateStr;
+};
+
 function DetailRealisations() {
   const { order_id } = useParams();
   const { token } = useAuth();
@@ -15,7 +22,6 @@ function DetailRealisations() {
 
   useEffect(() => {
     if (!token || !order_id) {
-      console.warn('Нет токена или order_id:', token, order_id);
       setLoading(false);
       setErrorMsg('Неверные данные запроса');
       return;
@@ -34,19 +40,13 @@ function DetailRealisations() {
             },
           }
         );
-        if (!customerRes.ok) {
-          throw new Error(`Ошибка сервера при customer: ${customerRes.status}`);
-        }
-        const customerData = await customerRes.json();
-        const orderList = customerData.payload;
-        if (!Array.isArray(orderList)) {
-          throw new Error('customerData.payload не массив');
-        }
 
-        const foundOrder = orderList.find(o => String(o.id) === String(order_id));
-        if (!foundOrder) {
-          throw new Error('Заказ не найден в списке');
-        }
+        if (!customerRes.ok) throw new Error(`Ошибка сервера: ${customerRes.status}`);
+
+        const customerData = await customerRes.json();
+
+        const foundOrder = customerData.payload?.find(o => String(o.id) === String(order_id));
+        if (!foundOrder) throw new Error('Заказ не найден');
 
         const statusRes = await fetch(
           `http://api.dustipharma.tj:1212/api/v1/app/orders/status/${order_id}`,
@@ -57,40 +57,29 @@ function DetailRealisations() {
             },
           }
         );
-        if (!statusRes.ok) {
-          throw new Error(`Ошибка сервера при status: ${statusRes.status}`);
-        }
+
+        if (!statusRes.ok) throw new Error(`Ошибка сервера: ${statusRes.status}`);
+
         const statusData = await statusRes.json();
+        const rawStatus = statusData.payload?.status || {};
 
-        if (statusData.code === 200 && statusData.payload && statusData.payload.status) {
-          const rawStatus = statusData.payload.status;
+        const normalizedDates = {
+          created_at: normalizeDate(rawStatus.ДатаОформлено),
+          processed_at: normalizeDate(rawStatus.ДатаКОбработке),
+          assembled_at: normalizeDate(rawStatus.ДатаКСборке),
+          ready_at: normalizeDate(rawStatus.ДатаГотовКДоставке),
+          in_transit_at: normalizeDate(rawStatus.ДатаВПути),
+          delivered_at: normalizeDate(rawStatus.ДатаДоставлен),
+        };
 
-          const normalizeDate = (dateStr) => {
-            if (!dateStr || dateStr === '01.01.0001 0:00:00' || dateStr.trim() === '') {
-              return '—';
-            }
-            return dateStr;
-          };
-
-          const normalizedDates = {
-            created_at: normalizeDate(rawStatus.ДатаОформлено),
-            processed_at: normalizeDate(rawStatus.ДатаКОбработке),
-            assembled_at: normalizeDate(rawStatus.ДатаКСборке),
-            ready_at: normalizeDate(rawStatus.ДатаГотовКДоставке),
-            in_transit_at: normalizeDate(rawStatus.ДатаВПути),
-            delivered_at: normalizeDate(rawStatus.ДатаДоставлен),
-          };
-
-          setOrderDetails({
-            code: foundOrder.code,
-            status: rawStatus,
-            timestamps: normalizedDates,
-          });
-        } else {
-          throw new Error('statusData.payload отсутствует или код ≠ 200');
-        }
+        setOrderDetails({
+          id: foundOrder.id,
+          code: foundOrder.code,
+          status: rawStatus,
+          timestamps: normalizedDates,
+        });
       } catch (err) {
-        console.error('Ошибка при загрузке деталей заказа:', err);
+        console.error('Ошибка при загрузке:', err);
         setErrorMsg(err.message || 'Ошибка загрузки');
         setOrderDetails(null);
       } finally {
@@ -100,6 +89,29 @@ function DetailRealisations() {
 
     fetchOrderDetails();
   }, [order_id, token]);
+
+  const handleStatusConfirm = (confirmedDate) => {
+    setOrderDetails((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        status: { ...prev.status, Доставлен: 'Да' },
+        timestamps: {
+          ...prev.timestamps,
+          delivered_at: normalizeDate(confirmedDate || new Date().toLocaleString()),
+        },
+      };
+    });
+  };
+
+  const stages = [
+    { label: 'Оформлен', icon: <CircleCheck size={24} />, date: orderDetails?.timestamps.created_at },
+    { label: 'Обработан', icon: <Clock3 size={24} />, date: orderDetails?.timestamps.processed_at },
+    { label: 'Сборка', icon: <Package size={24} />, date: orderDetails?.timestamps.assembled_at },
+    { label: 'Готов к доставке', icon: <Truck size={24} />, date: orderDetails?.timestamps.ready_at },
+    { label: 'В пути', icon: <Route size={24} />, date: orderDetails?.timestamps.in_transit_at },
+    { label: 'Доставлен', icon: <CircleCheck size={24} />, date: orderDetails?.timestamps.delivered_at },
+  ];
 
   return (
     <div className="DetailedHistory">
@@ -118,47 +130,29 @@ function DetailRealisations() {
           {loading ? (
             <p>Загрузка...</p>
           ) : errorMsg ? (
-            <p>{errorMsg}</p>
+            <p style={{ color: 'red' }}>{errorMsg}</p>
           ) : orderDetails ? (
             <>
               <CircularOrderStatus
                 apiStatus={orderDetails.status}
                 timestamps={orderDetails.timestamps}
+                orderId={orderDetails.id}
+                token={token}
+                onConfirm={handleStatusConfirm}
               />
+
               <div className="date_realisations">
                 <h2>Дата и время реализации</h2>
               </div>
+
               <div className="order_stages_icons">
-                <div className="stage_block">
-                  <div className="stage_icon"><CircleCheck size={24} /></div>
-                  <div className="stage_label">Оформлен</div>
-                  <div className="stage_time">{orderDetails.timestamps.created_at}</div>
-                </div>
-                <div className="stage_block">
-                  <div className="stage_icon"><Clock3 size={24} /></div>
-                  <div className="stage_label">Обработан</div>
-                  <div className="stage_time">{orderDetails.timestamps.processed_at}</div>
-                </div>
-                <div className="stage_block">
-                  <div className="stage_icon"><Package size={24} /></div>
-                  <div className="stage_label">Сборка</div>
-                  <div className="stage_time">{orderDetails.timestamps.assembled_at}</div>
-                </div>
-                <div className="stage_block">
-                  <div className="stage_icon"><Truck size={24} /></div>
-                  <div className="stage_label">Готов к доставке</div>
-                  <div className="stage_time">{orderDetails.timestamps.ready_at}</div>
-                </div>
-                <div className="stage_block">
-                  <div className="stage_icon"><Route size={24} /></div>
-                  <div className="stage_label">В пути</div>
-                  <div className="stage_time">{orderDetails.timestamps.in_transit_at}</div>
-                </div>
-                <div className="stage_block">
-                  <div className="stage_icon"><CircleCheck size={24} /></div>
-                  <div className="stage_label">Доставлен</div>
-                  <div className="stage_time">{orderDetails.timestamps.delivered_at}</div>
-                </div>
+                {stages.map(({ label, icon, date }) => (
+                  <div className="stage_block" key={label}>
+                    <div className="stage_icon">{icon}</div>
+                    <div className="stage_label">{label}</div>
+                    <div className="stage_time">{date}</div>
+                  </div>
+                ))}
               </div>
             </>
           ) : (

@@ -68,16 +68,52 @@ function extractCurrentStatus(statusObj) {
       return API_STATUS_TO_STEP_STATUS[key] || 'Оформлено';
     }
   }
-
   return 'Оформлено';
 }
 
-function CircularOrderStatus({ apiStatus, onConfirm }) {
+function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, token }) {
   const [localStatus, setLocalStatus] = useState(apiStatus);
+  const [confirmationDate, setConfirmationDate] = useState(timestamps?.delivered_at || null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setLocalStatus(apiStatus);
-  }, [apiStatus]);
+    if (timestamps?.delivered_at) {
+      setConfirmationDate(timestamps.delivered_at);
+    }
+
+    if (!token || !orderId) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(
+          `http://api.dustipharma.tj:1212/api/v1/app/orders/status/${orderId}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await res.json();
+
+        if (res.ok && data?.payload?.status) {
+          const updatedStatus = data.payload.status;
+          setLocalStatus(updatedStatus);
+
+          if (updatedStatus.Доставлен === 'Да') {
+            const deliveredDate = data.payload.status?.ДатаДоставлен || new Date().toLocaleString();
+            setConfirmationDate(deliveredDate);
+          }
+        }
+      } catch (err) {
+        console.error('Ошибка при автообновлении статуса:', err);
+      }
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [token, orderId]);
 
   const rawStatus = extractCurrentStatus(localStatus);
   const currentIndex = STATUS_ORDER.indexOf(rawStatus);
@@ -91,17 +127,50 @@ function CircularOrderStatus({ apiStatus, onConfirm }) {
 
   const isDelivered = rawStatus === 'Доставлен';
 
-  const handleConfirm = () => {
-    if (onConfirm) {
-      onConfirm();
-    } else {
-      setLocalStatus(prev => ({ ...prev, Доставлен: 'Да' }));
+  const handleConfirm = async () => {
+    if (!token) {
+      console.error('Токен не передан');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `http://api.dustipharma.tj:1212/api/v1/app/status/${orderId}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const apiDate = data?.payload?.ДатаДоставлен || new Date().toLocaleString();
+
+        setLocalStatus((prev) => ({ ...prev, Доставлен: 'Да' }));
+        setConfirmationDate(apiDate);
+
+        if (onConfirm) {
+          onConfirm(apiDate);
+        }
+      } else {
+        console.error('Ошибка подтверждения:', data.message);
+      }
+    } catch (error) {
+      console.error('Ошибка сети:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="STATUS_ORDERS">
       <svg width={600} height={300}>
+        {/* Линии между шагами */}
         {positions.map((pos, i) => {
           if (i === positions.length - 1) return null;
           const nextPos = positions[i + 1];
@@ -118,15 +187,15 @@ function CircularOrderStatus({ apiStatus, onConfirm }) {
           );
         })}
 
+        {/* Шаги и иконки */}
         {STATUS_ORDER.map((status, i) => {
           const pos = positions[i];
           const isRightSide = pos.x >= CENTER_X;
 
           const apiKey = Object.keys(API_STATUS_TO_STEP_STATUS).find(
-            k => API_STATUS_TO_STEP_STATUS[k] === status
+            (k) => API_STATUS_TO_STEP_STATUS[k] === status
           );
           const isReached = localStatus[apiKey] === 'Да';
-          const isCurrent = status === rawStatus;
 
           const textOffset = isRightSide ? CIRCLE_RADIUS + 20 : -CIRCLE_RADIUS - 20;
 
@@ -162,9 +231,15 @@ function CircularOrderStatus({ apiStatus, onConfirm }) {
       </svg>
 
       {!isDelivered && (
-        <button onClick={handleConfirm} className="confirm_button">
-          Подтвердить получение
+        <button onClick={handleConfirm} className="confirm_button" disabled={isLoading}>
+          {isLoading ? 'Подтверждение...' : 'Подтвердить получение'}
         </button>
+      )}
+
+      {isDelivered && confirmationDate && (
+        <div className="confirmation_date">
+          Подтверждено: {confirmationDate}
+        </div>
       )}
     </div>
   );
