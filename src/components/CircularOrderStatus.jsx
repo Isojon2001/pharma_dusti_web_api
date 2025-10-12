@@ -13,8 +13,8 @@ const STATUS_ORDER = [
 const API_STATUS_TO_STEP_STATUS = {
   'Оформлено': 'Оформлено',
   'В обработке': 'В обработке',
-  'К отгрузке': 'В сборке',
-  'Отгружен': 'Готов к доставке',
+  'В сборке': 'В сборке',
+  'Готов к доставке': 'Готов к доставке',
   'В пути': 'В пути',
   'Доставлен': 'Доставлен',
 };
@@ -54,14 +54,14 @@ function polarToCartesian(cx, cy, r, angleDeg) {
   };
 }
 
-function CircularOrderStatus({ apiStatus: initialApiStatus }) {
-  const [localStatus, setLocalStatus] = useState(initialApiStatus);
+function CircularOrderStatus({ apiStatus, onConfirm }) {
+  const [localStatus, setLocalStatus] = useState(apiStatus);
 
   useEffect(() => {
-    setLocalStatus(initialApiStatus);
-  }, [initialApiStatus]);
+    setLocalStatus(apiStatus);
+  }, [apiStatus]);
 
-  const currentStatus = API_STATUS_TO_STEP_STATUS[localStatus] || null;
+  const currentStatus = API_STATUS_TO_STEP_STATUS[localStatus] || 'Оформлено';
   const currentIndex = STATUS_ORDER.indexOf(currentStatus);
   const totalSteps = STATUS_ORDER.length;
   const angleStep = (END_ANGLE - START_ANGLE) / (totalSteps - 1);
@@ -74,7 +74,11 @@ function CircularOrderStatus({ apiStatus: initialApiStatus }) {
   const isDelivered = currentStatus === 'Доставлен';
 
   const handleConfirm = () => {
-    setLocalStatus('Доставлен');
+    if (onConfirm) {
+      onConfirm();
+    } else {
+      setLocalStatus('Доставлен');
+    }
   };
 
   return (
@@ -100,14 +104,12 @@ function CircularOrderStatus({ apiStatus: initialApiStatus }) {
           const pos = positions[i];
           const isActive = i === currentIndex;
           const isReached = i <= currentIndex;
-
           const isRightSide = pos.x >= CENTER_X;
           const textOffset = isRightSide ? CIRCLE_RADIUS + 20 : -CIRCLE_RADIUS - 20;
 
           return (
             <g key={status} transform={`translate(${pos.x},${pos.y})`}>
               <circle r={CIRCLE_RADIUS} fill={isReached ? ACTIVE_COLOR : INACTIVE_COLOR} />
-
               <foreignObject
                 x={-ICON_SIZE / 2}
                 y={-ICON_SIZE / 2}
@@ -121,7 +123,6 @@ function CircularOrderStatus({ apiStatus: initialApiStatus }) {
                   })}
                 </div>
               </foreignObject>
-
               <text
                 x={textOffset}
                 y={6}

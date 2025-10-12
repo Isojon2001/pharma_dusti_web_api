@@ -84,10 +84,19 @@ function HistoryOrder() {
     };
   };
 
-  const getTotalPrice = (items = []) => {
-    if (!Array.isArray(items)) return 0;
-    return items.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
-  };
+const getTotalPrice = (items = []) => {
+  if (!Array.isArray(items)) return 0;
+
+  return items.reduce((sum, item) => {
+    if (!item) return sum;
+
+    const price = parseFloat(item.price ?? item.Цена ?? 0);
+    const quantity = parseFloat(item.quantity ?? item.Количество ?? 0);
+
+    return sum + price * quantity;
+  }, 0);
+};
+
 
   const filteredOrders = orders.filter(order => {
     const currentStatus = orderStatuses[order.id] || 'pending';

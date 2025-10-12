@@ -50,6 +50,7 @@ function DetailRealisations() {
           throw new Error('Заказ не найден в списке');
         }
         console.log('foundOrder:', foundOrder);
+
         const statusRes = await fetch(
           `http://api.dustipharma.tj:1212/api/v1/app/orders/status/${order_id}`,
           {
@@ -65,10 +66,29 @@ function DetailRealisations() {
         const statusData = await statusRes.json();
         console.log('statusData:', statusData);
 
-        if (statusData.code === 200 && statusData.payload) {
+        if (statusData.code === 200 && statusData.payload && statusData.payload.status) {
+          const rawStatus = statusData.payload.status;
+
+          const normalizeDate = (dateStr) => {
+            if (!dateStr || dateStr === '01.01.0001 0:00:00' || dateStr.trim() === '') {
+              return '—';
+            }
+            return dateStr;
+          };
+
+          const normalizedStatus = {
+            created_at: normalizeDate(rawStatus.ДатаОформлено),
+            processed_at: normalizeDate(rawStatus.ДатаКОбработке),
+            assembled_at: normalizeDate(rawStatus.ДатаКСборке),
+            ready_at: normalizeDate(rawStatus.ДатаГотовКДоставке),
+            in_transit_at: '—',
+            delivered_at: normalizeDate(rawStatus.ДатаДоставлен),
+          };
+
           setOrderDetails({
             ...statusData.payload,
             code: foundOrder.code,
+            status: normalizedStatus,
           });
         } else {
           throw new Error('statusData.payload отсутствует или код ≠ 200');
@@ -104,48 +124,47 @@ function DetailRealisations() {
           ) : errorMsg ? (
             <p>{errorMsg}</p>
           ) : orderDetails ? (
-            <CircularOrderStatus apiStatus={orderDetails.status} />
+            <>
+              <CircularOrderStatus apiStatus={orderDetails.status} />
+              <div className='date_realisations'>
+                <h2>Дата и время реализации</h2>
+              </div>
+              <div className="order_stages_icons">
+                <div className="stage_block">
+                  <div className="stage_icon"><CircleCheck size={24} /></div>
+                  <div className="stage_label">Оформлен</div>
+                  <div className="stage_time">{orderDetails.status.created_at}</div>
+                </div>
+                <div className="stage_block">
+                  <div className="stage_icon"><Clock3 size={24} /></div>
+                  <div className="stage_label">Обработан</div>
+                  <div className="stage_time">{orderDetails.status.processed_at}</div>
+                </div>
+                <div className="stage_block">
+                  <div className="stage_icon"><Package size={24} /></div>
+                  <div className="stage_label">Сборка</div>
+                  <div className="stage_time">{orderDetails.status.assembled_at}</div>
+                </div>
+                <div className="stage_block">
+                  <div className="stage_icon"><Truck size={24} /></div>
+                  <div className="stage_label">Готов к доставке</div>
+                  <div className="stage_time">{orderDetails.status.ready_at}</div>
+                </div>
+                <div className="stage_block">
+                  <div className="stage_icon"><Route size={24} /></div>
+                  <div className="stage_label">В пути</div>
+                  <div className="stage_time">{orderDetails.status.in_transit_at}</div>
+                </div>
+                <div className="stage_block">
+                  <div className="stage_icon"><CircleCheck size={24} /></div>
+                  <div className="stage_label">Доставлен</div>
+                  <div className="stage_time">{orderDetails.status.delivered_at}</div>
+                </div>
+              </div>
+            </>
           ) : (
             <p>Данные заказа не найдены.</p>
           )}
-          <div className='date_realisations'>
-            <h2>Дата и время реализации</h2>
-          </div>
-          {orderDetails && (
-  <div className="order_stages_icons">
-    <div className="stage_block">
-      <div className="stage_icon"><CircleCheck size={24} /></div>
-      <div className="stage_label">Оформлен</div>
-      <div className="stage_time">{orderDetails.created_at || '—'}</div>
-    </div>
-    <div className="stage_block">
-      <div className="stage_icon"><Clock3 size={24} /></div>
-      <div className="stage_label">Обработан</div>
-      <div className="stage_time">{orderDetails.processed_at || '—'}</div>
-    </div>
-    <div className="stage_block">
-      <div className="stage_icon"><Package size={24} /></div>
-      <div className="stage_label">Сборка</div>
-      <div className="stage_time">{orderDetails.assembled_at || '—'}</div>
-    </div>
-    <div className="stage_block">
-      <div className="stage_icon"><Truck size={24} /></div>
-      <div className="stage_label">Готов к доставке</div>
-      <div className="stage_time">{orderDetails.ready_at || '—'}</div>
-    </div>
-    <div className="stage_block">
-      <div className="stage_icon"><Route size={24} /></div>
-      <div className="stage_label">В пути</div>
-      <div className="stage_time">{orderDetails.in_transit_at || '—'}</div>
-    </div>
-    <div className="stage_block">
-      <div className="stage_icon"><CircleCheck size={24} /></div>
-      <div className="stage_label">Доставлен</div>
-      <div className="stage_time">{orderDetails.delivered_at || '—'}</div>
-    </div>
-  </div>
-)}
-
         </div>
       </div>
     </div>

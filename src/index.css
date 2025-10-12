@@ -726,7 +726,7 @@ padding: 30px 47px 130px 47px;
 .order_stages_icons {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 3px;
   margin-top: 1rem;
   justify-content: space-between;
 }
