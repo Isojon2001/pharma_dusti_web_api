@@ -101,7 +101,6 @@ function DetailedHistory() {
       saveAs(blob, `Заказ_${orderDetails.code}.${ext}`);
     } catch (err) {
       console.error(err);
-      alert('Не удалось скачать файл.');
     } finally {
       setIsDownloading(false);
     }
