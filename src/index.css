@@ -724,10 +724,10 @@ padding: 30px 47px 130px 47px;
 	margin: 0;
 }
 .order_stages_icons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   margin-top: 1rem;
+  gap: 10px;
   justify-content: space-between;
 }
 
@@ -1157,7 +1157,7 @@ text-align: center;
 	padding: 0 40px 0;
     margin: 0 -40px 0;
 	align-items:baseline;
-	height: 87vh;
+	height: 95vh;
 	background-color:#F3F6F6;	
 }
 .bg_history{

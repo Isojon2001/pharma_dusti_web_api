@@ -12,9 +12,9 @@ const STATUS_ORDER = [
 
 const API_STATUS_TO_STEP_STATUS = {
   'Оформлено': 'Оформлено',
-  'В обработке': 'В обработке',
-  'В сборке': 'В сборке',
-  'Готов к доставке': 'Готов к доставке',
+  'КОбработке': 'В обработке',
+  'КСборке': 'В сборке',
+  'ГотовКДоставке': 'Готов к доставке',
   'В пути': 'В пути',
   'Доставлен': 'Доставлен',
 };
@@ -50,8 +50,26 @@ function polarToCartesian(cx, cy, r, angleDeg) {
   return {
     x: cx + r * Math.cos(angleRad),
     y: cy + r * Math.sin(angleRad),
-    angleDeg,
   };
+}
+
+function extractCurrentStatus(statusObj) {
+  const statusKeysInOrder = [
+    'Оформлено',
+    'КОбработке',
+    'КСборке',
+    'ГотовКДоставке',
+    'В пути',
+    'Доставлен',
+  ];
+
+  for (let key of statusKeysInOrder) {
+    if (statusObj[key] === 'Да') {
+      return API_STATUS_TO_STEP_STATUS[key] || 'Оформлено';
+    }
+  }
+
+  return 'Оформлено';
 }
 
 function CircularOrderStatus({ apiStatus, onConfirm }) {
@@ -61,9 +79,8 @@ function CircularOrderStatus({ apiStatus, onConfirm }) {
     setLocalStatus(apiStatus);
   }, [apiStatus]);
 
-  const rawStatus = API_STATUS_TO_STEP_STATUS[localStatus] || 'Оформлено';
-  const currentStatus = rawStatus === 'В пути' ? 'Готов к доставке' : rawStatus;
-  const currentIndex = STATUS_ORDER.indexOf(currentStatus);
+  const rawStatus = extractCurrentStatus(localStatus);
+  const currentIndex = STATUS_ORDER.indexOf(rawStatus);
   const totalSteps = STATUS_ORDER.length;
   const angleStep = (END_ANGLE - START_ANGLE) / (totalSteps - 1);
 
@@ -78,14 +95,13 @@ function CircularOrderStatus({ apiStatus, onConfirm }) {
     if (onConfirm) {
       onConfirm();
     } else {
-      setLocalStatus('Доставлен');
+      setLocalStatus(prev => ({ ...prev, Доставлен: 'Да' }));
     }
   };
 
   return (
     <div className="STATUS_ORDERS">
       <svg width={600} height={300}>
-        {/* Линии между точками */}
         {positions.map((pos, i) => {
           if (i === positions.length - 1) return null;
           const nextPos = positions[i + 1];
@@ -102,16 +118,15 @@ function CircularOrderStatus({ apiStatus, onConfirm }) {
           );
         })}
 
-        {/* Иконки и подписи */}
         {STATUS_ORDER.map((status, i) => {
           const pos = positions[i];
-          const isActive = STATUS_ORDER[i] === currentStatus;
           const isRightSide = pos.x >= CENTER_X;
 
-          const isReached =
-            rawStatus === 'В пути' && status === 'В пути'
-              ? false
-              : i <= currentIndex;
+          const apiKey = Object.keys(API_STATUS_TO_STEP_STATUS).find(
+            k => API_STATUS_TO_STEP_STATUS[k] === status
+          );
+          const isReached = localStatus[apiKey] === 'Да';
+          const isCurrent = status === rawStatus;
 
           const textOffset = isRightSide ? CIRCLE_RADIUS + 20 : -CIRCLE_RADIUS - 20;
 
@@ -135,8 +150,8 @@ function CircularOrderStatus({ apiStatus, onConfirm }) {
                 x={textOffset}
                 y={6}
                 textAnchor={isRightSide ? 'start' : 'end'}
-                fill={isActive ? ACTIVE_COLOR : 'gray'}
-                fontWeight={isActive ? 'bold' : 'normal'}
+                fill={isReached ? ACTIVE_COLOR : 'gray'}
+                fontWeight={isReached ? 'bold' : 'normal'}
                 fontSize={TEXT_FONT_SIZE}
               >
                 {status}
