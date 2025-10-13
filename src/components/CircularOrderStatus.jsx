@@ -63,11 +63,13 @@ function extractCurrentStatus(statusObj) {
     'Доставлен',
   ];
 
-  for (let key of statusKeysInOrder) {
+  for (let i = statusKeysInOrder.length - 1; i >= 0; i--) {
+    const key = statusKeysInOrder[i];
     if (statusObj[key] === 'Да') {
       return API_STATUS_TO_STEP_STATUS[key] || 'Оформлено';
     }
   }
+  
   return 'Оформлено';
 }
 
@@ -119,14 +121,11 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
   const currentIndex = STATUS_ORDER.indexOf(rawStatus);
   const totalSteps = STATUS_ORDER.length;
   const angleStep = (END_ANGLE - START_ANGLE) / (totalSteps - 1);
-
   const positions = STATUS_ORDER.map((_, i) => {
     const angle = START_ANGLE + angleStep * i;
     return polarToCartesian(CENTER_X, CENTER_Y, RADIUS, angle);
   });
-
   const isDelivered = rawStatus === 'Доставлен';
-
   const handleConfirm = async () => {
     if (!token) {
       console.error('Токен не передан');
@@ -166,28 +165,26 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
       setIsLoading(false);
     }
   };
+            return (
+              <div className="STATUS_ORDERS">
+                <svg width={600} height={300}>
+          {positions.map((pos, i) => {
+            if (i === positions.length - 1) return null;
+            const nextPos = positions[i + 1];
+            const isActive = i <= currentIndex;
 
-  return (
-    <div className="STATUS_ORDERS">
-      <svg width={600} height={300}>
-        {/* Линии между шагами */}
-        {positions.map((pos, i) => {
-          if (i === positions.length - 1) return null;
-          const nextPos = positions[i + 1];
-          const isActive = i < currentIndex;
+            console.log(`Линия между шагами ${i} и ${i + 1}: цвет - ${isActive ? 'зелёный' : 'серый'}`);
 
-          return (
-            <path
-              key={`arc-${i}`}
-              d={`M ${pos.x} ${pos.y} A ${RADIUS} ${RADIUS} 0 0 1 ${nextPos.x} ${nextPos.y}`}
-              stroke={isActive ? ACTIVE_COLOR : INACTIVE_COLOR}
-              strokeWidth={10}
-              fill="none"
-            />
-          );
-        })}
-
-        {/* Шаги и иконки */}
+            return (
+              <path
+                key={`arc-${i}`}
+                d={`M ${pos.x} ${pos.y} A ${RADIUS} ${RADIUS} 0 0 1 ${nextPos.x} ${nextPos.y}`}
+                stroke={isActive ? ACTIVE_COLOR : INACTIVE_COLOR}
+                strokeWidth={10}
+                fill="none"
+              />
+            );
+          })}
         {STATUS_ORDER.map((status, i) => {
           const pos = positions[i];
           const isRightSide = pos.x >= CENTER_X;
@@ -195,7 +192,11 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
           const apiKey = Object.keys(API_STATUS_TO_STEP_STATUS).find(
             (k) => API_STATUS_TO_STEP_STATUS[k] === status
           );
-          const isReached = localStatus[apiKey] === 'Да';
+          let isReached = localStatus[apiKey] === 'Да';
+
+if (status === 'В пути' && localStatus['Доставлен'] === 'Да') {
+  isReached = true;
+}
 
           const textOffset = isRightSide ? CIRCLE_RADIUS + 20 : -CIRCLE_RADIUS - 20;
 
@@ -234,12 +235,6 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
         <button onClick={handleConfirm} className="confirm_button" disabled={isLoading}>
           {isLoading ? 'Подтверждение...' : 'Подтвердить получение'}
         </button>
-      )}
-
-      {isDelivered && confirmationDate && (
-        <div className="confirmation_date">
-          Подтверждено: {confirmationDate}
-        </div>
       )}
     </div>
   );

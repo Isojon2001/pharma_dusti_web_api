@@ -555,12 +555,12 @@ function AddProductsToCart() {
                 </Link>
               </div>
               <div className="order_bg">
-                {activeOrder ? (
-                      <CircularOrderStatus 
-                        apiStatus={activeOrder.statusData}
-                        orderId={activeOrder.id}
-                          token={token}
-                        />
+                {activeOrder && activeOrder.status !== 'Доставлен' ? (
+                  <CircularOrderStatus 
+                    apiStatus={activeOrder.statusData}
+                    orderId={activeOrder.id}
+                    token={token}
+                  />
                 ) : (
                   <div className="no_active_order">
                     <h1>Нет активных заказов</h1>

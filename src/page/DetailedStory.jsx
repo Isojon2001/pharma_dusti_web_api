@@ -23,52 +23,24 @@ function DetailedHistory() {
       setError('');
 
       try {
-        const customerRes = await fetch('http://api.dustipharma.tj:1212/api/v1/app/orders/customer', {
+        const res = await fetch(`http://api.dustipharma.tj:1212/api/v1/app/orders/status/${order_id}`, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
         });
 
-        if (!customerRes.ok) {
-          throw new Error(`Ошибка при получении заказов: ${customerRes.status}`);
-        }
+        const data = await res.json();
+        console.log('Ответ status:', data);
 
-        const customerData = await customerRes.json();
-        const orders = customerData.payload || [];
-
-        const foundOrder = orders.find((order) => String(order.id) === String(order_id));
-
-        if (!foundOrder) {
+        if (!res.ok || data.code !== 200 || !data.payload) {
           throw new Error('Заказ не найден.');
         }
 
-        const statusRes = await fetch(`http://api.dustipharma.tj:1212/api/v1/app/orders/status/${order_id}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!statusRes.ok) {
-          throw new Error(`Ошибка при получении статуса заказа: ${statusRes.status}`);
-        }
-
-        const statusData = await statusRes.json();
-
-        if (statusData.code === 200 && statusData.payload) {
-          setOrderDetails({
-            ...statusData.payload,
-            code: foundOrder.code,
-          });
-        } else {
-          throw new Error('Ошибка в данных статуса заказа');
-        }
-
+        setOrderDetails(data.payload);
       } catch (err) {
         console.error(err);
         setError(err.message || 'Неизвестная ошибка');
-        setOrderDetails(null);
       } finally {
         setLoading(false);
       }
@@ -78,12 +50,12 @@ function DetailedHistory() {
   }, [order_id, token]);
 
   const downloadReport = async (format = 'pdf') => {
-    if (!orderDetails) return;
+    if (!orderDetails?.order_id) return;
 
     setIsDownloading(true);
 
     try {
-      const url = `http://api.dustipharma.tj:1212/api/v1/app/orders/reports/${orderDetails.code}?format=${format}`;
+      const url = `http://api.dustipharma.tj:1212/api/v1/app/orders/reports/${orderDetails.order_id}?format=${format}`;
       const res = await fetch(url, {
         method: 'GET',
         headers: {
@@ -98,9 +70,9 @@ function DetailedHistory() {
 
       const blob = await res.blob();
       const ext = format === 'xlsx' ? 'xlsx' : 'pdf';
-      saveAs(blob, `Заказ_${orderDetails.code}.${ext}`);
+      saveAs(blob, `Заказ_${orderDetails.order_id}.${ext}`);
     } catch (err) {
-      console.error(err);
+      console.error('Ошибка скачивания:', err);
     } finally {
       setIsDownloading(false);
     }
@@ -125,12 +97,12 @@ function DetailedHistory() {
             <p>Загрузка...</p>
           ) : error ? (
             <p className="error_text">{error}</p>
-          ) : orderDetails ? (
+          ) : (
             <>
               <CircularOrderStatus
                 apiStatus={orderDetails.status}
                 token={token}
-                orderId={order_id}
+                orderId={orderDetails.order_id}
               />
 
               <div className="order_details_block">
@@ -153,8 +125,6 @@ function DetailedHistory() {
                 </div>
               </div>
             </>
-          ) : (
-            <p>Данные по заказу не найдены.</p>
           )}
         </div>
       </div>

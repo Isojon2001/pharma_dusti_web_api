@@ -27,43 +27,27 @@ function DetailRealisations() {
       return;
     }
 
-    const fetchOrderDetails = async () => {
+    const fetchDetails = async () => {
       setLoading(true);
       setErrorMsg('');
+
       try {
-        const customerRes = await fetch(
-          'http://api.dustipharma.tj:1212/api/v1/app/orders/customer',
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const res = await fetch(`http://api.dustipharma.tj:1212/api/v1/app/orders/status/${order_id}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-        if (!customerRes.ok) throw new Error(`Ошибка сервера: ${customerRes.status}`);
+        const data = await res.json();
 
-        const customerData = await customerRes.json();
+        if (!res.ok || data.code !== 200 || !data.payload) {
+          throw new Error('Заказ не найден');
+        }
 
-        const foundOrder = customerData.payload?.find(o => String(o.id) === String(order_id));
-        if (!foundOrder) throw new Error('Заказ не найден');
+        const rawStatus = data.payload.status || {};
 
-        const statusRes = await fetch(
-          `http://api.dustipharma.tj:1212/api/v1/app/orders/status/${order_id}`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!statusRes.ok) throw new Error(`Ошибка сервера: ${statusRes.status}`);
-
-        const statusData = await statusRes.json();
-        const rawStatus = statusData.payload?.status || {};
-
-        const normalizedDates = {
+        const timestamps = {
           created_at: normalizeDate(rawStatus.ДатаОформлено),
           processed_at: normalizeDate(rawStatus.ДатаКОбработке),
           assembled_at: normalizeDate(rawStatus.ДатаКСборке),
@@ -73,10 +57,9 @@ function DetailRealisations() {
         };
 
         setOrderDetails({
-          id: foundOrder.id,
-          code: foundOrder.code,
+          id: data.payload.order_id,
           status: rawStatus,
-          timestamps: normalizedDates,
+          timestamps,
         });
       } catch (err) {
         console.error('Ошибка при загрузке:', err);
@@ -87,7 +70,7 @@ function DetailRealisations() {
       }
     };
 
-    fetchOrderDetails();
+    fetchDetails();
   }, [order_id, token]);
 
   const handleStatusConfirm = (confirmedDate) => {

@@ -980,6 +980,7 @@ text-align: center;
   flex-direction: column;
   gap: 20px;
   padding: 20px;
+  height: 1245px;
   text-align: center;
 }
 
@@ -1138,7 +1139,6 @@ text-align: center;
 
 .pagination_controls {
   padding: 20px 0;
-  height: 280px;
   align-items:start;
   display: flex;
   background-color:#F3F6F6;
