@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MoveLeft, Calendar } from 'lucide-react';
+import { MoveLeft, X, Calendar } from 'lucide-react';
 import OrderHeader from '../components/OrderHeader';
 import { useAuth } from '../context/AuthContext';
 
@@ -145,7 +145,6 @@ function HistoryOrder() {
               </React.Fragment>
             ))}
           </div>
-
           <div className="results_searching">
             <input
               type="text"
@@ -156,11 +155,10 @@ function HistoryOrder() {
                 setSearchTerm(e.target.value);
               }}
             />
-
             <div className="calendar_icon_wrapper">
               <span
                 onClick={() => document.getElementById('datePicker').showPicker()}
-                className="calendar_icon_clickable"
+                className={`calendar_icon_clickable ${selectedDate ? 'date-selected' : ''}`}
                 title="Выбрать дату"
               >
                 <Calendar />
@@ -174,9 +172,22 @@ function HistoryOrder() {
                   setPage(1);
                   setSelectedDate(e.target.value);
                 }}
-                className="hidden_date_picker"
+                className={`hidden_date_picker ${selectedDate ? 'selected' : ''}`}
               />
-            </div>
+
+              {selectedDate && (
+                <span
+                  className="clear_date_icon"
+                  onClick={() => {
+                    setPage(1);
+                    setSelectedDate('');
+                  }}
+                  title="Очистить дату"
+                >
+                  <X />
+                </span>
+              )}
+                </div>
           </div>
         </div>
 

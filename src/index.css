@@ -1131,9 +1131,13 @@ text-align: center;
 
 .hidden_date_picker {
   position: absolute;
-  left: 10px;
-  top: 5px;
   opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
 }
 
 
@@ -1384,6 +1388,46 @@ text-align: center;
 .banner-controls button:active {
   background-color: #e0e0e0;
   transform: scale(0.95);
+}
+
+.calendar_icon_clickable svg {
+  stroke: #232323;
+  transition: stroke 0.2s ease;
+}
+
+.calendar_icon_clickable.date-selected svg {
+  stroke: #2e7d32;
+}
+
+.calendar_icon_wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar_icon_clickable,
+.clear_date_icon {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.calendar_icon_clickable svg {
+  stroke: #232323;
+  transition: stroke 0.2s ease;
+}
+
+.calendar_icon_clickable.date-selected svg {
+  stroke: #2e7d32;
+}
+
+.clear_date_icon svg {
+  stroke: #d32f2f;
+  transition: stroke 0.2s ease;
+}
+
+.clear_date_icon:hover svg {
+  stroke: #b71c1c;
 }
 
 

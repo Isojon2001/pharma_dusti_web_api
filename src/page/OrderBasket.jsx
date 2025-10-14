@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MoveLeft, Trash2 } from 'lucide-react';
 import axios from 'axios';
-import '../index.css'
+import '../index.css';
 import OrderHeader from '../components/OrderHeader';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -20,15 +20,15 @@ function OrderBasket() {
     updateQuantity,
     updateBatchIndex,
   } = useCart();
+
   const { token } = useAuth();
 
+  const [inputValues, setInputValues] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-
-  const [inputValues, setInputValues] = useState({});
 
   useEffect(() => {
     const newInputValues = {};
@@ -39,6 +39,9 @@ function OrderBasket() {
       newInputValues[key] = qty.toString();
     });
     setInputValues(newInputValues);
+  }, [cartItems]);
+
+  useEffect(() => {
   }, [cartItems]);
 
   const formatDate = (dateStr) => {
@@ -65,48 +68,58 @@ function OrderBasket() {
     }, 0);
   };
 
+  const groupCartItems = (items) => {
+    const grouped = new Map();
+
+    items.forEach(item => {
+      const selectedIndex = item.selectedBatchIndex ?? 0;
+      const batch = item.batches?.[selectedIndex];
+      const product_code = item['Код'] || item['Артикул'] || item.id;
+      const expiry = batch?.expiry || null;
+      const key = `${product_code}_${expiry}`;
+
+      const qty = Number(inputValues[product_code] || item.quantity || 1);
+      const price = batch ? parseFloat(batch.price) : parseFloat(item['Цена']) || 0;
+
+      if (grouped.has(key)) {
+        grouped.get(key).quantity += qty;
+      } else {
+        grouped.set(key, {
+          name: item['Наименование'],
+          price,
+          product_code,
+          quantity: qty >= 1 ? qty : 1,
+          expiry,
+        });
+      }
+    });
+
+    return Array.from(grouped.values());
+  };
+
   const handleSubmitOrder = async () => {
     if (cartItems.length === 0 || !token || isSubmitting) return;
 
-    const payload = {
-      items: cartItems
-        .filter(item => item['Наименование'] && (item['Код'] || item['Артикул'] || item.id))
-        .map(item => {
-          const selectedIndex = item.selectedBatchIndex ?? 0;
-          const batch = item.batches?.[selectedIndex];
-          const qty = Number(inputValues[item.id || item['Код'] || item['Артикул']] || item.quantity || 1);
+    const groupedItems = groupCartItems(cartItems);
 
-          return {
-            name: item['Наименование'],
-            price: batch ? parseFloat(batch.price) : parseFloat(item['Цена']) || 0,
-            product_code: item['Код'] || item['Артикул'] || item.id,
-            quantity: qty >= 1 ? qty : 1,
-            expiry: batch?.expiry || null,
-          };
-        }),
-    };
+    const payload = { items: groupedItems };
+
+    payload.items.forEach((item, idx) => console.log(`🔹 Item ${idx + 1}:`, item));
 
     try {
       setIsSubmitting(true);
-
-      await axios.post(
+      const response = await axios.post(
         'http://api.dustipharma.tj:1212/api/v1/app/orders',
         payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      console.log('Order submitted successfully:', response.data);
       setShowSuccessModal(true);
       clearCart();
     } catch (error) {
-      const message =
-        error.response?.data?.message ||
-        error.message ||
-        'Ошибка при отправке заказа';
-
+      const message = error.response?.data?.message || error.message || 'Ошибка при отправке заказа';
+      console.error('Ошибка при отправке заказа:', message);
       setErrorMessage(message);
       setShowErrorModal(true);
     } finally {
@@ -116,6 +129,7 @@ function OrderBasket() {
 
   const handleQuantityChange = (productId, value) => {
     setInputValues(prev => ({ ...prev, [productId]: value }));
+
     if (value === '') return;
 
     const numericValue = Number(value);
@@ -130,7 +144,7 @@ function OrderBasket() {
 
   return (
     <div className="OrderBasket_content">
-      <div className='basket_backs'>
+      <div className="basket_backs">
         <OrderHeader />
         <div className="basket_back">
           <div className="examination_backspace">
@@ -142,35 +156,37 @@ function OrderBasket() {
         </div>
       </div>
 
-      <div className='order_basket_tables'>
-        <div className='order_basket_table'>
+      <div className="order_basket_tables">
+        <div className="order_basket_table">
           <div className="OrderBasket_Header">
             <div className="table_basket">
               <div className="table_scrollable">
                 <table className="table_info">
                   <thead>
-                    <tr className='table_infos'>
-                      <th className='numeration_basket'>№</th>
-                      <th className='pro_basket'>Производитель</th>
+                    <tr className="table_infos">
+                      <th className="numeration_basket">№</th>
+                      <th className="pro_basket">Производитель</th>
                       <th>Наименование</th>
-                      <th className='expiration_date'>Кол-во</th>
-                      <th className='price_basket'>Цена</th>
-                      <th className='expiration_date'>Срок годности</th>
-                      <th className='price_basket'>Сумма</th>
+                      <th className="expiration_date">Кол-во</th>
+                      <th className="price_basket">Цена</th>
+                      <th className="expiration_date">Срок годности</th>
+                      <th className="price_basket">Сумма</th>
                       <th>Удалить</th>
                     </tr>
                   </thead>
                   <tbody>
                     {cartItems.length === 0 ? (
                       <tr>
-                        <td colSpan="8" className="basket_empty">Корзина пуста</td>
+                        <td colSpan="8" className="basket_empty">
+                          Корзина пуста
+                        </td>
                       </tr>
                     ) : (
                       cartItems
                         .slice()
                         .sort((a, b) => a['Наименование'].localeCompare(b['Наименование']))
                         .map((item, index) => {
-                          const key = item.id || item['Код'] || item['Артикул'];
+                          const key = item.id || item['Код'] || item['Артикул'] || index;
                           const selectedIndex = item.selectedBatchIndex ?? 0;
                           const batchesSorted = (item.batches || []).slice().sort((a, b) => new Date(a.expiry) - new Date(b.expiry));
                           const selectedBatch = batchesSorted[selectedIndex];
@@ -180,30 +196,29 @@ function OrderBasket() {
                           const sum = price * (qty >= 1 ? qty : 0);
 
                           return (
-                            <tr key={key || index} className={index % 2 === 0 ? 'td_even' : 'td_odd'}>
-                              <td className='numeration_basket'>{index + 1}</td>
-                              <td className='pro_basket'>{item['Производитель'] || 'Неизвестен'}</td>
+                            <tr key={key} className={index % 2 === 0 ? 'td_even' : 'td_odd'}>
+                              <td className="numeration_basket">{index + 1}</td>
+                              <td className="pro_basket">{item['Производитель'] || 'Неизвестен'}</td>
                               <td>{item['Наименование']}</td>
                               <td>
                                 <div className="counter_table">
                                   <button onClick={() => decreaseQuantity(key)}>-</button>
                                   <input
                                     type="number"
-                                    name="quantity"
                                     id={`quantity-${key}`}
                                     value={inputValues[key] ?? item.quantity ?? 1}
-                                    onChange={e => handleQuantityChange(key, e.target.value)}
+                                    onChange={(e) => handleQuantityChange(key, e.target.value)}
                                     min={1}
                                   />
                                   <button onClick={() => increaseQuantity(key)}>+</button>
                                 </div>
                               </td>
-                              <td className='plice_basket'>{price.toFixed(2)}</td>
-                              <td className='expiration_date'>
+                              <td className="plice_basket">{price.toFixed(2)}</td>
+                              <td className="expiration_date">
                                 {batchesSorted.length > 0 ? (
                                   <select
                                     value={selectedIndex}
-                                    onChange={e => handleBatchChange(key, Number(e.target.value))}
+                                    onChange={(e) => handleBatchChange(key, Number(e.target.value))}
                                   >
                                     {batchesSorted.map((batch, i) => (
                                       <option key={batch.expiry} value={i}>
@@ -215,7 +230,7 @@ function OrderBasket() {
                                   formatDate(item['Срок'])
                                 )}
                               </td>
-                              <td className='basket_price'>{sum.toFixed(2)}</td>
+                              <td className="basket_price">{sum.toFixed(2)}</td>
                               <td>
                                 <button
                                   className="remove-btn"
@@ -235,15 +250,15 @@ function OrderBasket() {
 
               <div className="detail_basket">
                 <h2>Детали заказа</h2>
-                <div className='detailed_inf'>
-                  <div className='detailed_rows'>
-                    <div className='detailed_row'>
+                <div className="detailed_inf">
+                  <div className="detailed_rows">
+                    <div className="detailed_row">
                       <p>{calculateTotalQuantity()} шт.</p>
                       <p>Общее кол-во.</p>
                     </div>
-                    <div className='detailed_row'>
+                    <div className="detailed_row">
                       <p>{calculateTotal().toFixed(2)}</p>
-                      <div className='detailed_btn'>
+                      <div className="detailed_btn">
                         <p>Итоговая сумма.</p>
                         <button
                           disabled={cartItems.length === 0 || isSubmitting}
