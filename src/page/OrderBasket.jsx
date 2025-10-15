@@ -109,7 +109,7 @@ function OrderBasket() {
     try {
       setIsSubmitting(true);
       const response = await axios.post(
-        'http://api.dustipharma.tj:1212/api/v1/app/orders',
+        'https://api.dustipharma.tj:1212/api/v1/app/orders',
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );

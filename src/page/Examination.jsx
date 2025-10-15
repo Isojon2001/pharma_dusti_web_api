@@ -52,7 +52,7 @@ function Examination() {
     setIsSubmitting(true);
 
     try {
-      await axios.post('http://api.dustipharma.tj:1212/api/v1/app/auth/reset-password', {
+      await axios.post('https://api.dustipharma.tj:1212/api/v1/app/auth/reset-password', {
         phone,
         code,
         new_password: newPassword,

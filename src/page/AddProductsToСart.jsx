@@ -102,7 +102,7 @@ function AddProductsToCart() {
     if (!token) return;
     setBannerLoading(true);
     axios
-      .get('http://api.dustipharma.tj:1212/api/v1/app/banners', {
+      .get('https://api.dustipharma.tj:1212/api/v1/app/banners', {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
@@ -111,8 +111,8 @@ function AddProductsToCart() {
 
         const enrichedBanners = activeBanners.map((banner) => ({
           ...banner,
-          fullImageUrl: `http://api.dustipharma.tj:1212${banner.poster_path}`,
-          fullFileUrl: `http://api.dustipharma.tj:1212${banner.file_path}`,
+          fullImageUrl: `https://api.dustipharma.tj:1212${banner.poster_path}`,
+          fullFileUrl: `https://api.dustipharma.tj:1212${banner.file_path}`,
         }));
 
         setBanner(enrichedBanners);
@@ -140,7 +140,7 @@ function AddProductsToCart() {
     if (!token) return;
 
     axios
-      .get('http://api.dustipharma.tj:1212/api/v1/app/orders/customer', {
+      .get('https://api.dustipharma.tj:1212/api/v1/app/orders/customer', {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(async (res) => {
@@ -154,7 +154,7 @@ function AddProductsToCart() {
 
         try {
           const statusRes = await axios.get(
-            `http://api.dustipharma.tj:1212/api/v1/app/orders/status/${latestOrder.id}`,
+            `https://api.dustipharma.tj:1212/api/v1/app/orders/status/${latestOrder.id}`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -190,7 +190,7 @@ function AddProductsToCart() {
     if (!token) return;
 
     axios
-      .get('http://api.dustipharma.tj:1212/api/v1/app/categories/all', {
+      .get('https://api.dustipharma.tj:1212/api/v1/app/categories/all', {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {

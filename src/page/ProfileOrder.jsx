@@ -24,7 +24,7 @@ function ProfileOrder() {
     setIsLoading(true);
 
     axios
-      .get('http://api.dustipharma.tj:1212/api/v1/app/profile/users', {
+      .get('https://api.dustipharma.tj:1212/api/v1/app/profile/users', {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then((res) => {

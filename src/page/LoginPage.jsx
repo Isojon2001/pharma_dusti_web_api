@@ -20,7 +20,7 @@ function LoginPage() {
 
     try {
       const response = await axios.post(
-        'http://api.dustipharma.tj:1212/api/v1/app/auth/sign-in',
+        'https://api.dustipharma.tj:1212/api/v1/app/auth/sign-in',
         { login, password }
       );
 

@@ -23,7 +23,7 @@ function DetailedHistory() {
       setError('');
 
       try {
-        const customerRes = await fetch('http://api.dustipharma.tj:1212/api/v1/app/orders/customer', {
+        const customerRes = await fetch('https://api.dustipharma.tj:1212/api/v1/app/orders/customer', {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
@@ -43,7 +43,7 @@ function DetailedHistory() {
           throw new Error('Заказ не найден.');
         }
 
-        const statusRes = await fetch(`http://api.dustipharma.tj:1212/api/v1/app/orders/status/${order_id}`, {
+        const statusRes = await fetch(`https://api.dustipharma.tj:1212/api/v1/app/orders/status/${order_id}`, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
@@ -83,7 +83,7 @@ function DetailedHistory() {
     setIsDownloading(true);
 
     try {
-      const url = `http://api.dustipharma.tj:1212/api/v1/app/orders/reports/${orderDetails.code}?format=${format}`;
+      const url = `https://api.dustipharma.tj:1212/api/v1/app/orders/reports/${orderDetails.code}?format=${format}`;
       const res = await fetch(url, {
         method: 'GET',
         headers: {

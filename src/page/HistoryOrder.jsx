@@ -48,7 +48,7 @@ function HistoryOrder() {
     setLoading(true);
     const query = buildQueryParams();
 
-    fetch(`http://api.dustipharma.tj:1212/api/v1/app/orders/customer?${query}`, {
+    fetch(`https://api.dustipharma.tj:1212/api/v1/app/orders/customer?${query}`, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
@@ -64,7 +64,7 @@ function HistoryOrder() {
           const statusesObj = {};
           await Promise.all(
             fetchedOrders.map(order =>
-              fetch(`http://api.dustipharma.tj:1212/api/v1/app/orders/status/${order.id}`, {
+              fetch(`https://api.dustipharma.tj:1212/api/v1/app/orders/status/${order.id}`, {
                 headers: {
                   'Content-Type': 'application/json',
                   Authorization: `Bearer ${token}`,

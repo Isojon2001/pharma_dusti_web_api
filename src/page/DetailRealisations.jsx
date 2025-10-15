@@ -32,7 +32,7 @@ function DetailRealisations() {
       setErrorMsg('');
 
       try {
-        const res = await fetch(`http://api.dustipharma.tj:1212/api/v1/app/orders/status/${order_id}`, {
+        const res = await fetch(`https://api.dustipharma.tj:1212/api/v1/app/orders/status/${order_id}`, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,

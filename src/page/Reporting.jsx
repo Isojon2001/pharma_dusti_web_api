@@ -53,7 +53,7 @@ function Reporting() {
       setError('');
 
       const response = await axios.get(
-        'http://api.dustipharma.tj:1212/api/v1/app/orders/reports',
+        'https://api.dustipharma.tj:1212/api/v1/app/orders/reports',
         {
           params: { from, to, format: reportFormat },
           headers: { Authorization: `Bearer ${token}` },
