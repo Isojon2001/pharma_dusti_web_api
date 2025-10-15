@@ -90,7 +90,7 @@ function LoginPage() {
             <a href="./registration">Забыли пароль?</a>
           </div>
 
-          {error && <p style={{ color: 'red' }}>{error}</p>}
+          {error && <p className='error_login'>{error}</p>}
 
           <button type="submit">Войти</button>
         </div>

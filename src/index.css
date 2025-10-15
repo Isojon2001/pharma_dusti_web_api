@@ -324,6 +324,11 @@ chtml, body, #root {
 margin: 0;
 }
 
+.error_login{
+  color: red;
+  text-align: center;
+}
+
 .order-error__message {
   font-size: 16px;
   color: #333;
