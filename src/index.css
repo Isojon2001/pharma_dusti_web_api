@@ -325,8 +325,10 @@ margin: 0;
 }
 
 .error_login{
-  color: red;
+  color: red !important;
   text-align: center;
+  justify-content: center;
+  align-items:center;
 }
 
 .order-error__message {
