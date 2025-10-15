@@ -89,7 +89,7 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
     const interval = setInterval(async () => {
       try {
         const res = await fetch(
-          `http://api.dustipharma.tj:1212/api/v1/app/orders/status/${orderId}`,
+          `https://api.dustipharma.tj:1212/api/v1/app/orders/status/${orderId}`,
           {
             headers: {
               'Content-Type': 'application/json',
@@ -135,7 +135,7 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
     setIsLoading(true);
     try {
       const response = await fetch(
-        `http://api.dustipharma.tj:1212/api/v1/app/status/${orderId}`,
+        `https://api.dustipharma.tj:1212/api/v1/app/status/${orderId}`,
         {
           method: 'PUT',
           headers: {

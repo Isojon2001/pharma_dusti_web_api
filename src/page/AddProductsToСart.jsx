@@ -237,7 +237,7 @@ function AddProductsToCart() {
     console.log('Запрашиваем продукты с параметрами:', params);
 
     axios
-      .get('http://api.dustipharma.tj:1212/api/v1/app/products/all', {
+      .get('https://api.dustipharma.tj:1212/api/v1/app/products/all', {
         headers: { Authorization: `Bearer ${token}` },
         params,
       })
