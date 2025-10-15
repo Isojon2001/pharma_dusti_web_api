@@ -1432,8 +1432,8 @@ text-align: center;
 
 .calendar-arrow-left {
 	position: absolute;
-	top: 62px;
-	left: 15px;
+	top: 67px;
+	left: 05px;
 	border: none;
 	border-radius: 6px;
 	cursor: pointer;
@@ -1443,8 +1443,8 @@ text-align: center;
 
 .calendar-arrow-right {
 	position: absolute;
-	top: 62px;
-	right: 0px;
+	top: 67px;
+	right: 10px;
 	border: none;
 	border-radius: 6px;
 	cursor: pointer;
