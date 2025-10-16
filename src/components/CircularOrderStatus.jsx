@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { CircleCheck, Clock3, Package, Truck, Route } from 'lucide-react';
-import ConfirmOrderModal from '../components/ConfirmOrderModal';
 
 const STATUS_ORDER = [
   'Оформлено',
@@ -70,7 +69,7 @@ function extractCurrentStatus(statusObj) {
       return API_STATUS_TO_STEP_STATUS[key] || 'Оформлено';
     }
   }
-  
+
   return 'Оформлено';
 }
 
@@ -79,12 +78,9 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
   const [confirmationDate, setConfirmationDate] = useState(timestamps?.delivered_at || null);
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-const handleShowModal = () => {
-  setShowConfirmModal(true);
-};
-const handleCancelModal = () => {
-  setShowConfirmModal(false);
-};
+
+  const handleShowModal = () => setShowConfirmModal(true);
+  const handleCancelModal = () => setShowConfirmModal(false);
 
   useEffect(() => {
     setLocalStatus(apiStatus);
@@ -134,6 +130,7 @@ const handleCancelModal = () => {
     return polarToCartesian(CENTER_X, CENTER_Y, RADIUS, angle);
   });
   const isDelivered = rawStatus === 'Доставлен';
+
   const handleConfirm = async () => {
     if (!token) {
       console.error('Токен не передан');
@@ -157,13 +154,9 @@ const handleCancelModal = () => {
 
       if (response.ok) {
         const apiDate = data?.payload?.ДатаДоставлен || new Date().toLocaleString();
-
         setLocalStatus((prev) => ({ ...prev, Доставлен: 'Да' }));
         setConfirmationDate(apiDate);
-
-        if (onConfirm) {
-          onConfirm(apiDate);
-        }
+        if (onConfirm) onConfirm(apiDate);
       } else {
         console.error('Ошибка подтверждения:', data.message);
       }
@@ -173,37 +166,35 @@ const handleCancelModal = () => {
       setIsLoading(false);
     }
   };
-            return (
-              <div className="STATUS_ORDERS">
-                <svg width={600} height={300}>
-          {positions.map((pos, i) => {
-            if (i === positions.length - 1) return null;
-            const nextPos = positions[i + 1];
-            const isActive = i <= currentIndex;
 
+  return (
+    <div className="STATUS_ORDERS">
+      <svg width={600} height={300}>
+        {positions.map((pos, i) => {
+          if (i === positions.length - 1) return null;
+          const nextPos = positions[i + 1];
+          const isActive = i <= currentIndex;
+          return (
+            <path
+              key={`arc-${i}`}
+              d={`M ${pos.x} ${pos.y} A ${RADIUS} ${RADIUS} 0 0 1 ${nextPos.x} ${nextPos.y}`}
+              stroke={isActive ? ACTIVE_COLOR : INACTIVE_COLOR}
+              strokeWidth={10}
+              fill="none"
+            />
+          );
+        })}
 
-            return (
-              <path
-                key={`arc-${i}`}
-                d={`M ${pos.x} ${pos.y} A ${RADIUS} ${RADIUS} 0 0 1 ${nextPos.x} ${nextPos.y}`}
-                stroke={isActive ? ACTIVE_COLOR : INACTIVE_COLOR}
-                strokeWidth={10}
-                fill="none"
-              />
-            );
-          })}
         {STATUS_ORDER.map((status, i) => {
           const pos = positions[i];
           const isRightSide = pos.x >= CENTER_X;
-
           const apiKey = Object.keys(API_STATUS_TO_STEP_STATUS).find(
             (k) => API_STATUS_TO_STEP_STATUS[k] === status
           );
           let isReached = localStatus[apiKey] === 'Да';
-
-if (status === 'В пути' && localStatus['Доставлен'] === 'Да') {
-  isReached = true;
-}
+          if (status === 'В пути' && localStatus['Доставлен'] === 'Да') {
+            isReached = true;
+          }
 
           const textOffset = isRightSide ? CIRCLE_RADIUS + 20 : -CIRCLE_RADIUS - 20;
 
@@ -237,25 +228,32 @@ if (status === 'В пути' && localStatus['Доставлен'] === 'Да') {
           );
         })}
       </svg>
-          {!isDelivered &&
-            STATUS_ORDER.indexOf(rawStatus) >= STATUS_ORDER.indexOf('Готов к доставке') &&
-            STATUS_ORDER.indexOf(rawStatus) < STATUS_ORDER.indexOf('Доставлен') && (
-              <>
-                <button onClick={handleShowModal} className="confirm_button" disabled={isLoading}>
-                  {isLoading ? 'Подтверждение...' : 'Подтвердить получение'}
-                </button>
 
-                {showConfirmModal && (
-                  <ConfirmOrderModal
-                    onConfirm={() => {
+      {!isDelivered &&
+        STATUS_ORDER.indexOf(rawStatus) >= STATUS_ORDER.indexOf('Готов к доставке') &&
+        STATUS_ORDER.indexOf(rawStatus) < STATUS_ORDER.indexOf('Доставлен') && (
+          <>
+            <button onClick={handleShowModal} className="confirm_button" disabled={isLoading}>
+              {isLoading ? 'Подтверждение...' : 'Подтвердить получение'}
+            </button>
+
+            {showConfirmModal && (
+              <div className="modal-overlay">
+                <div className="modal-content">
+                  <h2>Подтверждение получения закза</h2>
+                  <p>Вы действительно получили доставку?</p>
+                  <div className="modal-buttons">
+                    <button onClick={() => {
                       handleConfirm();
                       setShowConfirmModal(false);
-                    }}
-                    onCancel={handleCancelModal}
-                  />
-                )}
-              </>
-          )}
+                    }} className="confirm-btn">Да, оформить</button>
+                    <button onClick={handleCancelModal} className="cancel-btn">Отмена</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
     </div>
   );
 }
