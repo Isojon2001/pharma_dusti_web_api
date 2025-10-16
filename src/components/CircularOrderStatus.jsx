@@ -1,13 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CircleCheck, Clock3, Package, Truck, Route } from 'lucide-react';
 import ConfirmOrderModal from '../components/ConfirmOrderModal';
-const [showConfirmModal, setShowConfirmModal] = useState(false);
-const handleShowModal = () => {
-  setShowConfirmModal(true);
-};
-const handleCancelModal = () => {
-  setShowConfirmModal(false);
-};
+
 const STATUS_ORDER = [
   'Оформлено',
   'В обработке',
@@ -84,6 +78,13 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
   const [localStatus, setLocalStatus] = useState(apiStatus);
   const [confirmationDate, setConfirmationDate] = useState(timestamps?.delivered_at || null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+const handleShowModal = () => {
+  setShowConfirmModal(true);
+};
+const handleCancelModal = () => {
+  setShowConfirmModal(false);
+};
 
   useEffect(() => {
     setLocalStatus(apiStatus);
