@@ -240,7 +240,7 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
             {showConfirmModal && (
               <div className="modal-overlay">
                 <div className="modal-content">
-                  <h2>Подтверждение получения закза</h2>
+                  <h2>Подтверждение получения заказа</h2>
                   <p>Вы действительно получили заказ?</p>
                   <div className="modal-buttons">
                     <button onClick={() => {
