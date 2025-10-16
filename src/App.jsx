@@ -14,7 +14,6 @@ import DetailedStory from './page/DetailedStory';
 import ProfileOrder from './page/ProfileOrder';
 import ChangePassword from './page/ChangePassword';
 import Reporting from './page/Reporting';
-import DetailRealisations from './page/DetailRealisations';
 
 import './index.css';
 
@@ -44,7 +43,6 @@ function App() {
         <Route path="/order-basket" element={<RequireAuth><OrderBasket /></RequireAuth>} />
         <Route path="/history-order" element={<RequireAuth><HistoryOrder /></RequireAuth>} />
         <Route path="/detailed-history/:order_id" element={<RequireAuth><DetailedStory /></RequireAuth>} />
-        <Route path="/detail-realisations/:order_id" element={<RequireAuth><DetailRealisations /></RequireAuth>} />
         <Route path="/profile-order" element={<RequireAuth><ProfileOrder /></RequireAuth>} />
         <Route path="/change-password" element={<RequireAuth><ChangePassword /></RequireAuth>} />
         <Route path="/reporting" element={<RequireAuth><Reporting /></RequireAuth>} />

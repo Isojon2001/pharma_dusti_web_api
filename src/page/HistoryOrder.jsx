@@ -121,30 +121,9 @@ function HistoryOrder() {
             <Link to="/add-products-to-cart">
               <MoveLeft stroke="#232323" /> Назад
             </Link>
-          </div>
-
           <h1>История заказов</h1>
-
-          <div className="history_filter">
-            {['all', 'К отгрузке', 'Отгружен', 'В пути', 'Доставлен'].map(status => (
-              <React.Fragment key={status}>
-                <button
-                  className={filterStatus === status ? 'active' : ''}
-                  onClick={() => {
-                    setPage(1);
-                    setFilterStatus(status);
-                  }}
-                >
-                  {status === 'all' ? 'Все' :
-                   status === 'К отгрузке' ? 'В обработке' :
-                   status === 'Отгружен' ? 'Готов к доставке' :
-                   status === 'В пути' ? 'В пути' :
-                   'Доставлен'}
-                </button>
-                <div className="history_line"></div>
-              </React.Fragment>
-            ))}
           </div>
+
           <div className="results_searching">
             <input
               type="text"
@@ -210,27 +189,22 @@ function HistoryOrder() {
                     <div className="history_info"><strong>Кол-во наименование:</strong> {itemCount} / {totalQuantity}</div>
                     <div className="history_info"><strong>Сумма:</strong> {total} Сомони</div>
                   </Link>
-                  <div className="history_lines"></div>
-                  <Link to={`/detail-realisations/${order.id}`} className="history_infos">
-                    <div><h2>Детали реализации</h2></div>
-                  </Link>
                 </div>
               );
             })
           )}
         </div>
-
-        {searchTerm.trim() === '' && selectedDate === '' && filterStatus === 'all' && (
-          <div className="pagination_controls">
-            <button onClick={() => setPage(prev => Math.max(prev - 1, 1))} disabled={page === 1}>
-              Назад
-            </button>
-            <span>Страница {page} из {totalPages}</span>
-            <button onClick={() => setPage(prev => Math.min(prev + 1, totalPages))} disabled={page === totalPages}>
-              Вперед
-            </button>
-          </div>
-        )}
+            {totalPages > 1 && (
+              <div className="pagination_controls">
+                <button onClick={() => setPage(prev => Math.max(prev - 1, 1))} disabled={page === 1}>
+                  Назад
+                </button>
+                <span>Страница {page} из {totalPages}</span>
+                <button onClick={() => setPage(prev => Math.min(prev + 1, totalPages))} disabled={page === totalPages}>
+                  Вперед
+                </button>
+              </div>
+            )}
       </div>
     </div>
   );

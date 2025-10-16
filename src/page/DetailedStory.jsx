@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { MoveLeft } from 'lucide-react';
+import {
+  MoveLeft,
+  CircleCheck,
+  Clock3,
+  Package,
+  Truck,
+  Route,
+} from 'lucide-react';
 import OrderHeader from '../components/OrderHeader';
 import CircularOrderStatus from '../components/CircularOrderStatus';
 import { useAuth } from '../context/AuthContext';
@@ -15,6 +22,17 @@ function DetailedHistory() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState('');
 
+  const normalizeDate = (dateStr) => {
+    if (
+      !dateStr ||
+      dateStr === '01.01.0001 0:00:00' ||
+      dateStr.trim() === ''
+    ) {
+      return '—';
+    }
+    return dateStr;
+  };
+
   useEffect(() => {
     if (!token || !order_id) return;
 
@@ -23,12 +41,15 @@ function DetailedHistory() {
       setError('');
 
       try {
-        const customerRes = await fetch('https://api.dustipharma.tj:1212/api/v1/app/orders/customer', {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const customerRes = await fetch(
+          'https://api.dustipharma.tj:1212/api/v1/app/orders/customer',
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (!customerRes.ok) {
           throw new Error(`Ошибка при получении заказов: ${customerRes.status}`);
@@ -37,34 +58,52 @@ function DetailedHistory() {
         const customerData = await customerRes.json();
         const orders = customerData.payload || [];
 
-        const foundOrder = orders.find((order) => String(order.id) === String(order_id));
+        const foundOrder = orders.find(
+          (order) => String(order.id) === String(order_id)
+        );
 
         if (!foundOrder) {
           throw new Error('Заказ не найден.');
         }
 
-        const statusRes = await fetch(`https://api.dustipharma.tj:1212/api/v1/app/orders/status/${order_id}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const statusRes = await fetch(
+          `https://api.dustipharma.tj:1212/api/v1/app/orders/status/${order_id}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (!statusRes.ok) {
-          throw new Error(`Ошибка при получении статуса заказа: ${statusRes.status}`);
+          throw new Error(
+            `Ошибка при получении статуса заказа: ${statusRes.status}`
+          );
         }
 
         const statusData = await statusRes.json();
 
         if (statusData.code === 200 && statusData.payload) {
+          const rawStatus = statusData.payload.status || {};
+
+          const timestamps = {
+            created_at: normalizeDate(rawStatus.ДатаОформлено),
+            processed_at: normalizeDate(rawStatus.ДатаКОбработке),
+            assembled_at: normalizeDate(rawStatus.ДатаКСборке),
+            ready_at: normalizeDate(rawStatus.ДатаГотовКДоставке),
+            in_transit_at: normalizeDate(rawStatus.ДатаВПути),
+            delivered_at: normalizeDate(rawStatus.ДатаДоставлен),
+          };
+
           setOrderDetails({
             ...statusData.payload,
             code: foundOrder.code,
+            timestamps,
           });
         } else {
           throw new Error('Ошибка в данных статуса заказа');
         }
-
       } catch (err) {
         console.error(err);
         setError(err.message || 'Неизвестная ошибка');
@@ -135,6 +174,7 @@ function DetailedHistory() {
 
               <div className="order_details_block">
                 <h2>Детали заявки</h2>
+
                 <div className="download_buttons">
                   <button
                     onClick={() => downloadReport('pdf')}
@@ -152,6 +192,55 @@ function DetailedHistory() {
                   </button>
                 </div>
               </div>
+
+              {orderDetails.timestamps && (
+                <>
+                  <div className="date_realisations">
+                    <h2>Дата и время реализации</h2>
+                  </div>
+
+                  <div className="order_stages_icons">
+                    {[
+                      {
+                        label: 'Оформлен',
+                        icon: <CircleCheck size={24} />,
+                        date: orderDetails.timestamps.created_at,
+                      },
+                      {
+                        label: 'Обработан',
+                        icon: <Clock3 size={24} />,
+                        date: orderDetails.timestamps.processed_at,
+                      },
+                      {
+                        label: 'Сборка',
+                        icon: <Package size={24} />,
+                        date: orderDetails.timestamps.assembled_at,
+                      },
+                      {
+                        label: 'Готов к доставке',
+                        icon: <Truck size={24} />,
+                        date: orderDetails.timestamps.ready_at,
+                      },
+                      {
+                        label: 'В пути',
+                        icon: <Route size={24} />,
+                        date: orderDetails.timestamps.in_transit_at,
+                      },
+                      {
+                        label: 'Доставлен',
+                        icon: <CircleCheck size={24} />,
+                        date: orderDetails.timestamps.delivered_at,
+                      },
+                    ].map(({ label, icon, date }) => (
+                      <div className="stage_block" key={label}>
+                        <div className="stage_icon">{icon}</div>
+                        <div className="stage_label">{label}</div>
+                        <div className="stage_time">{date}</div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </>
           ) : (
             <p>Данные по заказу не найдены.</p>

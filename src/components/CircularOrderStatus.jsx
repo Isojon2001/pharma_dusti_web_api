@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { CircleCheck, Clock3, Package, Truck, Route } from 'lucide-react';
-
+import ConfirmOrderModal from '../components/ConfirmOrderModal';
+const [showConfirmModal, setShowConfirmModal] = useState(false);
+const handleShowModal = () => {
+  setShowConfirmModal(true);
+};
+const handleCancelModal = () => {
+  setShowConfirmModal(false);
+};
 const STATUS_ORDER = [
   'Оформлено',
   'В обработке',
@@ -173,7 +180,6 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
             const nextPos = positions[i + 1];
             const isActive = i <= currentIndex;
 
-            console.log(`Линия между шагами ${i} и ${i + 1}: цвет - ${isActive ? 'зелёный' : 'серый'}`);
 
             return (
               <path
@@ -230,12 +236,25 @@ if (status === 'В пути' && localStatus['Доставлен'] === 'Да') {
           );
         })}
       </svg>
+          {!isDelivered &&
+            STATUS_ORDER.indexOf(rawStatus) >= STATUS_ORDER.indexOf('Готов к доставке') &&
+            STATUS_ORDER.indexOf(rawStatus) < STATUS_ORDER.indexOf('Доставлен') && (
+              <>
+                <button onClick={handleShowModal} className="confirm_button" disabled={isLoading}>
+                  {isLoading ? 'Подтверждение...' : 'Подтвердить получение'}
+                </button>
 
-      {!isDelivered && (
-        <button onClick={handleConfirm} className="confirm_button" disabled={isLoading}>
-          {isLoading ? 'Подтверждение...' : 'Подтвердить получение'}
-        </button>
-      )}
+                {showConfirmModal && (
+                  <ConfirmOrderModal
+                    onConfirm={() => {
+                      handleConfirm();
+                      setShowConfirmModal(false);
+                    }}
+                    onCancel={handleCancelModal}
+                  />
+                )}
+              </>
+          )}
     </div>
   );
 }
