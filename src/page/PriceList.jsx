@@ -136,7 +136,7 @@ function PriceList() {
                         return (
                           <tr key={id}>
                             <td>{product['Наименование']}</td>
-                            <td>{product['Производитель'] || '—'}</td>
+                            <td>{product['Производитель'] || 'Пусто'}</td>
                             <td>{formatDate(product['Срок'])}</td>
                             <td>{product['Цена']} сом</td>
                             <td>

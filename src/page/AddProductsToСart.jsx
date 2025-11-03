@@ -462,7 +462,7 @@ function AddProductsToCart() {
                           }}
                         />
                       </td>
-                      <td>{selectedProduct['Производитель'] || 'Неизвестен'}</td>
+                      <td>{selectedProduct['Производитель'] || 'Пусто'}</td>
                       <td>
                         {productGroup.length > 1 ? (
                           <select
