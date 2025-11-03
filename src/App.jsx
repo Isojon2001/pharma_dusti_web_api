@@ -14,6 +14,8 @@ import DetailedStory from './page/DetailedStory';
 import ProfileOrder from './page/ProfileOrder';
 import ChangePassword from './page/ChangePassword';
 import Reporting from './page/Reporting';
+import PriceList from './page/PriceList';
+
 
 import './index.css';
 
@@ -46,6 +48,7 @@ function App() {
         <Route path="/profile-order" element={<RequireAuth><ProfileOrder /></RequireAuth>} />
         <Route path="/change-password" element={<RequireAuth><ChangePassword /></RequireAuth>} />
         <Route path="/reporting" element={<RequireAuth><Reporting /></RequireAuth>} />
+        <Route path="/price-list" element={<RequireAuth><PriceList /></RequireAuth>} />
       </Routes>
     </CartProvider>
   );

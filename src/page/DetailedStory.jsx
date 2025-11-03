@@ -147,8 +147,9 @@ function DetailedHistory() {
 
   return (
     <div className="DetailedHistory">
+      <div className='AddProductsToСarts'>
       <OrderHeader />
-
+      </div>
       <div className="DetailedHistory_content bg_detailed">
         <div className="basket_back">
           <div className="examination_backspace">

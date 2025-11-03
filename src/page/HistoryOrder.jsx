@@ -114,7 +114,9 @@ function HistoryOrder() {
 
   return (
     <div className="HistoryOrder_content">
+      <div className='AddProductsToСarts'>
       <OrderHeader />
+      </div>
       <div className="results_cards">
         <div className="filters_section">
           <div className="examination_backspace">

@@ -68,7 +68,9 @@ function ProfileOrder() {
 
   return (
     <div className='profileOrder_content'>
+      <div className='AddProductsToСarts'>
       <OrderHeader />
+      </div>
       <div className='profileOrder_header'>
         <div className='basket_back'>
           <div className='examination_backspace'>

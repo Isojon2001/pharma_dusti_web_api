@@ -338,7 +338,9 @@ function AddProductsToCart() {
 
   return (
     <div className="AddProductsToCart_content">
+      <div className='AddProductsToСarts'>
       <OrderHeader />
+      </div>
       {showModal && (
         <div className="cart-modal">
           <div className="cart-modal-content">
