@@ -7,7 +7,6 @@ import { useCart } from '../context/CartContext';
 function PriceList() {
   const { token } = useAuth();
   const { addToCart } = useCart();
-
   const [products, setProducts] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -90,9 +89,7 @@ function PriceList() {
         <h1>
           Выберите товар из списка и добавьте в <span className="colors">корзину</span>
         </h1>
-
         {loading && products.length === 0 && <p>Загрузка продуктов...</p>}
-
         {!loading && products.length > 0 && (
           <>
             <table className="products_table">
@@ -111,7 +108,6 @@ function PriceList() {
                   const id = product.id;
                   const quantity = quantities[id] || 1;
                   const isAdded = addedItems[id];
-
                   return (
                     <tr key={id}>
                       <td>{product['Наименование']}</td>
@@ -156,7 +152,6 @@ function PriceList() {
                 })}
               </tbody>
             </table>
-
             {hasMore && !loading && (
               <div className="load-more-container">
                 <button className="load-more-btn" onClick={handleLoadMore}>
@@ -178,5 +173,4 @@ function PriceList() {
     </div>
   );
 }
-
 export default PriceList;
