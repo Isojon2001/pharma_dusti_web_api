@@ -270,11 +270,17 @@ function AddProductsToCart() {
       .finally(() => setLoading(false));
   }, [token, searchTerm, category, summa, page]);
 
-  const loadMore = () => {
-    if (page < meta.last_page && !loading) {
-      setPage(prev => prev + 1);
-    }
-  };
+const loadMore = async () => {
+  if (page >= meta.last_page || loading) return;
+  const currentScroll = window.scrollY;
+  setPage(prev => prev + 1);
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      window.scrollTo({ top: currentScroll, behavior: 'instant' });
+    }, 100);
+  });
+};
+
 
   const groupProductsByCode = (productsList) => {
     const grouped = {};
