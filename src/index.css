@@ -420,7 +420,7 @@ margin: 0;
 	flex-direction: column;
 }
 .products_mains{
-  padding-top: 10px;
+  padding-top: 110px;
   display: flex;
   flex-direction:column;
   align-items:center;
@@ -1542,7 +1542,7 @@ text-align: center;
   border-radius: 8px;
   background: white;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  z-index: 1001;
+  z-index: 123456;
 }
 
 .logo_moadl p{
@@ -1817,7 +1817,7 @@ background-color:#ff1100;
   position: sticky;
   top: 90px;
   background-color: #FFF;
-  z-index: 100;
+  z-index: 90;
   color: #0F7372;
   text-align: center;
   border-bottom: 1px solid #c7d5d9;

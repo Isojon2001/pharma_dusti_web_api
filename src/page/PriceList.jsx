@@ -9,7 +9,8 @@ function PriceList() {
   const { addToCart } = useCart();
 
   const [products, setProducts] = useState([]);
-  const [visibleCount, setVisibleCount] = useState(10);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [quantities, setQuantities] = useState({});
   const [addedItems, setAddedItems] = useState({});
   const [loading, setLoading] = useState(false);
@@ -30,71 +31,53 @@ function PriceList() {
     setAddedItems((prev) => ({ ...prev, [id]: true }));
   };
 
-  useEffect(() => {
+  const loadProducts = async (currentPage = 1) => {
     if (!token) return;
     setLoading(true);
 
-    const loadAllProducts = async () => {
-      try {
-        const firstRes = await axios.get(
-          'https://api.dustipharma.tj:1212/api/v1/app/products/all',
-          {
-            headers: { Authorization: `Bearer ${token}` },
-            params: { page: 1 },
-          }
-        );
-
-        const meta = firstRes?.data?.payload?.meta;
-        const totalPages = meta?.last_page || 1;
-        let all = firstRes?.data?.payload?.data || [];
-
-        for (let p = 2; p <= totalPages; p++) {
-          const res = await axios.get(
-            'https://api.dustipharma.tj:1212/api/v1/app/products/all',
-            {
-              headers: { Authorization: `Bearer ${token}` },
-              params: { page: p },
-            }
-          );
-          const data = res?.data?.payload?.data || [];
-          all = [...all, ...data];
+    try {
+      const res = await axios.get(
+        'https://api.dustipharma.tj:1212/api/v1/app/products/all',
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { page: currentPage },
         }
+      );
 
-        all.sort((a, b) =>
-          (a['Наименование'] || '').localeCompare(b['Наименование'] || '', 'ru', {
-            sensitivity: 'base',
-          })
-        );
+      const payload = res?.data?.payload;
+      const data = payload?.data || [];
+      const meta = payload?.meta;
 
-        setProducts(all);
-      } catch (err) {
-        console.error('Ошибка при загрузке всех продуктов:', err);
-        setProducts([]);
-      } finally {
-        setLoading(false);
+      console.log('Загружена страница:', currentPage);
+      console.log('Полученные товары:', data.map(p => p['Наименование']));
+
+      setProducts((prev) => {
+        const combined = [...prev, ...data];
+        const unique = Array.from(new Map(combined.map(p => [p.id, p])).values());
+        return unique;
+      });
+
+      if (meta && meta.current_page >= meta.last_page) {
+        setHasMore(false);
+      } else {
+        setHasMore(true);
       }
-    };
-
-    loadAllProducts();
-  }, [token]);
-
-  const groupByFirstLetter = (list) => {
-    const grouped = {};
-    list.forEach((product) => {
-      const name = product['Наименование'] || '';
-      const firstLetter = name.trim().charAt(0).toUpperCase();
-      const letter = /^[A-ZА-ЯЁ]/i.test(firstLetter) ? firstLetter : '#';
-      if (!grouped[letter]) grouped[letter] = [];
-      grouped[letter].push(product);
-    });
-    return grouped;
+    } catch (err) {
+      console.error('Ошибка при загрузке продуктов:', err);
+      setHasMore(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const visibleProducts = products.slice(0, visibleCount);
-  const groupedProducts = groupByFirstLetter(visibleProducts);
+  useEffect(() => {
+    if (token) loadProducts(1);
+  }, [token]);
 
   const handleLoadMore = () => {
-    setVisibleCount((prev) => prev + 50);
+    const nextPage = page + 1;
+    setPage(nextPage);
+    loadProducts(nextPage);
   };
 
   return (
@@ -105,92 +88,90 @@ function PriceList() {
 
       <main className="products_mains">
         <h1>
-          Прайс-лист <span className="colors">по алфавиту</span>
+          Выберите товар из списка и добавьте в <span className="colors">корзину</span>
         </h1>
 
-        {loading && <p>Загрузка всех продуктов...</p>}
+        {loading && products.length === 0 && <p>Загрузка продуктов...</p>}
 
-        {!loading && Object.keys(groupedProducts).length > 0 && (
+        {!loading && products.length > 0 && (
           <>
-            {Object.keys(groupedProducts)
-              .sort((a, b) => a.localeCompare(b, 'ru'))
-              .map((letter) => (
-                <div key={letter} className="alphabet-group">
-                  <table className="products_table">
-                    <thead>
-                      <tr>
-                        <th>Название продукта</th>
-                        <th>Производитель</th>
-                        <th>Срок годности</th>
-                        <th>Цена</th>
-                        <th>Кол-во</th>
-                        <th>Действие</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {groupedProducts[letter].map((product) => {
-                        const id = product.id;
-                        const quantity = quantities[id] || 1;
-                        const isAdded = addedItems[id];
+            <table className="products_table">
+              <thead>
+                <tr>
+                  <th>Название продукта</th>
+                  <th>Производитель</th>
+                  <th>Срок годности</th>
+                  <th>Цена</th>
+                  <th>Кол-во</th>
+                  <th>Действие</th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.map((product) => {
+                  const id = product.id;
+                  const quantity = quantities[id] || 1;
+                  const isAdded = addedItems[id];
 
-                        return (
-                          <tr key={id}>
-                            <td>{product['Наименование']}</td>
-                            <td>{product['Производитель'] || 'Пусто'}</td>
-                            <td>{formatDate(product['Срок'])}</td>
-                            <td>{product['Цена']} сом</td>
-                            <td>
-                              <div className="quantity-wrapper">
-                                <button
-                                  onClick={() => handleQuantityChange(id, quantity - 1)}
-                                  disabled={quantity <= 1 || isAdded}
-                                >
-                                  −
-                                </button>
-                                <input
-                                  className='quantity-input'
-                                  type="number"
-                                  min="1"
-                                  value={quantity}
-                                  onChange={(e) => handleQuantityChange(id, e.target.value)}
-                                  disabled={isAdded}
-                                />
-                                <button
-                                  onClick={() => handleQuantityChange(id, quantity + 1)}
-                                  disabled={isAdded}
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </td>
-                            <td>
-                              <button
-                                className={`add-to-cart-btn ${isAdded ? 'added' : ''}`}
-                                onClick={() => handleAddToCart(id, product)}
-                                disabled={isAdded}
-                              >
-                                {isAdded ? 'Добавлено' : 'Добавить в корзину'}
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              ))}
+                  return (
+                    <tr key={id}>
+                      <td>{product['Наименование']}</td>
+                      <td>{product['Производитель'] || 'Пусто'}</td>
+                      <td>{formatDate(product['Срок'])}</td>
+                      <td>{product['Цена']} сом</td>
+                      <td>
+                        <div className="quantity-wrapper">
+                          <button
+                            onClick={() => handleQuantityChange(id, quantity - 1)}
+                            disabled={quantity <= 1 || isAdded}
+                          >
+                            −
+                          </button>
+                          <input
+                            className="quantity-input"
+                            type="number"
+                            min="1"
+                            value={quantity}
+                            onChange={(e) => handleQuantityChange(id, e.target.value)}
+                            disabled={isAdded}
+                          />
+                          <button
+                            onClick={() => handleQuantityChange(id, quantity + 1)}
+                            disabled={isAdded}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </td>
+                      <td>
+                        <button
+                          className={`add-to-cart-btn ${isAdded ? 'added' : ''}`}
+                          onClick={() => handleAddToCart(id, product)}
+                          disabled={isAdded}
+                        >
+                          {isAdded ? 'Добавлено' : 'Добавить в корзину'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
 
-            {visibleCount < products.length && (
+            {hasMore && !loading && (
               <div className="load-more-container">
                 <button className="load-more-btn" onClick={handleLoadMore}>
-                  Показать ещё ({products.length - visibleCount} осталось)
+                  Показать ещё
                 </button>
               </div>
+            )}
+
+            {!hasMore && (
+              <p className="no-more-text">Все товары загружены</p>
             )}
           </>
         )}
 
-        {!loading && Object.keys(groupedProducts).length === 0 && (
+        {!loading && products.length === 0 && (
           <p className="no-results-text">Нет доступных продуктов</p>
         )}
       </main>
