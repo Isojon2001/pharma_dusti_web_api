@@ -35,46 +35,48 @@ export function CartProvider({ children, userId }) {
     }
   }, [cartItems, userId]);
 
-  function updateQuantity(productId, newQuantity) {
-    const qty = Number(newQuantity);
-    if (qty < 1) return;
+function updateQuantity(productId, newQuantity) {
+  const qty = Number(newQuantity);
+  if (qty < 1) return;
 
-    setCartItems(prevItems =>
-      prevItems.map(item => {
-        const key = item.id || item['Код'] || item['Артикул'];
-        if (key === productId) {
-          return { ...item, quantity: qty };
-        }
-        return item;
-      })
-    );
+  setCartItems(prevItems =>
+    prevItems.map(item => {
+      const key = item.productKey || item.id || item['Код'] || item['Артикул'];
+      if (key === productId) {
+        return { ...item, quantity: qty };
+      }
+      return item;
+    })
+  );
+}
+
+
+function addToCart(product) {
+  const productKey = product.id || product['Код'] || product['Артикул'];
+  const quantityToAdd = product.quantity || 1;
+
+  if (!productKey) {
+    console.warn('Нет ключа для товара:', product);
+    return;
   }
 
-  function addToCart(product) {
-    const productKey = product.id || product['Код'] || product['Артикул'];
-    const quantityToAdd = product.quantity || 1;
+  setCartItems(prevItems => {
+    const existing = prevItems.find(item =>
+      (item.id || item['Код'] || item['Артикул']) === productKey
+    );
 
-    if (!productKey) {
-      console.warn('Нет ключа для товара:', product);
-      return;
+    if (existing) {
+      return prevItems.map(item =>
+        (item.id || item['Код'] || item['Артикул']) === productKey
+          ? { ...item, quantity: (item.quantity || 1) + quantityToAdd }
+          : item
+      );
     }
 
-    setCartItems(prevItems => {
-      const existing = prevItems.find(item =>
-        (item.id || item['Код'] || item['Артикул']) === productKey
-      );
+    return [...prevItems, { ...product, productKey, quantity: quantityToAdd }];
+  });
+}
 
-      if (existing) {
-        return prevItems.map(item =>
-          (item.id || item['Код'] || item['Артикул']) === productKey
-            ? { ...item, quantity: (item.quantity || 1) + quantityToAdd }
-            : item
-        );
-      }
-
-      return [...prevItems, { ...product, id: productKey, quantity: quantityToAdd }];
-    });
-  }
 
   function clearCart() {
     setCartItems([]);

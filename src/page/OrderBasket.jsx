@@ -198,7 +198,7 @@ function OrderBasket() {
                           return (
                             <tr key={key} className={index % 2 === 0 ? 'td_even' : 'td_odd'}>
                               <td className="numeration_basket">{index + 1}</td>
-                              <td className="pro_basket">{item['Производитель'] || 'Пусто'}</td>
+                              <td className="pro_basket">{item['Производитель'] || ''}</td>
                               <td>{item['Наименование']}</td>
                               <td>
                                 <div className="counter_table">

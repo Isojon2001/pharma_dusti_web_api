@@ -63,7 +63,7 @@ function OrderStep({ icon, label, stepKey, currentStatus, isLast }) {
 
 function AddProductsToCart() {
   const { token } = useAuth();
-  const { addToCart } = useCart();
+  const { cartItems, addToCart, updateCartItem } = useCart();
   const [orderStatusById, setOrderStatusById] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalProductName, setModalProductName] = useState('');
@@ -97,6 +97,27 @@ function AddProductsToCart() {
   const handleNextBanner = () => {
     setCurrentBannerIndex((prev) => (prev + 1) % banner.length);
   };
+
+useEffect(() => {
+  if (!products.length || !cartItems.length) return;
+
+  const newAddedItems = {};
+  const newQuantities = {};
+
+  products.forEach((product) => {
+    const cartItem = cartItems.find((item) => item.id === product.id);
+    if (cartItem) {
+      const code = `${product.Код || 'unknown'}-${product['Наименование']}-${product['Производитель']}`;
+      newAddedItems[code] = true;
+      newQuantities[code] = cartItem.quantity || 1;
+    }
+  });
+
+  setAddedItems((prev) => ({ ...prev, ...newAddedItems }));
+  setQuantities((prev) => ({ ...prev, ...newQuantities }));
+}, [products, cartItems]);
+
+
 
   useEffect(() => {
     if (!token) return;
@@ -324,24 +345,26 @@ const loadMore = async () => {
     setQuantities((prev) => ({ ...prev, [code]: quantity }));
   };
 
-  const handleAddToCart = (code) => {
-    const productGroup = groupedProducts[code];
-    if (!productGroup) return;
-
-    const selectedId = selectedProductByCode[code];
-    const selectedProduct = productGroup.find((p) => p.id === selectedId) || productGroup[0];
-    const quantity = quantities[code] || 1;
-
+const handleAddToCart = (code) => {
+  const productGroup = groupedProducts[code];
+  if (!productGroup) return;
+  const selectedId = selectedProductByCode[code];
+  const selectedProduct = productGroup.find((p) => p.id === selectedId) || productGroup[0];
+  const quantity = quantities[code] || 1;
+  const existingItem = cartItems.find((item) => item.id === selectedProduct.id);
+  if (existingItem) {
     addToCart({ ...selectedProduct, quantity });
-    setModalProductName(selectedProduct['Наименование'] || 'Товар');
-    setShowModal(true);
-    setAddedItems((prev) => ({ ...prev, [code]: true }));
+  } else {
+    addToCart({ ...selectedProduct, quantity });
+  }
 
-    setTimeout(() => setShowModal(false), 2500);
-  };
+  setModalProductName(selectedProduct['Наименование'] || 'Товар');
+  setShowModal(true);
+  setAddedItems((prev) => ({ ...prev, [code]: true }));
 
+  setTimeout(() => setShowModal(false), 2500);
+};
   const groupedProducts = groupProductsByCode(products);
-
   return (
     <div className="AddProductsToCart_content">
       <div className='AddProductsToСarts'>
@@ -468,7 +491,7 @@ const loadMore = async () => {
                           }}
                         />
                       </td>
-                      <td>{selectedProduct['Производитель'] || 'Пусто'}</td>
+                      <td>{selectedProduct['Производитель'] || ''}</td>
                       <td>
                         {productGroup.length > 1 ? (
                           <select
