@@ -43,16 +43,17 @@ function OrderHeader() {
       })
       .finally(() => setLoading(false));
   }, [isHovering, token, userData, loading]);
+  const hiddenPaths = ['/order-basket', '/price-list'];
 
   return (
     <div className="AddProductsToСart">
       <div className="logo_login">
-        {location.pathname !== '/order-basket' && (
+        {!hiddenPaths.includes(location.pathname) && (
           <div className="logo_img">
-            <Link to={`/add-products-to-cart`}>
-            <img src={logo} alt="logo" />
-          </Link>
-        </div>
+            <Link to="/add-products-to-cart">
+              <img src={logo} alt="logo" />
+            </Link>
+          </div>
         )}
       </div>
 

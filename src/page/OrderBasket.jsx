@@ -155,7 +155,6 @@ function OrderBasket() {
           <h1>Корзина</h1>
         </div>
       </div>
-
       <div className="order_basket_tables">
         <div className="order_basket_table">
           <div className="OrderBasket_Header">
@@ -235,8 +234,7 @@ function OrderBasket() {
                                 <button
                                   className="remove-btn"
                                   onClick={() => removeFromCart(key)}
-                                  title="Удалить из корзины"
-                                >
+                                  title="Удалить из корзины">
                                   <Trash2 size={20} />
                                 </button>
                               </td>
@@ -247,9 +245,18 @@ function OrderBasket() {
                   </tbody>
                 </table>
               </div>
-
               <div className="detail_basket">
+                <div>
                 <h2>Детали заказа</h2>
+                <div className="detailed_btn">
+                  <button
+                    onClick={() => clearCart()}
+                    disabled={cartItems.length === 0}>
+                    <Trash2 size={18} style={{ marginRight: '6px' }} />
+                    Удалить всё
+                  </button>
+                </div>
+                </div>
                 <div className="detailed_inf">
                   <div className="detailed_rows">
                     <div className="detailed_row">
@@ -262,8 +269,7 @@ function OrderBasket() {
                         <p>Итоговая сумма.</p>
                         <button
                           disabled={cartItems.length === 0 || isSubmitting}
-                          onClick={() => setShowConfirmModal(true)}
-                        >
+                          onClick={() => setShowConfirmModal(true)}>
                           {isSubmitting ? 'Загрузка...' : 'Оформить'}
                         </button>
                       </div>
@@ -271,12 +277,10 @@ function OrderBasket() {
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
       </div>
-
       {showErrorModal && (
         <OrderErrorModal message={errorMessage} onClose={() => setShowErrorModal(false)} />
       )}
@@ -295,5 +299,4 @@ function OrderBasket() {
     </div>
   );
 }
-
 export default OrderBasket;

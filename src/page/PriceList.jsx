@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import OrderHeader from '../components/OrderHeader';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
+import { MoveLeft, Trash2 } from 'lucide-react';
+import logo from '../assets/logo.svg';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
@@ -39,7 +42,7 @@ function PriceList() {
         'https://api.dustipharma.tj:1212/api/v1/app/products/all',
         {
           headers: { Authorization: `Bearer ${token}` },
-          params: { page: currentPage },
+          params: { page: currentPage, size:19 },
         }
       );
 
@@ -82,14 +85,21 @@ function PriceList() {
 
   return (
     <div className="AddProductsToCart_content">
-      <div className="AddProductsToСarts">
+<div className="basket_backs">
         <OrderHeader />
+        <div className="price-list_header">
+          <div className="examination_backspace">
+            <div className="logo_img logo_login">
+            <Link to="/add-products-to-cart">
+              <img src={logo} alt="logo" />
+            </Link>
+            </div>
+          </div>
+          <h1>Выберите товар из списка и добавьте в <span className='colors'>корзину</span></h1>
+        </div>
       </div>
 
       <main className="products_mains">
-        <h1>
-          Выберите товар из списка и добавьте в <span className="colors">корзину</span>
-        </h1>
 
         {loading && products.length === 0 && <p>Загрузка продуктов...</p>}
 

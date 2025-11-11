@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CircleCheck, Clock3, Package, Truck, Route } from 'lucide-react';
 
+// Порядок отображения статусов
 const STATUS_ORDER = [
   'Оформлено',
   'В обработке',
@@ -10,6 +11,7 @@ const STATUS_ORDER = [
   'Доставлен',
 ];
 
+// Соответствие между API и визуальными статусами
 const API_STATUS_TO_STEP_STATUS = {
   'Оформлено': 'Оформлено',
   'КОбработке': 'В обработке',
@@ -19,9 +21,12 @@ const API_STATUS_TO_STEP_STATUS = {
   'Доставлен': 'Доставлен',
 };
 
+// Цвета статусов
 const ACTIVE_COLOR = '#4CAF50';
+const NEXT_COLOR = '#FFD700'; // 💛 Цвет следующего шага
 const INACTIVE_COLOR = '#E0E0E0';
 
+// Иконки для каждого статуса
 const ICONS = {
   'Оформлено': <CircleCheck size={24} />,
   'В обработке': <Clock3 size={24} />,
@@ -31,16 +36,17 @@ const ICONS = {
   'Доставлен': <CircleCheck size={24} />,
 };
 
+// Параметры визуализации
 const CENTER_X = 308;
 const CENTER_Y = 170;
 const RADIUS = 130;
 const START_ANGLE = -200;
 const END_ANGLE = 20;
-
 const CIRCLE_RADIUS = 34;
 const ICON_SIZE = 24;
 const TEXT_FONT_SIZE = 16;
 
+// Вспомогательные функции
 function degreesToRadians(deg) {
   return (deg * Math.PI) / 180;
 }
@@ -82,6 +88,7 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
   const handleShowModal = () => setShowConfirmModal(true);
   const handleCancelModal = () => setShowConfirmModal(false);
 
+  // Автообновление статуса каждые 10 секунд
   useEffect(() => {
     setLocalStatus(apiStatus);
     if (timestamps?.delivered_at) {
@@ -109,7 +116,8 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
           setLocalStatus(updatedStatus);
 
           if (updatedStatus.Доставлен === 'Да') {
-            const deliveredDate = data.payload.status?.ДатаДоставлен || new Date().toLocaleString();
+            const deliveredDate =
+              data.payload.status?.ДатаДоставлен || new Date().toLocaleString();
             setConfirmationDate(deliveredDate);
           }
         }
@@ -125,12 +133,15 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
   const currentIndex = STATUS_ORDER.indexOf(rawStatus);
   const totalSteps = STATUS_ORDER.length;
   const angleStep = (END_ANGLE - START_ANGLE) / (totalSteps - 1);
+
   const positions = STATUS_ORDER.map((_, i) => {
     const angle = START_ANGLE + angleStep * i;
     return polarToCartesian(CENTER_X, CENTER_Y, RADIUS, angle);
   });
+
   const isDelivered = rawStatus === 'Доставлен';
 
+  // Подтверждение получения
   const handleConfirm = async () => {
     if (!token) {
       console.error('Токен не передан');
@@ -170,6 +181,7 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
   return (
     <div className="STATUS_ORDERS">
       <svg width={600} height={300}>
+        {/* Линии между статусами */}
         {positions.map((pos, i) => {
           if (i === positions.length - 1) return null;
           const nextPos = positions[i + 1];
@@ -185,22 +197,38 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
           );
         })}
 
+        {/* Отрисовка каждого статуса */}
         {STATUS_ORDER.map((status, i) => {
           const pos = positions[i];
           const isRightSide = pos.x >= CENTER_X;
           const apiKey = Object.keys(API_STATUS_TO_STEP_STATUS).find(
             (k) => API_STATUS_TO_STEP_STATUS[k] === status
           );
+
           let isReached = localStatus[apiKey] === 'Да';
           if (status === 'В пути' && localStatus['Доставлен'] === 'Да') {
             isReached = true;
           }
 
+          const nextIndex = currentIndex + 1;
+          const isNext = i === nextIndex;
           const textOffset = isRightSide ? CIRCLE_RADIUS + 20 : -CIRCLE_RADIUS - 20;
+
+          const circleColor = isReached
+            ? ACTIVE_COLOR
+            : isNext
+            ? NEXT_COLOR
+            : INACTIVE_COLOR;
+
+          const textColor = isReached
+            ? ACTIVE_COLOR
+            : isNext
+            ? NEXT_COLOR
+            : 'gray';
 
           return (
             <g key={status} transform={`translate(${pos.x},${pos.y})`}>
-              <circle r={CIRCLE_RADIUS} fill={isReached ? ACTIVE_COLOR : INACTIVE_COLOR} />
+              <circle r={CIRCLE_RADIUS} fill={circleColor} />
               <foreignObject
                 x={-ICON_SIZE / 2}
                 y={-ICON_SIZE / 2}
@@ -209,7 +237,7 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
               >
                 <div>
                   {React.cloneElement(ICONS[status], {
-                    color: isReached ? 'white' : 'gray',
+                    color: isReached || isNext ? 'white' : 'gray',
                     size: ICON_SIZE,
                   })}
                 </div>
@@ -218,17 +246,15 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
                 x={textOffset}
                 y={6}
                 textAnchor={isRightSide ? 'start' : 'end'}
-                fill={isReached ? ACTIVE_COLOR : 'gray'}
-                fontWeight={isReached ? 'bold' : 'normal'}
-                fontSize={TEXT_FONT_SIZE}
-              >
+                fill={textColor}
+                fontWeight={isReached || isNext ? 'bold' : 'normal'}
+                fontSize={TEXT_FONT_SIZE}>
                 {status}
               </text>
             </g>
           );
         })}
       </svg>
-
       {!isDelivered &&
         STATUS_ORDER.indexOf(rawStatus) >= STATUS_ORDER.indexOf('Готов к доставке') &&
         STATUS_ORDER.indexOf(rawStatus) < STATUS_ORDER.indexOf('Доставлен') && (
@@ -243,11 +269,17 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
                   <h2>Подтверждение получения заказа</h2>
                   <p>Вы действительно получили заказ?</p>
                   <div className="modal-buttons">
-                    <button onClick={() => {
-                      handleConfirm();
-                      setShowConfirmModal(false);
-                    }} className="confirm-btn">Да</button>
-                    <button onClick={handleCancelModal} className="cancel-btn">Отмена</button>
+                    <button
+                      onClick={() => {
+                        handleConfirm();
+                        setShowConfirmModal(false);
+                      }}
+                      className="confirm-btn">
+                      Да
+                    </button>
+                    <button onClick={handleCancelModal} className="cancel-btn">
+                      Отмена
+                    </button>
                   </div>
                 </div>
               </div>

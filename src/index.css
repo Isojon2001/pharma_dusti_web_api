@@ -435,6 +435,11 @@ margin: 0;
   padding: 0 40px;
   background-color:#FFF;
 }
+.price-list_header{
+  display: flex;
+  gap: 120px;
+}
+
 .AddProductsToСart,
 .products_story,
 .products_profile{
