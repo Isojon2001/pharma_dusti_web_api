@@ -37,7 +37,7 @@ function App() {
       else if (width < 1024) scale = 1.2;
       else if (width < 1280) scale = 1.1;
 
-      const root = document.getElementById('root');
+      const root = document.getElementById('app');
       if (root) {
         root.style.transform = `scale(${scale})`;
         root.style.transformOrigin = 'top left';
