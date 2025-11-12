@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { CircleCheck, Clock3, Package, Truck, Route } from 'lucide-react';
-
-// Порядок отображения статусов
 const STATUS_ORDER = [
   'Оформлено',
   'В обработке',
@@ -10,8 +8,6 @@ const STATUS_ORDER = [
   'В пути',
   'Доставлен',
 ];
-
-// Соответствие между API и визуальными статусами
 const API_STATUS_TO_STEP_STATUS = {
   'Оформлено': 'Оформлено',
   'КОбработке': 'В обработке',
@@ -20,13 +16,9 @@ const API_STATUS_TO_STEP_STATUS = {
   'В пути': 'В пути',
   'Доставлен': 'Доставлен',
 };
-
-// Цвета статусов
 const ACTIVE_COLOR = '#4CAF50';
-const NEXT_COLOR = '#FFD700'; // 💛 Цвет следующего шага
+const NEXT_COLOR = '#FFD700';
 const INACTIVE_COLOR = '#E0E0E0';
-
-// Иконки для каждого статуса
 const ICONS = {
   'Оформлено': <CircleCheck size={24} />,
   'В обработке': <Clock3 size={24} />,
@@ -35,8 +27,6 @@ const ICONS = {
   'В пути': <Route size={24} />,
   'Доставлен': <CircleCheck size={24} />,
 };
-
-// Параметры визуализации
 const CENTER_X = 308;
 const CENTER_Y = 170;
 const RADIUS = 130;
@@ -46,7 +36,6 @@ const CIRCLE_RADIUS = 34;
 const ICON_SIZE = 24;
 const TEXT_FONT_SIZE = 16;
 
-// Вспомогательные функции
 function degreesToRadians(deg) {
   return (deg * Math.PI) / 180;
 }
@@ -88,7 +77,6 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
   const handleShowModal = () => setShowConfirmModal(true);
   const handleCancelModal = () => setShowConfirmModal(false);
 
-  // Автообновление статуса каждые 10 секунд
   useEffect(() => {
     setLocalStatus(apiStatus);
     if (timestamps?.delivered_at) {
@@ -110,7 +98,6 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
         );
 
         const data = await res.json();
-
         if (res.ok && data?.payload?.status) {
           const updatedStatus = data.payload.status;
           setLocalStatus(updatedStatus);
@@ -140,8 +127,6 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
   });
 
   const isDelivered = rawStatus === 'Доставлен';
-
-  // Подтверждение получения
   const handleConfirm = async () => {
     if (!token) {
       console.error('Токен не передан');
@@ -181,7 +166,6 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
   return (
     <div className="STATUS_ORDERS">
       <svg width={600} height={300}>
-        {/* Линии между статусами */}
         {positions.map((pos, i) => {
           if (i === positions.length - 1) return null;
           const nextPos = positions[i + 1];
@@ -197,7 +181,6 @@ function CircularOrderStatus({ apiStatus, onConfirm, orderId, timestamps = {}, t
           );
         })}
 
-        {/* Отрисовка каждого статуса */}
         {STATUS_ORDER.map((status, i) => {
           const pos = positions[i];
           const isRightSide = pos.x >= CENTER_X;

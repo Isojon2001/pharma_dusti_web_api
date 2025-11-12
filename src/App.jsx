@@ -15,8 +15,6 @@ import ProfileOrder from './page/ProfileOrder';
 import ChangePassword from './page/ChangePassword';
 import Reporting from './page/Reporting';
 import PriceList from './page/PriceList';
-
-
 import './index.css';
 
 function App() {
@@ -28,6 +26,29 @@ function App() {
   useEffect(() => {
     console.log('Используемый userId для корзины:', userId);
   }, [userId]);
+
+  useEffect(() => {
+    const applyZoom = () => {
+      const width = window.innerWidth;
+      let scale = 1;
+
+      if (width < 480) scale = 1.4;
+      else if (width < 768) scale = 1.3;
+      else if (width < 1024) scale = 1.2;
+      else if (width < 1280) scale = 1.1;
+
+      const root = document.getElementById('root');
+      if (root) {
+        root.style.transform = `scale(${scale})`;
+        root.style.transformOrigin = 'top left';
+        root.style.width = `${100 / scale}%`;
+      }
+    };
+
+    applyZoom();
+    window.addEventListener('resize', applyZoom);
+    return () => window.removeEventListener('resize', applyZoom);
+  }, []);
 
   if (isLoading) {
     console.log('Auth loading...');
