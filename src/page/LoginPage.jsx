@@ -87,7 +87,7 @@ function LoginPage() {
           </div>
 
           <div className="registration_forgot">
-            <a href="./registration">Забыли пароль?</a>
+            <a href="./forgot-password">Забыли пароль?</a>
           </div>
 
           {error && <p className='error_login'>{error}</p>}

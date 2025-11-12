@@ -1802,6 +1802,11 @@ background-color:#ff1100;
   border-radius: 12px;
   box-shadow: 0 0 15px rgb(35 139 158 / 0.1);
 }
+.registration_paragraph p{
+  margin: 10px 0;
+  display: flex;
+  gap: 10px;
+}
 .registration_paragraph{
 	display: flex;
 	flex-direction: column;

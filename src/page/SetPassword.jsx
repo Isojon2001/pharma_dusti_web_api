@@ -47,6 +47,7 @@ function SetPassword() {
         <div className="registration_paragraph">
           <h1>Установите пароль</h1>
           <p>Создайте новый пароль для номера <br /><strong>{phone}</strong></p>
+          <p>Введите пароль (минимум 4 символа)</p>
         </div>
 
         <div className="form eyes">

@@ -12,7 +12,7 @@ import OrderBasket from './page/OrderBasket';
 import HistoryOrder from './page/HistoryOrder';
 import DetailedStory from './page/DetailedStory';
 import ProfileOrder from './page/ProfileOrder';
-import ChangePassword from './page/ChangePassword';
+import ForgotPassword from './page/ForgotPassword';
 import Reporting from './page/Reporting';
 import PriceList from './page/PriceList';
 import './index.css';
@@ -67,7 +67,7 @@ function App() {
         <Route path="/history-order" element={<RequireAuth><HistoryOrder /></RequireAuth>} />
         <Route path="/detailed-history/:order_id" element={<RequireAuth><DetailedStory /></RequireAuth>} />
         <Route path="/profile-order" element={<RequireAuth><ProfileOrder /></RequireAuth>} />
-        <Route path="/change-password" element={<RequireAuth><ChangePassword /></RequireAuth>} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reporting" element={<RequireAuth><Reporting /></RequireAuth>} />
         <Route path="/price-list" element={<RequireAuth><PriceList /></RequireAuth>} />
       </Routes>
