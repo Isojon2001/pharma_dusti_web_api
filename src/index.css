@@ -838,7 +838,7 @@ padding: 130px 47px 130px 47px;
 .detail_basket {
 	position:fixed;
 	bottom: 0;
-	gap: 540px;
+	gap: 410px;
 	display: flex;
 	left:0;
 	width: 100%;
@@ -988,7 +988,7 @@ text-align: center;
 }
 .detailed_rows{
 	display: flex;
-	gap: 170px;
+	gap: 200px;
 }
 .detailed_line{
 	width: 540px;

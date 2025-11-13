@@ -52,7 +52,8 @@ function OrderBasket() {
       const selectedIndex = item.selectedBatchIndex ?? 0;
       const batch = item.batches?.[selectedIndex];
       const price = batch ? parseFloat(batch.price) : parseFloat(item['Цена'] || 0);
-      const qty = Number(inputValues[item.id || item['Код'] || item['Артикул']] || item.quantity || 1);
+      const key = item.id || item['Код'] || item['Артикул'];
+      const qty = Number(inputValues[key] || item.quantity || 1);
       if (isNaN(qty) || qty < 1) return sum;
       return sum + price * qty;
     }, 0);
@@ -66,9 +67,37 @@ function OrderBasket() {
     }, 0);
   };
 
+  const groupCartItems = (items) => {
+    const grouped = {};
+
+    items.forEach(item => {
+      const batchIndex = item.selectedBatchIndex ?? 0;
+      const batch = item.batches?.[batchIndex];
+      const key = `${item['Код'] || item.id}_${batchIndex}`;
+
+      const quantity = Number(inputValues[item.id || item['Код']] ?? item.quantity ?? 1);
+
+      if (!grouped[key]) {
+        grouped[key] = {
+          product_code: item['Код'] || item.id,
+          name: item['Наименование'],
+          price: batch ? parseFloat(batch.price) : parseFloat(item['Цена'] || 0),
+          expiry: batch?.expiry || item['Срок'] || null,
+          quantity: quantity,
+        };
+      } else {
+        grouped[key].quantity += quantity;
+      }
+    });
+
+    return Object.values(grouped);
+  };
+
   const handleSubmitOrder = async () => {
     if (cartItems.length === 0 || !token || isSubmitting) return;
-    const payload = { items: cartItems };
+    const groupedItems = groupCartItems(cartItems);
+    const payload = { items: groupedItems };
+    console.log("Payload:", payload);
 
     try {
       setIsSubmitting(true);
@@ -91,12 +120,9 @@ function OrderBasket() {
   };
 
   const handleQuantityChange = (productId, value) => {
+    const num = Number(value);
     setInputValues(prev => ({ ...prev, [productId]: value }));
-    if (value === '') return;
-    const numericValue = Number(value);
-    if (!isNaN(numericValue) && numericValue >= 1) {
-      updateQuantity(productId, numericValue);
-    }
+    if (!isNaN(num) && num >= 1) updateQuantity(productId, num);
   };
 
   const handleBatchChange = (productId, batchIndex) => {
@@ -106,7 +132,7 @@ function OrderBasket() {
   const handleSort = (key) => {
     setSortConfig(prev => ({
       key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
     }));
   };
 
@@ -115,12 +141,9 @@ function OrderBasket() {
 
     const getValue = (item) => {
       switch (sortConfig.key) {
-        case '№':
-          return item.id || item['Код'] || item['Артикул'];
-        case 'Производитель':
-          return item['Производитель'] || '';
-        case 'Наименование':
-          return item['Наименование'] || '';
+        case '№': return item.id || item['Код'] || item['Артикул'];
+        case 'Производитель': return item['Производитель'] || '';
+        case 'Наименование': return item['Наименование'] || '';
         case 'Кол-во': {
           const key = item.id || item['Код'] || item['Артикул'];
           return Number(inputValues[key] ?? item.quantity ?? 1);
@@ -131,9 +154,17 @@ function OrderBasket() {
           return batch ? parseFloat(batch.price) : parseFloat(item['Цена'] || 0);
         }
         case 'Срок годности': {
-          const selectedIndex = item.selectedBatchIndex ?? 0;
-          const batch = item.batches?.[selectedIndex];
-          return batch?.expiry ? new Date(batch.expiry).getTime() : 0;
+          if (!item.batches || item.batches.length === 0) {
+            return item['Срок'] && item['Срок'] !== '0001-01-01T00:00:00Z'
+              ? new Date(item['Срок']).getTime()
+              : Infinity;
+          }
+          const validDates = item.batches
+            .map(b => (b.expiry && b.expiry !== '0001-01-01T00:00:00Z')
+              ? new Date(b.expiry).getTime()
+              : Infinity);
+          const minDate = Math.min(...validDates);
+          return isFinite(minDate) ? minDate : Infinity;
         }
         case 'Сумма': {
           const selectedIndex = item.selectedBatchIndex ?? 0;
@@ -143,17 +174,15 @@ function OrderBasket() {
           const qty = Number(inputValues[key] ?? item.quantity ?? 1);
           return price * qty;
         }
-        default:
-          return '';
+        default: return '';
       }
     };
 
     const aVal = getValue(a);
     const bVal = getValue(b);
 
-    if (typeof aVal === 'number' && typeof bVal === 'number') {
+    if (typeof aVal === 'number' && typeof bVal === 'number')
       return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
-    }
 
     return sortConfig.direction === 'asc'
       ? String(aVal).localeCompare(String(bVal))
@@ -173,6 +202,7 @@ function OrderBasket() {
           <h1>Корзина</h1>
         </div>
       </div>
+
       <div className="order_basket_tables">
         <div className="order_basket_table">
           <div className="OrderBasket_Header">
@@ -181,7 +211,7 @@ function OrderBasket() {
                 <table className="table_info">
                   <thead>
                     <tr className="table_infos">
-                      {['№','Производитель','Наименование','Кол-во','Цена','Срок годности','Сумма'].map(col => (
+                      {['№', 'Производитель', 'Наименование', 'Кол-во', 'Цена', 'Срок годности', 'Сумма'].map(col => (
                         <th key={col} onClick={() => handleSort(col)}>
                           {col} {sortConfig.key === col ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '▲▼'}
                         </th>
@@ -196,43 +226,42 @@ function OrderBasket() {
                       </tr>
                     ) : (
                       sortedItems.map((item, index) => {
-                        const key = `${item.id || item['Код'] || item['Артикул']}_${index}`;
+                        const idKey = item.id || item['Код'] || item['Артикул'];
                         const selectedIndex = item.selectedBatchIndex ?? 0;
-                        const batchesSorted = (item.batches || []).slice().sort((a, b) =>
-                          (a.expiry ? new Date(a.expiry) : Infinity) - (b.expiry ? new Date(b.expiry) : Infinity)
+                        const batchesSorted = (item.batches || []).slice().sort(
+                          (a, b) => new Date(a.expiry || Infinity) - new Date(b.expiry || Infinity)
                         );
                         const selectedBatch = batchesSorted[selectedIndex];
-                                                const qty = Number(inputValues[item.id || item['Код'] || item['Артикул']] ?? item.quantity ?? 1);
+                        const qty = Number(inputValues[idKey] ?? item.quantity ?? 1);
                         const price = selectedBatch ? parseFloat(selectedBatch.price) : parseFloat(item['Цена'] || 0);
-                        const sum = price * (qty >= 1 ? qty : 0);
+                        const sum = price * qty;
 
                         return (
-                          <tr key={key} className={index % 2 === 0 ? 'td_even' : 'td_odd'}>
+                          <tr key={`${idKey}_${index}`} className={index % 2 === 0 ? 'td_even' : 'td_odd'}>
                             <td className="numeration_basket">{index + 1}</td>
-                            <td className="pro_basket">{item['Производитель'] || ''}</td>
+                            <td>{item['Производитель'] || ''}</td>
                             <td>{item['Наименование']}</td>
                             <td>
                               <div className="counter_table">
-                                <button onClick={() => decreaseQuantity(key)}>-</button>
+                                <button onClick={() => decreaseQuantity(idKey)}>-</button>
                                 <input
                                   type="number"
-                                  id={`quantity-${key}`}
-                                  value={inputValues[item.id || item['Код'] || item['Артикул']] ?? item.quantity ?? 1}
-                                  onChange={(e) => handleQuantityChange(item.id || item['Код'] || item['Артикул'], e.target.value)}
+                                  value={inputValues[idKey] ?? item.quantity ?? 1}
+                                  onChange={(e) => handleQuantityChange(idKey, e.target.value)}
                                   min={1}
                                 />
-                                <button onClick={() => increaseQuantity(key)}>+</button>
+                                <button onClick={() => increaseQuantity(idKey)}>+</button>
                               </div>
                             </td>
-                            <td className="plice_basket">{price.toFixed(2)}</td>
-                            <td className="expiration_date">
+                            <td>{price.toFixed(2)}</td>
+                            <td>
                               {batchesSorted.length > 0 ? (
                                 <select
                                   value={selectedIndex}
-                                  onChange={(e) => handleBatchChange(key, Number(e.target.value))}
+                                  onChange={(e) => handleBatchChange(idKey, Number(e.target.value))}
                                 >
                                   {batchesSorted.map((batch, i) => (
-                                    <option key={batch.expiry} value={i}>
+                                    <option key={batch.expiry || i} value={i}>
                                       {formatDate(batch.expiry)}
                                     </option>
                                   ))}
@@ -241,12 +270,13 @@ function OrderBasket() {
                                 formatDate(item['Срок'])
                               )}
                             </td>
-                            <td className="basket_price">{sum.toFixed(2)}</td>
+                            <td>{sum.toFixed(2)}</td>
                             <td>
                               <button
                                 className="remove-btn"
-                                onClick={() => removeFromCart(key)}
-                                title="Удалить из корзины">
+                                onClick={() => removeFromCart(idKey)}
+                                title="Удалить из корзины"
+                              >
                                 <Trash2 size={20} />
                               </button>
                             </td>
@@ -257,31 +287,32 @@ function OrderBasket() {
                   </tbody>
                 </table>
               </div>
+
               <div className="detail_basket">
                 <div>
                   <h2>Детали заказа</h2>
                   <div className="detailed_btn">
-                    <button
-                      onClick={() => clearCart()}
-                      disabled={cartItems.length === 0}>
+                    <button onClick={() => clearCart()} disabled={cartItems.length === 0}>
                       <Trash2 size={18} style={{ marginRight: '6px' }} />
                       Удалить всё
                     </button>
                   </div>
                 </div>
+
                 <div className="detailed_inf">
                   <div className="detailed_rows">
                     <div className="detailed_row">
                       <p>{calculateTotalQuantity()} шт.</p>
-                      <p>Общее кол-во.</p>
+                      <p>Общее количество</p>
                     </div>
                     <div className="detailed_row">
-                      <p>{calculateTotal().toFixed(2)}</p>
+                      <p>{calculateTotal().toFixed(2)} сом</p>
                       <div className="detailed_btn">
-                        <p>Итоговая сумма.</p>
+                        <p>Итоговая сумма</p>
                         <button
                           disabled={cartItems.length === 0 || isSubmitting}
-                          onClick={() => setShowConfirmModal(true)}>
+                          onClick={() => setShowConfirmModal(true)}
+                        >
                           {isSubmitting ? 'Загрузка...' : 'Оформить'}
                         </button>
                       </div>
@@ -289,10 +320,12 @@ function OrderBasket() {
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
       </div>
+
       {showErrorModal && (
         <OrderErrorModal message={errorMessage} onClose={() => setShowErrorModal(false)} />
       )}
