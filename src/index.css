@@ -857,6 +857,11 @@ text-align: center;
 .pro_basket{
 	padding: 0 !important;
 }
+
+.table_info thead th:nth-of-type(5),
+.table_info td:nth-of-type(5){
+  text-align: center;
+}
 .table_info thead th {
   position: sticky;
   top: 110px;

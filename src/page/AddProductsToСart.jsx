@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, Clock3, CircleCheck, X, Truck, Package } from 'lucide-react';
 import OrderHeader from '../components/OrderHeader';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
@@ -36,10 +36,12 @@ const STATUS_COLOR_MAP = {
 
 const getCurrentStatusFromApi = (statusObj) => {
   if (!statusObj) return 'Оформлено';
+
   if (statusObj.Доставлен === 'Да') return 'Доставлен';
   if (statusObj.ГотовКДоставке === 'Да') return 'Готов к доставке';
   if (statusObj.КСборке === 'Да') return 'В сборке';
   if (statusObj.КОбработке === 'Да') return 'В обработке';
+  
   return 'Оформлено';
 };
 
@@ -61,76 +63,71 @@ function OrderStep({ icon, label, stepKey, currentStatus, isLast }) {
 
 function AddProductsToCart() {
   const { token } = useAuth();
-  const { cartItems, addToCart } = useCart();
-
+  const { cartItems, addToCart, updateCartItem } = useCart();
   const [orderStatusById, setOrderStatusById] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalProductName, setModalProductName] = useState('');
-
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-
+  const [manufacturerSearch, setManufacturerSearch] = useState('');
   const [activeOrder, setActiveOrder] = useState(null);
-
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('products');
-  
-  const [manufacturer, setManufacturer] = useState('');
-
+  const [summa, setSumma] = useState('');
   const [quantities, setQuantities] = useState({});
   const [addedItems, setAddedItems] = useState({});
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({ current_page: 1, last_page: 6, total: 0 });
   const [loading, setLoading] = useState(false);
-
   const [selectedProductByCode, setSelectedProductByCode] = useState({});
   const [banner, setBanner] = useState(null);
   const [bannerLoading, setBannerLoading] = useState(true);
-  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
-
   const showTable =
-    searchTerm.trim() !== '' ||
-    manufacturer.trim() !== '' ||
-    category !== 'products';
+  searchTerm.trim() !== '' ||
+  summa.trim() !== '' ||
+  category !== 'products' ||
+  manufacturerSearch.trim() !== '';
+
 
   const handlePrevBanner = () => {
-    setCurrentBannerIndex((prev) =>
-      (prev - 1 + banner.length) % banner.length
-    );
+    setCurrentBannerIndex((prev) => (prev - 1 + banner.length) % banner.length);
   };
 
   const highlightMatch = (text, query) => {
     if (!query) return text;
     const regex = new RegExp(`(${query})`, 'gi');
-    return text.replace(regex, '<mark class="highlight">$1</mark>');
+    const highlighted = text.replace(regex, '<mark class="highlight">$1</mark>');
+    return highlighted;
   };
 
   const handleNextBanner = () => {
     setCurrentBannerIndex((prev) => (prev + 1) % banner.length);
   };
 
-  useEffect(() => {
-    if (!products.length || !cartItems.length) return;
+useEffect(() => {
+  if (!products.length || !cartItems.length) return;
 
-    const newAddedItems = {};
-    const newQuantities = {};
+  const newAddedItems = {};
+  const newQuantities = {};
 
-    products.forEach((product) => {
-      const cartItem = cartItems.find((item) => item.id === product.id);
-      if (cartItem) {
-        const code = `${product.Код || 'unknown'}-${product['Наименование']}-${product['Производитель']}`;
-        newAddedItems[code] = true;
-        newQuantities[code] = cartItem.quantity || 1;
-      }
-    });
+  products.forEach((product) => {
+    const cartItem = cartItems.find((item) => item.id === product.id);
+    if (cartItem) {
+      const code = `${product.Код || 'unknown'}-${product['Наименование']}-${product['Производитель']}`;
+      newAddedItems[code] = true;
+      newQuantities[code] = cartItem.quantity || 1;
+    }
+  });
 
-    setAddedItems((prev) => ({ ...prev, ...newAddedItems }));
-    setQuantities((prev) => ({ ...prev, ...newQuantities }));
-  }, [products, cartItems]);
+  setAddedItems((prev) => ({ ...prev, ...newAddedItems }));
+  setQuantities((prev) => ({ ...prev, ...newQuantities }));
+}, [products, cartItems]);
+
+
+
   useEffect(() => {
     if (!token) return;
     setBannerLoading(true);
-
     axios
       .get('https://api.dustipharma.tj:1212/api/v1/app/banners', {
         headers: { Authorization: `Bearer ${token}` },
@@ -147,19 +144,25 @@ function AddProductsToCart() {
 
         setBanner(enrichedBanners);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('Ошибка загрузки баннеров:', err);
         setBanner([]);
       })
       .finally(() => setBannerLoading(false));
   }, [token]);
 
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+
   useEffect(() => {
     if (!banner || banner.length === 0) return;
+
     const interval = setInterval(() => {
-      setCurrentBannerIndex((prev) => (prev + 1) % banner.length);
+      setCurrentBannerIndex((prevIndex) => (prevIndex + 1) % banner.length);
     }, 10000);
+
     return () => clearInterval(interval);
   }, [banner]);
+
   useEffect(() => {
     if (!token) return;
 
@@ -179,23 +182,35 @@ function AddProductsToCart() {
         try {
           const statusRes = await axios.get(
             `https://api.dustipharma.tj:1212/api/v1/app/orders/status/${latestOrder.id}`,
-            { headers: { Authorization: `Bearer ${token}` } }
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
           );
 
           const statusData = statusRes?.data?.payload?.status;
+          
           const currentStatus = getCurrentStatusFromApi(statusData);
 
           setActiveOrder({
             ...latestOrder,
             status: currentStatus,
-            statusData,
+            statusData: statusData
           });
 
-        } catch (error) {
+          console.log('Статус заказа:', {
+            rawStatus: statusData,
+            calculatedStatus: currentStatus
+          });
+
+        } catch (statusErr) {
+          console.error('Ошибка при загрузке статуса по ID:', statusErr);
           setActiveOrder(latestOrder);
         }
       })
-      .catch(() => setActiveOrder(null));
+      .catch((err) => {
+        console.error('Ошибка загрузки заказов пользователя:', err);
+        setActiveOrder(null);
+      });
   }, [token]);
 
   useEffect(() => {
@@ -205,68 +220,84 @@ function AddProductsToCart() {
       .get('https://api.dustipharma.tj:1212/api/v1/app/categories/all', {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((res) => setCategories(res?.data?.payload?.data || []))
-      .catch(() => setCategories([]));
+      .then((res) => {
+        const allCategories = res?.data?.payload?.data || [];
+        setCategories(allCategories);
+      })
+      .catch((err) => {
+        console.error('Ошибка загрузки категорий:', err);
+        setCategories([]);
+      });
   }, [token]);
 
-  useEffect(() => {
-    if (!token) return;
-
-    setLoading(true);
-
-    const params = { page, size: 10 };
-
-    let nameQuery = searchTerm.trim();
-    if (category !== 'products') {
-      const selectedCategory = categories.find((c) => c.key === category);
-      if (selectedCategory) {
-        nameQuery = nameQuery ? `${nameQuery} ${selectedCategory.name}` : selectedCategory.name;
-      }
-    }
-
-    if (nameQuery !== '') params.name = nameQuery;
-
-    if (manufacturer.trim() !== '') {
-      params.manufacturer = manufacturer.trim();
-    }
-
-    axios
-      .get('https://api.dustipharma.tj:1212/api/v1/app/products/all', {
-        headers: { Authorization: `Bearer ${token}` },
-        params,
-      })
-      .then((res) => {
-        const newProducts = res?.data?.payload?.data || [];
-        const newMeta = res?.data?.payload?.meta || { current_page: 1, last_page: 1 };
-
-        setMeta(newMeta);
-        setProducts((prev) => (page === 1 ? newProducts : [...prev, ...newProducts]));
-
-        const allProducts = page === 1 ? newProducts : [...products, ...newProducts];
-        const grouped = groupProductsByCode(allProducts);
-
-        const defaultSelected = {};
-        for (const code in grouped) {
-          defaultSelected[code] = grouped[code][0]?.id;
-        }
-        setSelectedProductByCode(defaultSelected);
-      })
-      .catch(() => {
-        if (page === 1) {
-          setProducts([]);
-          setMeta({ current_page: 1, last_page: 1, total: 0 });
-          setSelectedProductByCode({});
-        }
-      })
-      .finally(() => setLoading(false));
-  }, [token, searchTerm, category, manufacturer, page]);
-
-  const loadMore = () => {
-    if (page >= meta.last_page || loading) return;
-    const currentScroll = window.scrollY;
-    setPage((prev) => prev + 1);
-    setTimeout(() => window.scrollTo({ top: currentScroll, behavior: 'instant' }), 50);
+useEffect(() => {
+  if (!token) return;
+  setLoading(true);
+  const params = { 
+    page,
+    size: 10,
   };
+
+  let nameQuery = searchTerm.trim();
+  if (category !== 'products') {
+    const selectedCategory = categories.find((cat) => cat.key === category);
+    if (selectedCategory) {
+      nameQuery = nameQuery ? `${nameQuery} ${selectedCategory.name}` : selectedCategory.name;
+    }
+  }
+  if (nameQuery !== '') {
+    params.name = nameQuery;
+  }
+  if (manufacturerSearch.trim() !== '') {
+    params.manufacturer = manufacturerSearch.trim();
+  }
+
+  console.log('Запрашиваем продукты с параметрами:', params);
+
+  axios
+    .get('https://api.dustipharma.tj:1212/api/v1/app/products/all', {
+      headers: { Authorization: `Bearer ${token}` },
+      params,
+    })
+    .then((res) => {
+      const newProducts = res?.data?.payload?.data || [];
+      const newMeta = res?.data?.payload?.meta || { current_page: 1, last_page: 10 };
+
+      setMeta(newMeta);
+      setProducts((prev) => (page === 1 ? newProducts : [...prev, ...newProducts]));
+
+      const allProducts = page === 1 ? newProducts : [...products, ...newProducts];
+      const grouped = groupProductsByCode(allProducts);
+
+      const defaultSelected = {};
+      for (const code in grouped) {
+        defaultSelected[code] = grouped[code][0]?.id;
+      }
+      setSelectedProductByCode(defaultSelected);
+    })
+    .catch((err) => {
+      console.error('Ошибка загрузки продуктов:', err);
+      if (page === 1) {
+        setProducts([]);
+        setMeta({ current_page: 1, last_page: 10, total: 0 });
+        setSelectedProductByCode({});
+      }
+    })
+    .finally(() => setLoading(false));
+}, [token, searchTerm, category, summa, page, manufacturerSearch]);
+
+
+const loadMore = async () => {
+  if (page >= meta.last_page || loading) return;
+  const currentScroll = window.scrollY;
+  setPage(prev => prev + 1);
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      window.scrollTo({ top: currentScroll, behavior: 'instant' });
+    }, 100);
+  });
+};
+
 
   const groupProductsByCode = (productsList) => {
     const grouped = {};
@@ -274,18 +305,27 @@ function AddProductsToCart() {
     productsList.forEach((product) => {
       const uniqueKey = `${product.Код || 'unknown'}-${product['Наименование']}-${product['Производитель']}`;
 
-      if (!grouped[uniqueKey]) grouped[uniqueKey] = [];
+      if (!grouped[uniqueKey]) {
+        grouped[uniqueKey] = [];
+      }
 
       const formattedDate = formatDate(product['Срок']);
+
       const isDuplicate = grouped[uniqueKey].some(
         (p) => formatDate(p['Срок']) === formattedDate
       );
 
-      if (!isDuplicate) grouped[uniqueKey].push(product);
+      if (!isDuplicate) {
+        grouped[uniqueKey].push(product);
+      }
     });
 
     for (const key in grouped) {
-      grouped[key].sort((a, b) => new Date(a['Срок']) - new Date(b['Срок']));
+      grouped[key].sort((a, b) => {
+        const dateA = a['Срок'] && a['Срок'] !== '0001-01-01T00:00:00Z' ? new Date(a['Срок']) : new Date(0);
+        const dateB = b['Срок'] && b['Срок'] !== '0001-01-01T00:00:00Z' ? new Date(b['Срок']) : new Date(0);
+        return dateA - dateB;
+      });
     }
 
     return grouped;
@@ -301,33 +341,31 @@ function AddProductsToCart() {
     setQuantities((prev) => ({ ...prev, [code]: quantity }));
   };
 
-  const handleAddToCart = (code) => {
-    const productGroup = groupedProducts[code];
-    if (!productGroup) return;
-
-    const selectedId = selectedProductByCode[code];
-    const selectedProduct =
-      productGroup.find((p) => p.id === selectedId) || productGroup[0];
-
-    const quantity = quantities[code] || 1;
+const handleAddToCart = (code) => {
+  const productGroup = groupedProducts[code];
+  if (!productGroup) return;
+  const selectedId = selectedProductByCode[code];
+  const selectedProduct = productGroup.find((p) => p.id === selectedId) || productGroup[0];
+  const quantity = quantities[code] || 1;
+  const existingItem = cartItems.find((item) => item.id === selectedProduct.id);
+  if (existingItem) {
     addToCart({ ...selectedProduct, quantity });
+  } else {
+    addToCart({ ...selectedProduct, quantity });
+  }
 
-    setModalProductName(selectedProduct['Наименование'] || 'Товар');
-    setShowModal(true);
+  setModalProductName(selectedProduct['Наименование'] || 'Товар');
+  setShowModal(true);
+  setAddedItems((prev) => ({ ...prev, [code]: true }));
 
-    setAddedItems((prev) => ({ ...prev, [code]: true }));
-
-    setTimeout(() => setShowModal(false), 2500);
-  };
-
+  setTimeout(() => setShowModal(false), 2500);
+};
   const groupedProducts = groupProductsByCode(products);
-
   return (
     <div className="AddProductsToCart_content">
-      <div className="AddProductsToСarts">
-        <OrderHeader />
+      <div className='AddProductsToСarts'>
+      <OrderHeader />
       </div>
-
       {showModal && (
         <div className="cart-modal">
           <div className="cart-modal-content">
@@ -343,7 +381,6 @@ function AddProductsToCart() {
           Найдите продукты и добавьте в <span className="colors">корзину</span>
         </h1>
 
-        {/* ПОИСКОВАЯ ПАНЕЛЬ */}
         <div className="products_name">
           <div className="products_info">
             <div className="search-input-wrapper">
@@ -365,6 +402,7 @@ function AddProductsToCart() {
                     setSearchTerm('');
                     setPage(1);
                   }}
+                  aria-label="Очистить поиск"
                 >
                   <X strokeWidth={3} />
                 </button>
@@ -374,7 +412,6 @@ function AddProductsToCart() {
 
           <div className="line_cart"></div>
 
-          {/* КАТЕГОРИИ */}
           <div className="products_category_block">
             <label htmlFor="products_category">Категории</label>
             <select
@@ -396,21 +433,19 @@ function AddProductsToCart() {
 
           <div className="line_cart"></div>
 
-          {/* ПОИСК ПО ПРОИЗВОДИТЕЛЮ */}
           <div className="summa_block">
-            <label htmlFor="products_manufacturer">Поиск по производителю</label>
-            <input
-              type="text"
-              id="products_manufacturer"
-              placeholder="Введите производителя"
-              value={manufacturer}
-              onChange={(e) => {
-                setManufacturer(e.target.value);
-                setPage(1);
-              }}
-            />
+            <label htmlFor="products_manufacturer">Поиск по производителям</label>
+              <input
+                type="text"
+                id="products_manufacturer"
+                placeholder="Введите производителя"
+                value={manufacturerSearch}
+                onChange={(e) => {
+                  setManufacturerSearch(e.target.value);
+                  setPage(1);
+                }}
+              />
           </div>
-
           <div className="search_cart">
             <Search stroke="#FFF" />
           </div>
@@ -418,17 +453,16 @@ function AddProductsToCart() {
 
         {loading && page === 1 && <p>Загрузка...</p>}
 
-        {/* ТАБЛИЦА ПРОДУКТОВ */}
         {showTable && !loading && Object.keys(groupedProducts).length > 0 && (
           <>
             <div className="search-results-info">
               <p>Найдено продуктов: {meta.total}</p>
             </div>
-
+            
             <table className="products_table">
               <thead>
                 <tr>
-                  <th>Название продукта</th>
+                  <th className='products_names'>Название продукта</th>
                   <th>Производитель</th>
                   <th>Срок годности</th>
                   <th>Цена</th>
@@ -436,140 +470,106 @@ function AddProductsToCart() {
                   <th>Действие</th>
                 </tr>
               </thead>
-
               <tbody>
-                {Object.entries(groupedProducts).map(
-                  ([code, productGroup], index) => {
-                    const selectedId =
-                      selectedProductByCode[code] || productGroup[0].id;
+                {Object.entries(groupedProducts).map(([code, productGroup], index) => {
+                  const selectedId = selectedProductByCode[code] || productGroup[0].id;
+                  const selectedProduct = productGroup.find((p) => p.id === selectedId) || productGroup[0];
+                  const quantity = quantities[code] || 1;
+                  const isAdded = addedItems[code];
 
-                    const selectedProduct =
-                      productGroup.find((p) => p.id === selectedId) ||
-                      productGroup[0];
-
-                    const quantity = quantities[code] || 1;
-                    const isAdded = addedItems[code];
-
-                    return (
-                      <tr
-                        key={code}
-                        className={index % 2 === 0 ? 'even-row' : 'odd-row'}
-                      >
-                        <td
+                  return (
+                    <tr key={code} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
+                      <td>
+                        <strong
                           dangerouslySetInnerHTML={{
-                            __html: highlightMatch(
-                              selectedProduct['Наименование'],
-                              searchTerm
-                            ),
+                            __html: highlightMatch(selectedProduct['Наименование'], searchTerm),
                           }}
                         />
-
-                        <td>{selectedProduct['Производитель'] || ''}</td>
-
-                        <td>
-                          {productGroup.length > 1 ? (
-                            <select
-                              value={selectedId}
-                              onChange={(e) =>
-                                setSelectedProductByCode((prev) => ({
-                                  ...prev,
-                                  [code]: e.target.value,
-                                }))
-                              }
-                              disabled={isAdded}
-                            >
-                              {productGroup.map((product) => (
-                                <option key={product.id} value={product.id}>
-                                  {formatDate(product['Срок'])}
-                                </option>
-                              ))}
-                            </select>
-                          ) : (
-                            <span>
-                              {formatDate(productGroup[0]['Срок'])}
-                            </span>
-                          )}
-                        </td>
-
-                        <td>{selectedProduct['Цена']} сом</td>
-
-                        <td>
-                          <div className="quantity-wrapper">
-                            <button
-                              type="button"
-                              className="quantity-btn"
-                              onClick={() =>
-                                handleQuantityChange(code, quantity - 1)
-                              }
-                              disabled={quantity <= 1 || isAdded}
-                            >
-                              –
-                            </button>
-
-                            <input
-                              type="number"
-                              min="1"
-                              value={quantity}
-                              onChange={(e) =>
-                                handleQuantityChange(code, e.target.value)
-                              }
-                              disabled={isAdded}
-                              className="quantity-input"
-                            />
-
-                            <button
-                              type="button"
-                              className="quantity-btn"
-                              onClick={() =>
-                                handleQuantityChange(code, quantity + 1)
-                              }
-                              disabled={isAdded}
-                            >
-                              +
-                            </button>
-                          </div>
-                        </td>
-
-                        <td>
-                          <button
-                            className={`add-to-cart-btn ${
-                              isAdded ? 'added' : ''
-                            }`}
-                            onClick={() => handleAddToCart(code)}
+                      </td>
+                      <td>{selectedProduct['Производитель'] || ''}</td>
+                      <td>
+                        {productGroup.length > 1 ? (
+                          <select
+                            value={selectedId}
+                            onChange={(e) =>
+                              setSelectedProductByCode((prev) => ({
+                                ...prev,
+                                [code]: e.target.value,
+                              }))
+                            }
                             disabled={isAdded}
                           >
-                            {isAdded ? 'Добавлено' : 'Добавить в корзину'}
+                            {productGroup.map((product) => (
+                              <option key={product.id} value={product.id}>
+                                {formatDate(product['Срок'])}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span>{formatDate(productGroup[0]['Срок'])}</span>
+                        )}
+                      </td>
+                      <td>{selectedProduct['Цена']} сом</td>
+                      <td>
+                        <div className="quantity-wrapper">
+                          <button
+                            type="button"
+                            className="quantity-btn"
+                            onClick={() => handleQuantityChange(code, quantity - 1)}
+                            disabled={quantity <= 1 || isAdded}
+                          >
+                            −
                           </button>
-                        </td>
-                      </tr>
-                    );
-                  }
-                )}
+                          <input
+                            type="number"
+                            min="1"
+                            value={quantity}
+                            onChange={(e) => handleQuantityChange(code, e.target.value)}
+                            disabled={isAdded}
+                            className="quantity-input"
+                          />
+                          <button
+                            type="button"
+                            className="quantity-btn"
+                            onClick={() => handleQuantityChange(code, quantity + 1)}
+                            disabled={isAdded}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </td>
+                      <td>
+                        <button
+                          className={`add-to-cart-btn ${isAdded ? 'added' : ''}`}
+                          onClick={() => handleAddToCart(code)}
+                          disabled={isAdded}
+                        >
+                          {isAdded ? 'Добавлено' : 'Добавить в корзину'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
 
             {page < meta.last_page && (
               <div className="load-more-container">
-                <button
-                  className="load-more-btn"
+                <button 
+                  className="load-more-btn" 
                   onClick={loadMore}
                   disabled={loading}
                 >
-                  {loading
-                    ? 'Загрузка...'
-                    : `Показать ещё (${meta.total -
-                        Object.keys(groupedProducts).length} из ${meta.total})`}
+                  {loading ? 'Загрузка...' : `Показать ещё (${meta.total - Object.keys(groupedProducts).length} из ${meta.total})`}
                 </button>
               </div>
             )}
           </>
         )}
 
-        {showTable &&
-          !loading &&
-          Object.keys(groupedProducts).length === 0 && (
-            <p className="no-results-text">Продукты не найдены</p>
-          )}
+        {showTable && !loading && Object.keys(groupedProducts).length === 0 && (
+          <p className="no-results-text">Продукты не найдены</p>
+        )}
 
         {!showTable && !loading && (
           <div className="order">
@@ -580,10 +580,9 @@ function AddProductsToCart() {
                   <p>История заказов</p>
                 </Link>
               </div>
-
               <div className="order_bg">
                 {activeOrder && activeOrder.status !== 'Доставлен' ? (
-                  <CircularOrderStatus
+                  <CircularOrderStatus 
                     apiStatus={activeOrder.statusData}
                     orderId={activeOrder.id}
                     token={token}
@@ -591,18 +590,14 @@ function AddProductsToCart() {
                 ) : (
                   <div className="no_active_order">
                     <h1>Нет активных заказов</h1>
-                    <p>
-                      Сделайте новый заказ и здесь будет отображаться статус
-                      активного заказа
-                    </p>
+                    <p>Сделайте новый заказ и здесь будет отображаться статус активного заказа</p>
                   </div>
                 )}
               </div>
             </div>
-
-            <div className="banners_products">
+            <div className='banners_products'>
               {bannerLoading ? (
-                <p>Загрузка баннеров...</p>
+                <div><p>Загрузка баннеров...</p></div>
               ) : banner && banner.length > 0 ? (
                 <a
                   href={banner[currentBannerIndex].fullFileUrl}
@@ -617,15 +612,15 @@ function AddProductsToCart() {
                     height="290"
                     style={{ borderRadius: '16px', cursor: 'pointer' }}
                     onError={(e) => {
+                      console.error('Ошибка загрузки изображения баннера');
                       e.target.style.display = 'none';
                     }}
                     crossOrigin="anonymous"
                   />
                 </a>
               ) : (
-                <p>Баннеры не найдены</p>
+                <div><p>Баннеры не найдены</p></div>
               )}
-
               <div className="banner-controls">
                 <button onClick={handlePrevBanner}>&lt;</button>
                 <button onClick={handleNextBanner}>&gt;</button>

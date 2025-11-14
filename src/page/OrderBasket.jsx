@@ -8,6 +8,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import OrderSuccessModal from '../components/OrderSuccessModal';
 import OrderErrorModal from '../components/OrderErrorModal';
+import ConfirmClearCartModal from '../components/ConfirmClearCartModal';
 import ConfirmOrderModal from '../components/ConfirmOrderModal';
 
 function OrderBasket() {
@@ -29,6 +30,7 @@ function OrderBasket() {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showClearCartModal, setShowClearCartModal] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: '№', direction: 'asc' });
 
   useEffect(() => {
@@ -292,7 +294,7 @@ function OrderBasket() {
                 <div>
                   <h2>Детали заказа</h2>
                   <div className="detailed_btn">
-                    <button onClick={() => clearCart()} disabled={cartItems.length === 0}>
+                    <button onClick={() => setShowClearCartModal(true)} disabled={cartItems.length === 0}>
                       <Trash2 size={18} style={{ marginRight: '6px' }} />
                       Удалить всё
                     </button>
@@ -341,6 +343,15 @@ function OrderBasket() {
           onCancel={() => setShowConfirmModal(false)}
         />
       )}
+      {showClearCartModal && (
+          <ConfirmClearCartModal
+            onConfirm={() => {
+              clearCart();
+              setShowClearCartModal(false);
+            }}
+            onCancel={() => setShowClearCartModal(false)}
+          />
+        )}
     </div>
   );
 }
