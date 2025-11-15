@@ -92,6 +92,29 @@ function AddProductsToCart() {
   const handlePrevBanner = () => {
     setCurrentBannerIndex((prev) => (prev - 1 + banner.length) % banner.length);
   };
+  const prioritizeMatches = (productsList, query) => {
+  const startsWith = [];
+  const middle = [];
+  const endsWith = [];
+
+  const lowerQuery = query.toLowerCase();
+
+  productsList.forEach((product) => {
+    const name = (product["Наименование"] || "").toLowerCase();
+
+    if (name.startsWith(lowerQuery)) {
+      startsWith.push(product);
+    } 
+    else if (name.endsWith(lowerQuery)) {
+      endsWith.push(product);
+    }
+    else if (name.includes(lowerQuery)) {
+      middle.push(product);
+    }
+  });
+
+  return [...startsWith, ...middle, ...endsWith];
+};
 
   const highlightMatch = (text, query) => {
     if (!query) return text;
@@ -265,10 +288,9 @@ useEffect(() => {
 
       setMeta(newMeta);
       setProducts((prev) => (page === 1 ? newProducts : [...prev, ...newProducts]));
-
       const allProducts = page === 1 ? newProducts : [...products, ...newProducts];
-      const grouped = groupProductsByCode(allProducts);
-
+      const prioritized = prioritizeMatches(allProducts, searchTerm);
+      const grouped = groupProductsByCode(prioritized);
       const defaultSelected = {};
       for (const code in grouped) {
         defaultSelected[code] = grouped[code][0]?.id;
