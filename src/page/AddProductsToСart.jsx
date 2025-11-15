@@ -80,6 +80,7 @@ function AddProductsToCart() {
   const [meta, setMeta] = useState({ current_page: 1, last_page: 6, total: 0 });
   const [loading, setLoading] = useState(false);
   const [selectedProductByCode, setSelectedProductByCode] = useState({});
+  const [groupOrder, setGroupOrder] = useState([]);
   const [banner, setBanner] = useState(null);
   const [bannerLoading, setBannerLoading] = useState(true);
   const showTable =
@@ -289,13 +290,22 @@ useEffect(() => {
       setMeta(newMeta);
       setProducts((prev) => (page === 1 ? newProducts : [...prev, ...newProducts]));
       const allProducts = page === 1 ? newProducts : [...products, ...newProducts];
-      const prioritized = prioritizeMatches(allProducts, searchTerm);
-      const grouped = groupProductsByCode(prioritized);
-      const defaultSelected = {};
-      for (const code in grouped) {
-        defaultSelected[code] = grouped[code][0]?.id;
-      }
-      setSelectedProductByCode(defaultSelected);
+const prioritized = prioritizeMatches(allProducts, searchTerm);
+const grouped = groupProductsByCode(prioritized);
+
+// сохраняем порядок групп
+setGroupOrder(Object.keys(grouped));
+
+// сохраняем выбранные продукты
+const defaultSelected = {};
+for (const code in grouped) {
+  defaultSelected[code] = grouped[code][0]?.id;
+}
+setSelectedProductByCode(defaultSelected);
+
+// сохраняем сгруппированные продукты
+setProducts(allProducts);
+
     })
     .catch((err) => {
       console.error('Ошибка загрузки продуктов:', err);
@@ -493,9 +503,15 @@ const handleAddToCart = (code) => {
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(groupedProducts).map(([code, productGroup], index) => {
+                {groupOrder.map((code, index) => {
+                  const productGroup = groupedProducts[code];
+
+                  if (!productGroup || productGroup.length === 0) return null;
+
                   const selectedId = selectedProductByCode[code] || productGroup[0].id;
-                  const selectedProduct = productGroup.find((p) => p.id === selectedId) || productGroup[0];
+                  const selectedProduct =
+                    productGroup.find((p) => p.id === selectedId) || productGroup[0];
+
                   const quantity = quantities[code] || 1;
                   const isAdded = addedItems[code];
 
@@ -504,11 +520,16 @@ const handleAddToCart = (code) => {
                       <td>
                         <strong
                           dangerouslySetInnerHTML={{
-                            __html: highlightMatch(selectedProduct['Наименование'], searchTerm),
+                            __html: highlightMatch(
+                              selectedProduct['Наименование'],
+                              searchTerm
+                            ),
                           }}
                         />
                       </td>
+
                       <td>{selectedProduct['Производитель'] || ''}</td>
+
                       <td>
                         {productGroup.length > 1 ? (
                           <select
@@ -531,7 +552,9 @@ const handleAddToCart = (code) => {
                           <span>{formatDate(productGroup[0]['Срок'])}</span>
                         )}
                       </td>
+
                       <td>{selectedProduct['Цена']} сом</td>
+
                       <td>
                         <div className="quantity-wrapper">
                           <button
@@ -542,6 +565,7 @@ const handleAddToCart = (code) => {
                           >
                             −
                           </button>
+
                           <input
                             type="number"
                             min="1"
@@ -550,6 +574,7 @@ const handleAddToCart = (code) => {
                             disabled={isAdded}
                             className="quantity-input"
                           />
+
                           <button
                             type="button"
                             className="quantity-btn"
@@ -560,6 +585,7 @@ const handleAddToCart = (code) => {
                           </button>
                         </div>
                       </td>
+
                       <td>
                         <button
                           className={`add-to-cart-btn ${isAdded ? 'added' : ''}`}
@@ -574,7 +600,6 @@ const handleAddToCart = (code) => {
                 })}
               </tbody>
             </table>
-
             {page < meta.last_page && (
               <div className="load-more-container">
                 <button 
@@ -588,11 +613,9 @@ const handleAddToCart = (code) => {
             )}
           </>
         )}
-
         {showTable && !loading && Object.keys(groupedProducts).length === 0 && (
           <p className="no-results-text">Продукты не найдены</p>
         )}
-
         {!showTable && !loading && (
           <div className="order">
             <div className="orders">
