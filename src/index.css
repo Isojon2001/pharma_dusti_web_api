@@ -1807,6 +1807,7 @@ background-color:#ff1100;
   border-radius: 12px;
   box-shadow: 0 0 15px rgb(35 139 158 / 0.1);
 }
+
 .registration_paragraph p{
   margin: 10px 0;
   display: flex;
@@ -1826,10 +1827,9 @@ background-color:#ff1100;
 }
 .products_table th {
   padding: 12px 20px;
-  padding: 12px 20px;
-  font-weight: 600;
-  position: sticky;
   top: 90px;
+  position: sticky;
+  margin-top: 10px;
   background-color: #FFF;
   z-index: 90;
   color: #0F7372;
