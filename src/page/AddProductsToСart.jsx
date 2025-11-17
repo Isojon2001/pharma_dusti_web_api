@@ -293,17 +293,14 @@ useEffect(() => {
 const prioritized = prioritizeMatches(allProducts, searchTerm);
 const grouped = groupProductsByCode(prioritized);
 
-// сохраняем порядок групп
 setGroupOrder(Object.keys(grouped));
 
-// сохраняем выбранные продукты
 const defaultSelected = {};
 for (const code in grouped) {
   defaultSelected[code] = grouped[code][0]?.id;
 }
 setSelectedProductByCode(defaultSelected);
 
-// сохраняем сгруппированные продукты
 setProducts(allProducts);
 
     })
@@ -465,7 +462,7 @@ const handleAddToCart = (code) => {
 
           <div className="line_cart"></div>
 
-          <div className="summa_block">
+          <div className="manufacturer_block">
             <label htmlFor="products_manufacturer">Поиск по производителям</label>
               <input
                 type="text"
@@ -477,6 +474,19 @@ const handleAddToCart = (code) => {
                   setPage(1);
                 }}
               />
+              {manufacturerSearch && (
+
+                <button
+                  className="clear-manufacturer-btn"
+                  onClick={() => {
+                    setManufacturerSearch('');
+                    setPage(1);
+                  }}
+                  aria-label="Очистить поиск"
+                >
+                  <X strokeWidth={3} />
+                </button>
+                )}
           </div>
           <div className="search_cart">
             <Search stroke="#FFF" />

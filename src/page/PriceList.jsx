@@ -2,20 +2,30 @@ import React, { useState, useEffect } from 'react';
 import OrderHeader from '../components/OrderHeader';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import { MoveLeft, Trash2 } from 'lucide-react';
 import logo from '../assets/logo.svg';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
 function PriceList() {
   const { token } = useAuth();
-  const { addToCart } = useCart();
+  const { addToCart, cartItems } = useCart();
   const [products, setProducts] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [quantities, setQuantities] = useState({});
   const [addedItems, setAddedItems] = useState({});
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const newQuantities = {};
+    const newAddedItems = {};
+    cartItems.forEach(item => {
+      newQuantities[item.id] = item.quantity;
+      newAddedItems[item.id] = true;
+    });
+    setQuantities(prev => ({ ...prev, ...newQuantities }));
+    setAddedItems(prev => ({ ...prev, ...newAddedItems }));
+  }, [cartItems]);
 
   const formatDate = (dateStr) => {
     if (!dateStr || dateStr === '0001-01-01T00:00:00Z') return '—';
@@ -42,7 +52,7 @@ function PriceList() {
         'https://api.dustipharma.tj:1212/api/v1/app/products/all',
         {
           headers: { Authorization: `Bearer ${token}` },
-          params: { page: currentPage, size:19 },
+          params: { page: currentPage, size: 19 },
         }
       );
 
@@ -85,22 +95,23 @@ function PriceList() {
 
   return (
     <div className="AddProductsToCart_content">
-<div className="basket_backs">
+      <div className="basket_backs">
         <OrderHeader />
         <div className="price-list_header">
           <div className="examination_backspace">
             <div className="logo_img logo_login">
-            <Link to="/add-products-to-cart">
-              <img src={logo} alt="logo" />
-            </Link>
+              <Link to="/add-products-to-cart">
+                <img src={logo} alt="logo" />
+              </Link>
             </div>
           </div>
-          <h1>Выберите товар из списка и добавьте в <span className='colors'>корзину</span></h1>
+          <h1>
+            Выберите товар из списка и добавьте в <span className="colors">корзину</span>
+          </h1>
         </div>
       </div>
 
       <main className="products_mains">
-
         {loading && products.length === 0 && <p>Загрузка продуктов...</p>}
 
         {!loading && products.length > 0 && (
@@ -174,9 +185,7 @@ function PriceList() {
               </div>
             )}
 
-            {!hasMore && (
-              <p className="no-more-text">Все товары загружены</p>
-            )}
+            {!hasMore && <p className="no-more-text">Все товары загружены</p>}
           </>
         )}
 
