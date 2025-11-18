@@ -26,7 +26,8 @@ chtml, body, #root {
   z-index: 1000;
 }
 
-.modal {
+.modal,
+.modals {
   background-color: white;
   padding: 20px 30px;
   border-radius: 10px;
@@ -34,8 +35,10 @@ chtml, body, #root {
   color: #afafaf;
   font-size: 16px;
   font-weight: bold;
-  max-width: 400px;
   text-align: center;
+}
+.modal{
+  max-width: 400px;
 }
 
 .cart-modal {
