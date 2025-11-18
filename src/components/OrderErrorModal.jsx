@@ -12,38 +12,41 @@ function OrderErrorModal({ items, inputValues = {}, onFixQuantity, onClose, remo
           <table className="table_info">
             <thead>
               <tr className="table_infos">
-                <th>№</th>
-                <th>Производитель</th>
-                <th>Наименование</th>
-                <th>Кол-во</th>
-                <th>Действие</th>
+                {['№','Производитель','Наименование','Кол-во','Заказано','Действие'].map(col => (
+                  <th key={col}>{col}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="basket_empty">
-                    Нет товаров для исправления
-                  </td>
+                  <td colSpan="6" className="basket_empty">Нет товаров для исправления</td>
                 </tr>
               ) : (
                 items.map((item, idx) => {
                   const key = item.id || item.Код || item.Артикул;
-                  const value = inputValues[key] !== undefined ? inputValues[key] : item.ordered;
+                  const value = Number(inputValues[key] ?? item.ordered ?? 1);
+                  const stock = Number(item.batches?.[item.selectedBatchIndex ?? 0]?.quantity ?? item["Количество"] ?? 0);
 
                   return (
                     <tr key={key} className={idx % 2 === 0 ? 'td_even' : 'td_odd'}>
                       <td className="numeration_basket">{idx + 1}</td>
                       <td>{item['Производитель'] || ''}</td>
-                      <td>{item.name}</td>
+                      <td>{item['Наименование'] || ''}</td>
                       <td>
-                        <input
-                          type="number"
-                          value={value}
-                          onChange={(e) => onFixQuantity(key, Number(e.target.value))}
-                          className="counters_input"
-                        />
+                        <div className="counter_table">
+                          <button onClick={() => onFixQuantity(key, Math.max(1, value - 1))}>-</button>
+                          <input
+                            type="number"
+                            value={value}
+                            onChange={(e) => onFixQuantity(key, Math.max(1, Number(e.target.value)))}
+                            className="counters_input"
+                            min={1}
+                          />
+                          <button onClick={() => onFixQuantity(key, value + 1)}>+</button>
+                        </div>
                       </td>
+                      <td>{`${value}`}</td>
                       <td>
                         <button
                           className="remove-btn"
@@ -62,9 +65,7 @@ function OrderErrorModal({ items, inputValues = {}, onFixQuantity, onClose, remo
         </div>
 
         <div className="modalss">
-          <button onClick={onClose} className="close-btn">
-            Закрыть
-          </button>
+          <button onClick={onClose} className="close-btn">Подтвердить</button>
         </div>
       </div>
     </div>
