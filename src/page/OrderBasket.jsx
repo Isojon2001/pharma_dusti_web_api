@@ -55,7 +55,10 @@ const handleQuantityChange = (id, value) => {
 };
 
 const handleBatchChange = (id, batchIndex) => updateBatchIndex(id, batchIndex);
-
+  
+  function handleRemoveFromCart(key) {
+  removeFromCart(key);
+}
   const calculateTotal = () => cartItems.reduce((sum, item) => {
     const selectedIndex = item.selectedBatchIndex ?? 0;
     const batch = item.batches?.[selectedIndex];
@@ -248,7 +251,24 @@ const handleSubmitOrder = async () => {
           </div>
         </div>
       </div>
-      {showErrorModal && <OrderErrorModal items={exceededProducts} onFixQuantity={handleQuantityFix} inputValues={inputValues}  onClose={()=>setShowErrorModal(false)}/>}
+      {showErrorModal && (
+  <OrderErrorModal
+    removeFromCart={removeFromCart}
+    items={cartItems
+      .map(item => {
+        const idKey = item.id || item['Код'] || item['Артикул'];
+        const batch = item.batches?.[item.selectedBatchIndex ?? 0];
+        const stock = Number(batch?.quantity ?? item["Количество"] ?? 0);
+        const ordered = Number(inputValues[idKey] ?? item.quantity ?? 1);
+        return ordered > stock ? { ...item, idKey, ordered } : null;
+      })
+      .filter(Boolean)}
+    onFixQuantity={handleQuantityFix}
+    inputValues={inputValues}
+    onClose={() => setShowErrorModal(false)}
+  />
+)}
+
       {showSuccessModal && <OrderSuccessModal onClose={()=>setShowSuccessModal(false)}/>}
       {showConfirmModal && <ConfirmOrderModal onConfirm={()=>{setShowConfirmModal(false); handleSubmitOrder();}} onCancel={()=>setShowConfirmModal(false)}/>}
       {showClearCartModal && <ConfirmClearCartModal onConfirm={()=>{clearCart(); setShowClearCartModal(false);}} onCancel={()=>setShowClearCartModal(false)}/>}

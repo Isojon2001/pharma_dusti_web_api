@@ -1671,7 +1671,8 @@ background-color:#ff1100;
 .modal button:hover{
 
 }
-.modal button {
+.modalss button,
+.modal>button{
   padding: 8px 100px;
   background-color: #0F7372;
   color: white;
@@ -1778,6 +1779,11 @@ background-color:#ff1100;
 .filter_item label {
   margin-bottom: 6px;
   font-weight: 600;
+}
+
+.counters_input{
+  width: 60px;
+  text-align: center;
 }
 
 .filter_item input,
