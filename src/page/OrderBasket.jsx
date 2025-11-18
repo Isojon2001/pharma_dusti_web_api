@@ -93,16 +93,25 @@ const handleBatchChange = (id, batchIndex) => updateBatchIndex(id, batchIndex);
     });
     return Object.values(grouped);
   };
-
-const checkStock = () => {
+  const checkStock = () => {
   const exceeded = [];
+
   cartItems.forEach(item => {
     const idKey = item.id || item['Код'] || item['Артикул'];
     const batch = item.batches?.[item.selectedBatchIndex ?? 0];
     const stock = Number(batch?.quantity ?? item["Количество"] ?? 0);
     const ordered = Number(inputValues[idKey] ?? item.quantity ?? 1);
-    if (ordered > stock) exceeded.push({ id: idKey, name: item["Наименование"], stock, ordered });
+
+    if (ordered > stock) {
+      exceeded.push({
+        ...item,
+        idKey,
+        ordered,
+        stock
+      });
+    }
   });
+
   return exceeded;
 };
 
@@ -114,11 +123,11 @@ const checkStock = () => {
 const handleSubmitOrder = async () => {
   if (!token || cartItems.length === 0 || isSubmitting) return;
   const exceeded = checkStock();
-  if (exceeded.length) {
-    setExceededProducts(exceeded);
-    setShowErrorModal(true);
-    return;
-  }
+if (exceeded.length > 0) {
+  setExceededProducts(exceeded);
+  setShowErrorModal(true);
+  return;
+}
 
   try {
     setIsSubmitting(true);
@@ -254,21 +263,12 @@ const handleSubmitOrder = async () => {
       {showErrorModal && (
   <OrderErrorModal
     removeFromCart={removeFromCart}
-    items={cartItems
-      .map(item => {
-        const idKey = item.id || item['Код'] || item['Артикул'];
-        const batch = item.batches?.[item.selectedBatchIndex ?? 0];
-        const stock = Number(batch?.quantity ?? item["Количество"] ?? 0);
-        const ordered = Number(inputValues[idKey] ?? item.quantity ?? 1);
-        return ordered > stock ? { ...item, idKey, ordered } : null;
-      })
-      .filter(Boolean)}
+    items={exceededProducts}
     onFixQuantity={handleQuantityFix}
     inputValues={inputValues}
     onClose={() => setShowErrorModal(false)}
   />
 )}
-
       {showSuccessModal && <OrderSuccessModal onClose={()=>setShowSuccessModal(false)}/>}
       {showConfirmModal && <ConfirmOrderModal onConfirm={()=>{setShowConfirmModal(false); handleSubmitOrder();}} onCancel={()=>setShowConfirmModal(false)}/>}
       {showClearCartModal && <ConfirmClearCartModal onConfirm={()=>{clearCart(); setShowClearCartModal(false);}} onCancel={()=>setShowClearCartModal(false)}/>}

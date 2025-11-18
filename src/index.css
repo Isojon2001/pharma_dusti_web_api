@@ -26,6 +26,19 @@ chtml, body, #root {
   z-index: 1000;
 }
 
+.modals__closed:hover{
+  color: red;
+  cursor:pointer;
+}
+.modals__closed{
+  position: absolute;
+  right: 60px;
+  top: 120px;
+  color:#000;
+}
+.modals__close{
+  position: relative;
+}
 .modal,
 .modals {
   background-color: white;
@@ -296,7 +309,12 @@ chtml, body, #root {
 .logo_img{
 	margin-top: 8px;
 }
-
+.error_modal_scroll {
+  max-height: 350px;
+  overflow-y: auto;
+  margin-top: 10px;
+  border: 1px solid #ddd;
+}
 .order-error__overlay {
   position: fixed;
   top: 0;
@@ -867,6 +885,9 @@ text-align: center;
 .table_info thead th:nth-of-type(5),
 .table_info td:nth-of-type(5){
   text-align: center;
+}
+.larges thead th{
+  top:0px !important;
 }
 .table_info thead th {
   position: sticky;

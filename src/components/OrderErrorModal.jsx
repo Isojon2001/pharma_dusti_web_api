@@ -1,15 +1,39 @@
 import '../index.css';
-import { Trash2 } from 'lucide-react';
+import { Trash2, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 function OrderErrorModal({ items, inputValues = {}, onFixQuantity, onClose, removeFromCart }) {
+  const [displayItems, setDisplayItems] = useState(items);
+
+  useEffect(() => {
+    setDisplayItems(items);
+  }, [items]);
+
+  const handleRemove = (key) => {
+    console.log('Removing item with key:', key);
+    if (removeFromCart) {
+      removeFromCart(key);
+      
+      const updatedItems = displayItems.filter(item => {
+        const itemKey = item.id || item.Код || item.Артикул;
+        return itemKey !== key;
+      });
+      setDisplayItems(updatedItems);
+      
+      if (updatedItems.length === 0) {
+        onClose();
+      }
+    }
+  };
+
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay modals__close">
       <div className="modals large">
         <h2>Ошибка оформления заказа</h2>
         <h3>Вы заказали товаров больше, чем есть на складе</h3>
 
-        <div className="table_scrollable">
-          <table className="table_info">
+        <div className="table_scrollable error_modal_scroll">
+          <table className="table_info larges">
             <thead>
               <tr className="table_infos">
                 {['№','Производитель','Наименование','Кол-во','Заказано','Действие'].map(col => (
@@ -18,15 +42,16 @@ function OrderErrorModal({ items, inputValues = {}, onFixQuantity, onClose, remo
               </tr>
             </thead>
             <tbody>
-              {items.length === 0 ? (
+              {displayItems.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="basket_empty">Нет товаров для исправления</td>
+                  <td colSpan="6" className="basket_empty">
+                    Нет товаров для исправления
+                  </td>
                 </tr>
               ) : (
-                items.map((item, idx) => {
+                displayItems.map((item, idx) => {
                   const key = item.id || item.Код || item.Артикул;
                   const value = Number(inputValues[key] ?? item.ordered ?? 1);
-                  const stock = Number(item.batches?.[item.selectedBatchIndex ?? 0]?.quantity ?? item["Количество"] ?? 0);
 
                   return (
                     <tr key={key} className={idx % 2 === 0 ? 'td_even' : 'td_odd'}>
@@ -41,16 +66,15 @@ function OrderErrorModal({ items, inputValues = {}, onFixQuantity, onClose, remo
                             value={value}
                             onChange={(e) => onFixQuantity(key, Math.max(1, Number(e.target.value)))}
                             className="counters_input"
-                            min={1}
                           />
                           <button onClick={() => onFixQuantity(key, value + 1)}>+</button>
                         </div>
                       </td>
-                      <td>{`${value}`}</td>
+                      <td>{value}</td>
                       <td>
                         <button
                           className="remove-btn"
-                          onClick={() => removeFromCart(key)}
+                          onClick={() => handleRemove(key)}
                           title="Удалить из корзины"
                         >
                           <Trash2 size={20} />
@@ -62,6 +86,10 @@ function OrderErrorModal({ items, inputValues = {}, onFixQuantity, onClose, remo
               )}
             </tbody>
           </table>
+        </div>
+
+        <div className="modals__closed">
+          <X strokeWidth={3} onClick={onClose} />
         </div>
 
         <div className="modalss">
