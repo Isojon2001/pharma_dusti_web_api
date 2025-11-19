@@ -42,9 +42,27 @@ function updateQuantity(productId, newQuantity) {
   setCartItems(prevItems =>
     prevItems.map(item => {
       const key = item.productKey || item.id || item['Код'] || item['Артикул'];
+
       if (key === productId) {
-        return { ...item, quantity: qty };
+        
+        const selectedIndex = item.selectedBatchIndex ?? 0;
+
+        let updatedBatches = item.batches;
+        if (Array.isArray(item.batches)) {
+          updatedBatches = item.batches.map((batch, index) =>
+            index === selectedIndex
+              ? { ...batch, quantity: qty }
+              : batch
+          );
+        }
+
+        return {
+          ...item,
+          quantity: qty,
+          batches: updatedBatches
+        };
       }
+
       return item;
     })
   );

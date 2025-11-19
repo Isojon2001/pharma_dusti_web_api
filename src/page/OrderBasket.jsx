@@ -116,6 +116,7 @@ const handleBatchChange = (id, batchIndex) => updateBatchIndex(id, batchIndex);
 };
 
   const handleQuantityFix = (productId, newQty) => {
+      console.log("UPDATE:", productId, "=", newQty);
     setInputValues(prev => ({ ...prev, [productId]: newQty }));
     updateQuantity(productId, newQty);
   };
