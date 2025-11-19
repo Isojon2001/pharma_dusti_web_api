@@ -2,8 +2,8 @@ import '../index.css';
 import React from 'react';
 import { Trash2, X } from 'lucide-react';
 
-function OrderErrorModal({ items, inputValues = {}, onFixQuantity, onClose, removeFromCart }) {
 
+function OrderErrorModal({ items, inputValues = {}, onFixQuantity, onClose, removeFromCart }) {
   const handleRemove = (key) => {
     removeFromCart(key);
   };
@@ -11,32 +11,26 @@ function OrderErrorModal({ items, inputValues = {}, onFixQuantity, onClose, remo
   const handleConfirm = () => {
     items.forEach(item => {
       const key = item.id || item.Код || item.Артикул;
-
       const stock = Number(
         item.Остаток ??
         item.stock ??
         item.available ??
         0
       );
-
       const newQty = Math.max(stock - 20, 0);
-
       onFixQuantity(key, newQty);
     });
 
     onClose();
   };
-
   return (
     <div className="modal-overlay modals__close">
       <div className="modals large">
         <div className="modals__closed">
           <X strokeWidth={3} onClick={onClose} />
         </div>
-
         <h2>Ошибка оформления заказа</h2>
         <h3>Вы заказали товаров больше, чем есть на складе</h3>
-
         <div className="table_scrollable error_modal_scroll">
           <table className="table_info larges">
             <thead>
@@ -49,7 +43,6 @@ function OrderErrorModal({ items, inputValues = {}, onFixQuantity, onClose, remo
                 <th>Действие</th>
               </tr>
             </thead>
-
             <tbody>
               {items.length === 0 ? (
                 <tr>
@@ -62,7 +55,6 @@ function OrderErrorModal({ items, inputValues = {}, onFixQuantity, onClose, remo
                     const key = item.id || item.Код || item.Артикул;
                     const stock = Math.max(Number(item.stock ?? item.Остаток ?? 0) - 20, 0);
                     const ordered = Number(inputValues[key] ?? item.ordered ?? 1);
-
                     return (
                       <tr key={key} className={idx % 2 === 0 ? 'td_even' : 'td_odd'}>
                         <td className="numeration_basket">{idx + 1}</td>
@@ -84,10 +76,8 @@ function OrderErrorModal({ items, inputValues = {}, onFixQuantity, onClose, remo
                   })
               )}
             </tbody>
-
           </table>
         </div>
-
         <div className="modalss">
           <button onClick={handleConfirm} className="close-btn">
             Подтвердить
@@ -97,5 +87,4 @@ function OrderErrorModal({ items, inputValues = {}, onFixQuantity, onClose, remo
     </div>
   );
 }
-
 export default OrderErrorModal;
