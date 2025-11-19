@@ -58,30 +58,30 @@ function OrderErrorModal({ items, inputValues = {}, onFixQuantity, onClose, remo
                   </td>
                 </tr>
               ) : (
-                items.map((item, idx) => {
-                  const key = item.id || item.Код || item.Артикул;
-                  const stock = Number(item.stock ?? item.Остаток ?? 0);
-                  const ordered = Number(inputValues[key] ?? item.ordered ?? 1);
+                  items.map((item, idx) => {
+                    const key = item.id || item.Код || item.Артикул;
+                    const stock = Math.max(Number(item.stock ?? item.Остаток ?? 0) - 20, 0);
+                    const ordered = Number(inputValues[key] ?? item.ordered ?? 1);
 
-                  return (
-                    <tr key={key} className={idx % 2 === 0 ? 'td_even' : 'td_odd'}>
-                      <td className="numeration_basket">{idx + 1}</td>
-                      <td>{item.Производитель || ''}</td>
-                      <td>{item.Наименование || ''}</td>
-                      <td>{stock}</td>
-                      <td>{ordered}</td>
-                      <td>
-                        <button
-                          className="remove-btn"
-                          onClick={() => handleRemove(key)}
-                          title="Удалить из корзины"
-                        >
-                          <Trash2 size={20} />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
+                    return (
+                      <tr key={key} className={idx % 2 === 0 ? 'td_even' : 'td_odd'}>
+                        <td className="numeration_basket">{idx + 1}</td>
+                        <td>{item.Производитель || ''}</td>
+                        <td>{item.Наименование || ''}</td>
+                        <td>{stock}</td>
+                        <td>{ordered}</td>
+                        <td>
+                          <button
+                            className="remove-btn"
+                            onClick={() => handleRemove(key)}
+                            title="Удалить из корзины"
+                          >
+                            <Trash2 size={20} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
               )}
             </tbody>
 
