@@ -26,7 +26,8 @@ function FixQuantityModal({ items, inputValues = {}, onFixQuantity, onClose, rem
   };
   const handleApply = () => {
   Object.entries(quantities).forEach(([id, qty]) => {
-    if (qty === 0) {
+    // Если количество меньше 1 — удаляем товар
+    if (qty < 1) {
       if (removeFromCart) removeFromCart(id);
     } else {
       onFixQuantity(id, qty);
@@ -34,7 +35,6 @@ function FixQuantityModal({ items, inputValues = {}, onFixQuantity, onClose, rem
   });
   onClose();
 };
-
 
   return (
     <div className="modal-overlay modals__close">
@@ -70,15 +70,21 @@ function FixQuantityModal({ items, inputValues = {}, onFixQuantity, onClose, rem
                     <td>{item.manufacturer || ''}</td>
                     <td>{item.name}</td>
                     <td>
-                      <input
-                        type="number"
-                        disabled
-                        value={quantities[item.idKey]}
-                        min={0}
-                        max={item.stock ?? item["Количество"]}
-                        onChange={(e) => handleChange(item.idKey, e.target.value, item.stock ?? item["Количество"])}
-                        style={{ textAlign: 'center'}}
-                      />
+                      {quantities[item.idKey] < 1 ? (
+                        <span>Нет в наличии</span>
+                      ) : (
+                        <input
+                          type="number"
+                          value={quantities[item.idKey]}
+                          min={1}
+                          disabled
+                          max={item.stock ?? item["Количество"]}
+                          onChange={(e) =>
+                            handleChange(item.idKey, e.target.value, item.stock ?? item["Количество"])
+                          }
+                          style={{ textAlign: 'center' }}
+                        />
+                      )}
                     </td>
                     <td>{inputValues[item.idKey] ?? item.ordered ?? 0}</td>
                     <td className='remove-btns'>

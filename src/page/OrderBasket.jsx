@@ -52,15 +52,15 @@ function OrderBasket() {
       ? '—'
       : new Date(dateStr).toLocaleDateString('ru-RU');
 
-  const handleQuantityChange = (id, value) => {
-    const num = Number(value);
+const handleQuantityChange = (id, value) => {
+  let num = Number(value);
+  if (isNaN(num) || num < 1) {
+    num = 1;
+  }
+  setInputValues(prev => ({ ...prev, [id]: num.toString() }));
+  updateQuantity(id, num);
+};
 
-    setInputValues(prev => ({ ...prev, [id]: value }));
-
-    if (!isNaN(num) && num >= 1) {
-      updateQuantity(id, num);
-    }
-  };
 
 
   const handleBatchChange = (id, batchIndex) => {
