@@ -118,6 +118,7 @@ function OrderBasket() {
       if (ordered > stock) {
         exceeded.push({
           idKey,
+          manufacturer: item["Производитель"] || "",
           name: item["Наименование"],
           stock,
           ordered

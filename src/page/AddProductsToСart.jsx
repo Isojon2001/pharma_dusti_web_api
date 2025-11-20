@@ -75,7 +75,6 @@ function AddProductsToCart() {
   const [category, setCategory] = useState('products');
   const [summa, setSumma] = useState('');
   const [quantities, setQuantities] = useState({});
-  const [addedItems, setAddedItems] = useState({});
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({ current_page: 1, last_page: 6, total: 0 });
   const [loading, setLoading] = useState(false);
@@ -127,28 +126,6 @@ function AddProductsToCart() {
   const handleNextBanner = () => {
     setCurrentBannerIndex((prev) => (prev + 1) % banner.length);
   };
-
-useEffect(() => {
-  if (!products.length || !cartItems.length) return;
-
-  const newAddedItems = {};
-  const newQuantities = {};
-
-  products.forEach((product) => {
-    const cartItem = cartItems.find((item) => item.id === product.id);
-    if (cartItem) {
-      const code = `${product.Код || 'unknown'}-${product['Наименование']}-${product['Производитель']}`;
-      newAddedItems[code] = true;
-      newQuantities[code] = cartItem.quantity || 1;
-    }
-  });
-
-  setAddedItems((prev) => ({ ...prev, ...newAddedItems }));
-  setQuantities((prev) => ({ ...prev, ...newQuantities }));
-}, [products, cartItems]);
-
-
-
   useEffect(() => {
     if (!token) return;
     setBannerLoading(true);
@@ -515,16 +492,12 @@ const handleAddToCart = (code) => {
               <tbody>
                 {groupOrder.map((code, index) => {
                   const productGroup = groupedProducts[code];
-
                   if (!productGroup || productGroup.length === 0) return null;
-
                   const selectedId = selectedProductByCode[code] || productGroup[0].id;
                   const selectedProduct =
                     productGroup.find((p) => p.id === selectedId) || productGroup[0];
-
                   const quantity = quantities[code] || 1;
-                  const isAdded = addedItems[code];
-
+                  const isAdded = cartItems.some(item => item.id === selectedProduct.id);
                   return (
                     <tr key={code} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
                       <td>
@@ -595,7 +568,6 @@ const handleAddToCart = (code) => {
                           </button>
                         </div>
                       </td>
-
                       <td>
                         <button
                           className={`add-to-cart-btn ${isAdded ? 'added' : ''}`}

@@ -32,8 +32,7 @@ chtml, body, #root {
 }
 .modals__closed{
   position: absolute;
-  right: 60px;
-  top: 120px;
+  right: 80px;
   color:#000;
 }
 .modals__close{
@@ -51,7 +50,7 @@ chtml, body, #root {
   text-align: center;
 }
 .modal{
-  max-width: 400px;
+  max-width: 455px;
 }
 
 .cart-modal {
@@ -832,6 +831,9 @@ padding: 130px 47px 130px 47px;
 }
 .detail_basket p{
 	font-size: 22px;
+}
+.remove-btns{
+  text-align: center;
 }
 .remove-btn {
 	padding-left: 20px;
