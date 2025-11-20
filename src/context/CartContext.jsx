@@ -1,24 +1,21 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
-
 const CartContext = createContext();
-
 export function CartProvider({ children, userId }) {
   const [cartItems, setCartItems] = useState([]);
   const hasLoadedCart = useRef(false);
 
   useEffect(() => {
     if (!userId || hasLoadedCart.current) return;
-
     const storageKey = `cart_${userId}`;
     try {
-      const savedCart = localStorage.getItem(storageKey);
-      const parsed = savedCart ? JSON.parse(savedCart) : [];
-      const validItems = parsed.filter(item => item.id || item['Код'] || item['Артикул']);
+      const saved = localStorage.getItem(storageKey);
+      const parsed = saved ? JSON.parse(saved) : [];
+      const valid = parsed.filter(item => item.id || item["Код"] || item["Артикул"]);
+      setCartItems(valid);
 
-      setCartItems(validItems);
       hasLoadedCart.current = true;
-    } catch (error) {
-      console.error('Ошибка загрузки корзины из localStorage', error);
+    } catch (e) {
+      console.error('Ошибка загрузки корзины', e);
       setCartItems([]);
       hasLoadedCart.current = true;
     }
@@ -26,114 +23,81 @@ export function CartProvider({ children, userId }) {
 
   useEffect(() => {
     if (!userId || !hasLoadedCart.current) return;
-
     const storageKey = `cart_${userId}`;
     try {
       localStorage.setItem(storageKey, JSON.stringify(cartItems));
-    } catch (error) {
-      console.error('Ошибка сохранения корзины', error);
+    } catch (e) {
+      console.error('Ошибка сохранения корзины', e);
     }
   }, [cartItems, userId]);
 
-function updateQuantity(productId, newQuantity) {
-  const qty = Number(newQuantity);
-  if (qty < 1) return;
-
-  setCartItems(prevItems =>
-    prevItems.map(item => {
-      const key = item.productKey || item.id || item['Код'] || item['Артикул'];
-
-      if (key === productId) {
-        
-        const selectedIndex = item.selectedBatchIndex ?? 0;
-
-        let updatedBatches = item.batches;
-        if (Array.isArray(item.batches)) {
-          updatedBatches = item.batches.map((batch, index) =>
-            index === selectedIndex
-              ? { ...batch, quantity: qty }
-              : batch
-          );
-        }
-
-        return {
-          ...item,
-          quantity: qty,
-          batches: updatedBatches
-        };
+  function addToCart(product) {
+    const key = product.id || product["Код"] || product["Артикул"];
+    if (!key) return;
+    const stock = Number(product["Количество"] ?? 999999999);
+    setCartItems(prev => {
+      const existing = prev.find(item => item.productKey === key);
+      if (existing) {
+        return prev.map(item =>
+          item.productKey === key
+            ? { ...item, quantity: Math.min(item.quantity + 1, item.stock) }
+            : item
+        );
       }
+      return [
+        ...prev,
+        {
+          ...product,
+          productKey: key,
+          stock,
+          quantity: 1,
+          selectedBatchIndex: 0
+        }
+      ];
+    });
+  }
+  function updateQuantity(productId, newQuantity) {
+  const qty = Number(newQuantity);
+  if (isNaN(qty)) return;
 
-      return item;
-    })
+  setCartItems(prev =>
+    prev.map(item =>
+      item.productKey === productId
+        ? { ...item, quantity: qty }
+        : item
+    )
   );
 }
 
-
-function addToCart(product) {
-  const productKey = product.id || product['Код'] || product['Артикул'];
-  const quantityToAdd = product.quantity || 1;
-
-  if (!productKey) {
-    console.warn('Нет ключа для товара:', product);
-    return;
-  }
-
-  setCartItems(prevItems => {
-    const existing = prevItems.find(item =>
-      (item.id || item['Код'] || item['Артикул']) === productKey
-    );
-
-    if (existing) {
-      return prevItems.map(item =>
-        (item.id || item['Код'] || item['Артикул']) === productKey
-          ? { ...item, quantity: (item.quantity || 1) + quantityToAdd }
-          : item
-      );
-    }
-
-    return [...prevItems, { ...product, productKey, quantity: quantityToAdd }];
-  });
+function increaseQuantity(productId) {
+  setCartItems(prev =>
+    prev.map(item =>
+      item.productKey === productId
+        ? { ...item, quantity: item.quantity + 1 }
+        : item
+    )
+  );
 }
 
+function decreaseQuantity(productId) {
+  setCartItems(prev =>
+    prev.map(item =>
+      item.productKey === productId
+        ? { ...item, quantity: item.quantity - 1 }
+        : item
+    )
+  );
+}
+
+  function removeFromCart(productId) {
+    setCartItems(prev => prev.filter(item => item.productKey !== productId));
+  }
 
   function clearCart() {
     setCartItems([]);
   }
 
-  function increaseQuantity(productId) {
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        (item.id || item['Код'] || item['Артикул']) === productId
-          ? { ...item, quantity: (item.quantity || 1) + 1 }
-          : item
-      )
-    );
-  }
-
-  function decreaseQuantity(productId) {
-    setCartItems(prevItems =>
-      prevItems.reduce((acc, item) => {
-        const key = item.id || item['Код'] || item['Артикул'];
-        if (key === productId) {
-          const newQty = (item.quantity || 1) - 1;
-          if (newQty > 0) acc.push({ ...item, quantity: newQty });
-        } else {
-          acc.push(item);
-        }
-        return acc;
-      }, [])
-    );
-  }
-
-  function removeFromCart(productId) {
-    setCartItems(prevItems =>
-      prevItems.filter(item =>
-        (item.id || item['Код'] || item['Артикул']) !== productId
-      )
-    );
-  }
-
-  const cartCount = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
 
   return (
     <CartContext.Provider
@@ -145,7 +109,7 @@ function addToCart(product) {
         increaseQuantity,
         decreaseQuantity,
         clearCart,
-        updateQuantity,
+        updateQuantity
       }}
     >
       {children}
