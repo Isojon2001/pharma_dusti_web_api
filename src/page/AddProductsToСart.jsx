@@ -496,23 +496,19 @@ const handleAddToCart = (code) => {
                   const selectedId = selectedProductByCode[code] || productGroup[0].id;
                   const selectedProduct =
                     productGroup.find((p) => p.id === selectedId) || productGroup[0];
-                  const quantity = quantities[code] || 1;
-                  const isAdded = cartItems.some(item => item.id === selectedProduct.id);
+                  const cartItem = cartItems.find(item => item.productKey === selectedProduct.id);
+                  const quantity = cartItem ? cartItem.quantity : (quantities[code] || 1);
+                  const isAdded = !!cartItem;
                   return (
                     <tr key={code} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
                       <td>
                         <strong
                           dangerouslySetInnerHTML={{
-                            __html: highlightMatch(
-                              selectedProduct['Наименование'],
-                              searchTerm
-                            ),
+                            __html: highlightMatch(selectedProduct['Наименование'], searchTerm),
                           }}
                         />
                       </td>
-
                       <td>{selectedProduct['Производитель'] || ''}</td>
-
                       <td>
                         {productGroup.length > 1 ? (
                           <select
@@ -535,9 +531,7 @@ const handleAddToCart = (code) => {
                           <span>{formatDate(productGroup[0]['Срок'])}</span>
                         )}
                       </td>
-
                       <td>{selectedProduct['Цена']} сом</td>
-
                       <td>
                         <div className="quantity-wrapper">
                           <button
@@ -548,7 +542,6 @@ const handleAddToCart = (code) => {
                           >
                             −
                           </button>
-
                           <input
                             type="number"
                             min="1"
@@ -557,7 +550,6 @@ const handleAddToCart = (code) => {
                             disabled={isAdded}
                             className="quantity-input"
                           />
-
                           <button
                             type="button"
                             className="quantity-btn"

@@ -50,7 +50,7 @@ export function CartProvider({ children, userId }) {
           ...product,
           productKey: key,
           stock,
-          quantity: 1,
+          quantity: Math.min(product.quantity),
           selectedBatchIndex: 0
         }
       ];

@@ -35,17 +35,16 @@ function OrderBasket() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showClearCartModal, setShowClearCartModal] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: '№', direction: 'asc' });
-
-  useEffect(() => {
-    const newInputValues = {};
+useEffect(() => {
+  setInputValues(prevValues => {
+    const newValues = {};
     cartItems.forEach(item => {
       const key = item.id || item['Код'] || item['Артикул'];
-      const qty = item.quantity ?? 1;
-      newInputValues[key] = qty.toString();
+      newValues[key] = prevValues[key] ?? item.quantity?.toString() ?? '1';
     });
-    setInputValues(newInputValues);
-  }, [cartItems]);
-
+    return newValues;
+  });
+}, [cartItems]);
 
   const formatDate = (dateStr) =>
     !dateStr || dateStr === '0001-01-01T00:00:00Z'
