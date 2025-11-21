@@ -7,15 +7,22 @@ function FixQuantityModal({ items, inputValues = {}, onFixQuantity, onClose, rem
 
   useEffect(() => {
     const initial = {};
+
     items.forEach(item => {
-      initial[item.idKey] = item.stock ?? item["Количество"] ?? 0;
+      const stock = Number(item.stock ?? item["Количество"] ?? 0);
+      const ordered = Number(item.ordered ?? inputValues[item.idKey] ?? 1);
+
+      const newQty = Math.max(1, Math.min(ordered, stock));
+
+      initial[item.idKey] = newQty;
     });
+
     setQuantities(initial);
-  }, [items]);
+  }, [items, inputValues]);
 
   const handleChange = (id, value, stock) => {
     let qty = Number(value);
-    if (isNaN(qty) || qty < 0) qty = 0;
+    if (isNaN(qty) || qty < 1) qty = 1;
     if (stock !== undefined && qty > stock) qty = stock;
     setQuantities(prev => ({ ...prev, [id]: qty }));
   };
@@ -24,17 +31,18 @@ function FixQuantityModal({ items, inputValues = {}, onFixQuantity, onClose, rem
     setQuantities(prev => ({ ...prev, [id]: 0 }));
     if (removeFromCart) removeFromCart(id);
   };
+
   const handleApply = () => {
-  Object.entries(quantities).forEach(([id, qty]) => {
-    // Если количество меньше 1 — удаляем товар
-    if (qty < 1) {
-      if (removeFromCart) removeFromCart(id);
-    } else {
-      onFixQuantity(id, qty);
-    }
-  });
-  onClose();
-};
+    Object.entries(quantities).forEach(([id, qty]) => {
+      if (qty < 1) {
+        if (removeFromCart) removeFromCart(id);
+      } else {
+        onFixQuantity(id, qty);
+      }
+    });
+
+    onClose();
+  };
 
   return (
     <div className="modal-overlay modals__close">
@@ -43,8 +51,8 @@ function FixQuantityModal({ items, inputValues = {}, onFixQuantity, onClose, rem
           <X strokeWidth={3} onClick={onClose} />
         </div>
 
-        <h2>Ошбика при оформления заказа</h2>
-        <h3>Некоторые товары вы заказали больше чем есть на складе</h3>
+        <h2>Ошибка при оформлении заказа</h2>
+        <h3>Некоторые товары вы заказали больше, чем есть на складе</h3>
 
         <div className="table_scrollable error_modal_scroll">
           <table className="table_info larges">
@@ -64,36 +72,39 @@ function FixQuantityModal({ items, inputValues = {}, onFixQuantity, onClose, rem
                   <td colSpan="6" className="basket_empty">Нет товаров для исправления</td>
                 </tr>
               ) : (
-                items.map((item, idx) => (
-                  <tr key={item.idKey} className={idx % 2 === 0 ? 'td_even' : 'td_odd'}>
-                    <td className="numeration_basket">{idx + 1}</td>
-                    <td>{item.manufacturer || ''}</td>
-                    <td>{item.name}</td>
-                    <td>
-                      {quantities[item.idKey] < 1 ? (
-                        <span>Нет в наличии</span>
-                      ) : (
-                        <input
-                          type="number"
-                          value={quantities[item.idKey]}
-                          min={1}
-                          disabled
-                          max={item.stock ?? item["Количество"]}
-                          onChange={(e) =>
-                            handleChange(item.idKey, e.target.value, item.stock ?? item["Количество"])
-                          }
-                          style={{ textAlign: 'center' }}
-                        />
-                      )}
-                    </td>
-                    <td>{inputValues[item.idKey] ?? item.ordered ?? 0}</td>
-                    <td className='remove-btns'>
-                      <button className="remove-btn" onClick={() => handleRemove(item.idKey)}>
-                        <Trash2 size={20} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                items.map((item, idx) => {
+                  const stock = Number(item.stock ?? item["Количество"] ?? 0);
+                  const qty = quantities[item.idKey] ?? stock;
+
+                  return (
+                    <tr key={item.idKey} className={idx % 2 === 0 ? 'td_even' : 'td_odd'}>
+                      <td className="numeration_basket">{idx + 1}</td>
+                      <td>{item.manufacturer || ''}</td>
+                      <td>{item.name}</td>
+                      <td>
+                        {isNaN(qty) || qty < 1 ? (
+                          <span>Нет в наличии</span>
+                        ) : (
+                          <input
+                            type="number"
+                            value={qty}
+                            min={1}
+                            max={stock}
+                            disabled
+                            onChange={(e) => handleChange(item.idKey, e.target.value, stock)}
+                            style={{ textAlign: 'center' }}
+                          />
+                        )}
+                      </td>
+                      <td>{inputValues[item.idKey] ?? item.ordered ?? 0}</td>
+                      <td className='remove-btns'>
+                        <button className="remove-btn" onClick={() => handleRemove(item.idKey)}>
+                          <Trash2 size={20} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

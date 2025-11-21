@@ -103,37 +103,33 @@ const handleQuantityChange = (id, value) => {
       };
     });
   };
-
-
   const checkStock = () => {
-    const exceeded = [];
+  const exceeded = [];
 
-    cartItems.forEach(item => {
-      const idKey = item.id || item["Код"] || item["Артикул"];
+  cartItems.forEach(item => {
+    const idKey = item.id || item["Код"] || item["Артикул"];
 
-      const stock = Number(item["Количество"]);
-      const ordered = Number(inputValues[idKey] ?? item.quantity ?? 1);
+    const stock = Number(item["Количество"]);
+    const ordered = Number(inputValues[idKey] ?? item.quantity ?? 1);
 
-      if (ordered > stock) {
-        exceeded.push({
-          idKey,
-          manufacturer: item["Производитель"] || "",
-          name: item["Наименование"],
-          stock,
-          ordered
-        });
-      }
-    });
+    if (ordered > stock) {
+      exceeded.push({
+        idKey,
+        manufacturer: item["Производитель"] || "",
+        name: item["Наименование"],
+        stock,
+        newQty: stock
+      });
+    }
+  });
 
-    return exceeded;
-  };
-
-
-  const handleQuantityFix = (id, newQty) => {
-    setInputValues(prev => ({ ...prev, [id]: newQty }));
-    updateQuantity(id, newQty);
-  };
-
+  return exceeded;
+};
+const handleQuantityFix = (id, newQty) => {
+  const qty = Number(newQty);
+  setInputValues(prev => ({ ...prev, [id]: qty }));
+  updateQuantity(id, qty);
+};
 
   const handleSubmitOrder = async () => {
     if (!token || cartItems.length === 0 || isSubmitting) return;

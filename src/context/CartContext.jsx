@@ -3,6 +3,10 @@ const CartContext = createContext();
 export function CartProvider({ children, userId }) {
   const [cartItems, setCartItems] = useState([]);
   const hasLoadedCart = useRef(false);
+  const getItemId = (item) => {
+  return String(item.id ?? item["Код"] ?? item["Артикул"]);
+};
+
 
   useEffect(() => {
     if (!userId || hasLoadedCart.current) return;
