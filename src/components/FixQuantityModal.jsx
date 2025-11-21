@@ -11,9 +11,7 @@ function FixQuantityModal({ items, inputValues = {}, onFixQuantity, onClose, rem
     items.forEach(item => {
       const stock = Number(item.stock ?? item["Количество"] ?? 0);
       const ordered = Number(item.ordered ?? inputValues[item.idKey] ?? 1);
-
       const newQty = Math.max(1, Math.min(ordered, stock));
-
       initial[item.idKey] = newQty;
     });
 
@@ -82,15 +80,15 @@ function FixQuantityModal({ items, inputValues = {}, onFixQuantity, onClose, rem
                       <td>{item.manufacturer || ''}</td>
                       <td>{item.name}</td>
                       <td>
-                        {qty <= 0 ? (
+                        {isNaN(qty) || qty < 1 ? (
                           <span>Нет в наличии</span>
                         ) : (
                           <input
                             type="number"
                             value={qty}
                             min={1}
-                            disabled
                             max={stock}
+                            disabled
                             onChange={(e) => handleChange(item.idKey, e.target.value, stock)}
                             style={{ textAlign: 'center' }}
                           />

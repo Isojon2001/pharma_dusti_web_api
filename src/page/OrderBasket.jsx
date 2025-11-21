@@ -275,7 +275,7 @@ const handleQuantityFix = (id, newQty) => {
                                 <input
                                   type="number"
                                   min="1"
-                                  value={inputValues[idKey] ?? item.quantity ?? 1}
+                                  value={item.quantity}
                                   onChange={(e) => handleQuantityChange(idKey, e.target.value)}
                                 />
                                 <button onClick={() => increaseQuantity(idKey)}>+</button>
