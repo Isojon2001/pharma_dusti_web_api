@@ -82,15 +82,15 @@ function FixQuantityModal({ items, inputValues = {}, onFixQuantity, onClose, rem
                       <td>{item.manufacturer || ''}</td>
                       <td>{item.name}</td>
                       <td>
-                        {isNaN(qty) || qty < 1 ? (
+                        {qty <= 0 ? (
                           <span>Нет в наличии</span>
                         ) : (
                           <input
                             type="number"
                             value={qty}
                             min={1}
-                            max={stock}
                             disabled
+                            max={stock}
                             onChange={(e) => handleChange(item.idKey, e.target.value, stock)}
                             style={{ textAlign: 'center' }}
                           />
