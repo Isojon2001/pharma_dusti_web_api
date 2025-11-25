@@ -103,14 +103,13 @@ const handleQuantityChange = (id, value) => {
       };
     });
   };
-  const checkStock = () => {
+const checkStock = () => {
   const exceeded = [];
 
   cartItems.forEach(item => {
     const idKey = item.id || item["Код"] || item["Артикул"];
-
-    const stock = Number(item["Количество"]);
-    const ordered = Number(inputValues[idKey] ?? item.quantity ?? 1);
+    const stock = Number(item["Количество"] ?? 0);
+    const ordered = Math.max(1, Number(inputValues[idKey] ?? item.quantity ?? 1));
 
     if (ordered > stock) {
       exceeded.push({
@@ -125,6 +124,9 @@ const handleQuantityChange = (id, value) => {
 
   return exceeded;
 };
+
+
+
 const handleQuantityFix = (id, newQty) => {
   const qty = Number(newQty);
   setInputValues(prev => ({ ...prev, [id]: qty }));
@@ -136,7 +138,7 @@ const handleQuantityFix = (id, newQty) => {
 
     const exceeded = checkStock();
     if (exceeded.length > 0) {
-      setFixProducts(exceeded);
+      setFixProducts(checkStock());
       setShowFixModal(true);
       return;
     }
@@ -271,16 +273,36 @@ const handleQuantityFix = (id, newQty) => {
                             <td>{item["Наименование"]}</td>
                             <td>
                               <div className="counter_table">
-                                <button onClick={() => decreaseQuantity(idKey)}>-</button>
+                                <button
+                                  onClick={() => {
+                                    const newQty = Math.max(1, (Number(inputValues[idKey] ?? item.quantity) - 1));
+                                    decreaseQuantity(idKey);
+                                    handleQuantityChange(idKey, newQty.toString());
+                                  }}
+                                >
+                                  -
+                                </button>
                                 <input
                                   type="number"
                                   min="1"
-                                  value={item.quantity}
+                                  value={inputValues[idKey]}
                                   onChange={(e) => handleQuantityChange(idKey, e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (["-", "+", "e", "E"].includes(e.key)) e.preventDefault();
+                                  }}
                                 />
-                                <button onClick={() => increaseQuantity(idKey)}>+</button>
+                                <button
+                                  onClick={() => {
+                                    const newQty = (Number(inputValues[idKey] ?? item.quantity) + 1);
+                                    increaseQuantity(idKey);
+                                    handleQuantityChange(idKey, newQty.toString());
+                                  }}
+                                >
+                                  +
+                                </button>
                               </div>
                             </td>
+
                             <td>{price.toFixed(2)}</td>
                             <td>
                               {item.batches?.length ? (
