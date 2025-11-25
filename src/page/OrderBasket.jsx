@@ -51,15 +51,13 @@ useEffect(() => {
       ? '—'
       : new Date(dateStr).toLocaleDateString('ru-RU');
 
-const handleQuantityChange = (id, value) => {
+      const handleQuantityChange = (id, value) => {
   let num = Number(value);
-  if (isNaN(num) || num < 1) {
-    num = 1;
-  }
+  if (isNaN(num) || num <= 0) return;
+
   setInputValues(prev => ({ ...prev, [id]: num.toString() }));
   updateQuantity(id, num);
 };
-
 
 
   const handleBatchChange = (id, batchIndex) => {
@@ -282,15 +280,29 @@ const handleQuantityFix = (id, newQty) => {
                                 >
                                   -
                                 </button>
-                                <input
-                                  type="number"
-                                  min="1"
-                                  value={inputValues[idKey]}
-                                  onChange={(e) => handleQuantityChange(idKey, e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (["-", "+", "e", "E"].includes(e.key)) e.preventDefault();
-                                  }}
-                                />
+                                  <input
+                                    type="number"
+                                    value={inputValues[idKey]}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      if (val === '') {
+                                        setInputValues(prev => ({ ...prev, [idKey]: '' }));
+                                        return;
+                                      }
+                                      const num = Number(val);
+                                      if (!isNaN(num) && num > 0) {
+                                        handleQuantityChange(idKey, num.toString());
+                                      }
+                                    }}
+                                    onBlur={() => {
+                                      if (inputValues[idKey] === '' || Number(inputValues[idKey]) <= 0) {
+                                        handleQuantityChange(idKey, '1');
+                                      }
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (["-", "+", "e", "E"].includes(e.key)) e.preventDefault();
+                                    }}
+                                  />
                                 <button
                                   onClick={() => {
                                     const newQty = (Number(inputValues[idKey] ?? item.quantity) + 1);
@@ -302,7 +314,6 @@ const handleQuantityFix = (id, newQty) => {
                                 </button>
                               </div>
                             </td>
-
                             <td>{price.toFixed(2)}</td>
                             <td>
                               {item.batches?.length ? (
