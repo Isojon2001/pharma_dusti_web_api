@@ -5,18 +5,40 @@ import { Trash2, X } from 'lucide-react';
 function FixQuantityModal({ items, inputValues = {}, onFixQuantity, onClose, removeFromCart }) {
   const [quantities, setQuantities] = useState({});
 
-  useEffect(() => {
-    const initial = {};
+useEffect(() => {
+  const initial = {};
 
-    items.forEach(item => {
-      const stock = Number(item.stock ?? item["Количество"] ?? 0);
-      const ordered = Number(item.ordered ?? inputValues[item.idKey] ?? 1);
-      const newQty = Math.max(1, Math.min(ordered, stock));
-      initial[item.idKey] = newQty;
-    });
+  items.forEach(item => {
+    const stock = Number(item.stock ?? item["Количество"] ?? 0);
+    const ordered = Number(item.ordered ?? inputValues[item.idKey] ?? 1);
+    const newQty = Math.max(1, Math.min(item.newQty ?? ordered, stock));
+    initial[item.idKey] = newQty;
+  });
 
-    setQuantities(initial);
-  }, [items, inputValues]);
+  setQuantities(initial);
+}, [items, inputValues]);
+const checkStock = () => {
+  const exceeded = [];
+
+  cartItems.forEach(item => {
+    const idKey = item.id || item["Код"] || item["Артикул"];
+    const stock = Number(item["Количество"] ?? 0);
+    const ordered = Math.max(1, Number(inputValues[idKey] ?? item.quantity ?? 1));
+
+    if (ordered > stock) {
+      exceeded.push({
+        idKey,
+        manufacturer: item["Производитель"] || "",
+        name: item["Наименование"],
+        stock,
+        newQty: stock
+      });
+    }
+  });
+
+  return exceeded;
+};
+
 
   const handleChange = (id, value, stock) => {
     let qty = Number(value);
