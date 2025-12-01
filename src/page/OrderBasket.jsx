@@ -93,6 +93,7 @@ function OrderBasket() {
             return {
                 product_code: item["Код"],
                 name: item["Наименование"],
+                manufacturer: item["Производитель"],
                 price: batch ? parseFloat(batch.price) : parseFloat(item["Цена"]),
                 expiry: batch?.expiry ?? item["Срок"],
                 quantity: qty
@@ -100,38 +101,52 @@ function OrderBasket() {
         });
     };
 
-    const handleSubmitOrder = async () => {
-        if (!token || cartItems.length === 0 || isSubmitting) return;
+const handleSubmitOrder = async () => {
+    if (!token || cartItems.length === 0 || isSubmitting) return;
 
-        try {
-            setIsSubmitting(true);
+    try {
+        setIsSubmitting(true);
 
-            const response = await axios.post(
-                "https://api.dustipharma.tj:1212/api/v1/app/orders", { items: groupCartItems(cartItems) }, { headers: { Authorization: `Bearer ${token}` } }
-            );
+        const response = await axios.post(
+            "https://api.dustipharma.tj:1212/api/v1/app/orders",
+            { items: groupCartItems(cartItems) },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
 
-            if (response.data?.message === "Успешно частично") {
-                setFixMessage(response.data.message);
-                setFixProducts(response.data.payload.order.items || []);
-                setFixChanges(response.data.payload.changes || []);
-                setShowFixModal(true);
-                clearCart();
-                return;
-            }
-            setShowSuccessModal(true);
+        if (response.data?.message === "Успешно частично") {
+            setFixMessage(response.data.message);
+
+            const serverItems = response.data.payload.order.items || [];
+
+            const mergedItems = serverItems.map(serverItem => {
+                const original = cartItems.find(c => c["Код"] === serverItem.product_code);
+
+                return {
+                    ...serverItem,
+                    manufacturer: original?.["Производитель"] || "—"
+                };
+            });
+
+            setFixProducts(mergedItems);
+            setFixChanges(response.data.payload.changes || []);
+            setShowFixModal(true);
+
             clearCart();
-
-        } catch (error) {
-            const msg =
-                error.response?.data?.message ||
-                "Произошла ошибка при оформлении заказа";
-
-            setApiErrorMessage(msg);
-            setShowErrorModal(true);
-        } finally {
-            setIsSubmitting(false);
+            return;
         }
-    };
+
+        setShowSuccessModal(true);
+        clearCart();
+
+    } catch (error) {
+        const msg = error.response?.data?.message || "Произошла ошибка при оформлении заказа";
+        setApiErrorMessage(msg);
+        setShowErrorModal(true);
+    } finally {
+        setIsSubmitting(false);
+    }
+};
+
 
     const handleSort = (key) => {
         setSortConfig(prev => ({
@@ -358,7 +373,10 @@ function OrderBasket() {
               changes={fixChanges}
               message={fixMessage}
           removeFromCart={removeFromCart}
-          onClose={() => setShowFixModal(false)}
+          onClose={() => {
+            setShowFixModal(false);
+            setShowSuccessModal(true);
+          }}
         />
       )}
 

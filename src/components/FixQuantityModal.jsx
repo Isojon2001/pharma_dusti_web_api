@@ -34,14 +34,14 @@ function FixQuantityModal({ items = [], changes = [], onClose, message }) {
                   <td colSpan="6" className="basket_empty">
                     Нет данных для отображения
                   </td>
-                </tr>
+                </tr> 
               ) : (
                 items.map((item, idx) => {
                     const changedQuantity = changesMap[item.product_code];
                     return (
                       <tr key={idx} className={idx % 2 === 0 ? 'td_even' : 'td_odd'}>
                         <td className="numeration_basket">{idx + 1}</td>
-                        <td>{item.manufacturer || "—"}</td>
+                        <td>{item.manufacturer || ""}</td>
                         <td>{item.name}</td>
                         <td>
                           {changedQuantity !== undefined
