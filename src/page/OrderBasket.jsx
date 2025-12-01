@@ -6,7 +6,6 @@ import '../index.css';
 import OrderHeader from '../components/OrderHeader';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-
 import OrderSuccessModal from '../components/OrderSuccessModal';
 import OrderErrorModal from '../components/OrderErrorModal';
 import FixQuantityModal from '../components/FixQuantityModal';
@@ -28,6 +27,7 @@ function OrderBasket() {
   const [inputValues, setInputValues] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
+  const [fixChanges, setFixChanges] = useState([]);
   const [apiErrorMessage, setApiErrorMessage] = useState("");
   const [showFixModal, setShowFixModal] = useState(false);
   const [fixProducts, setFixProducts] = useState([]);
@@ -35,35 +35,35 @@ function OrderBasket() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showClearCartModal, setShowClearCartModal] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: '№', direction: 'asc' });
-useEffect(() => {
-  setInputValues(prevValues => {
-    const newValues = {};
-    cartItems.forEach(item => {
-      const key = item.id || item['Код'] || item['Артикул'];
-      newValues[key] = prevValues[key] ?? item.quantity?.toString() ?? '1';
+  const [fixMessage, setFixMessage] = useState("");
+
+  useEffect(() => {
+    setInputValues(prevValues => {
+      const newValues = {};
+      cartItems.forEach(item => {
+        const key = item.id || item['Код'] || item['Артикул'];
+        newValues[key] = prevValues[key] ?? item.quantity?.toString() ?? '1';
+      });
+      return newValues;
     });
-    return newValues;
-  });
-}, [cartItems]);
+  }, [cartItems]);
 
   const formatDate = (dateStr) =>
     !dateStr || dateStr === '0001-01-01T00:00:00Z'
       ? '—'
       : new Date(dateStr).toLocaleDateString('ru-RU');
 
-      const handleQuantityChange = (id, value) => {
-  let num = Number(value);
-  if (isNaN(num) || num <= 0) return;
+  const handleQuantityChange = (id, value) => {
+    let num = Number(value);
+    if (isNaN(num) || num <= 0) return;
 
-  setInputValues(prev => ({ ...prev, [id]: num.toString() }));
-  updateQuantity(id, num);
-};
-
+    setInputValues(prev => ({ ...prev, [id]: num.toString() }));
+    updateQuantity(id, num);
+  };
 
   const handleBatchChange = (id, batchIndex) => {
     updateBatchIndex(id, batchIndex);
   };
-
 
   const calculateTotal = () =>
     cartItems.reduce((sum, item) => {
@@ -76,14 +76,12 @@ useEffect(() => {
       return sum + (isNaN(qty) ? 0 : price * qty);
     }, 0);
 
-
   const calculateTotalQuantity = () =>
     cartItems.reduce((total, item) => {
       const idKey = item.id || item['Код'] || item['Артикул'];
       const qty = Number(inputValues[idKey] ?? item.quantity ?? 1);
       return total + qty;
     }, 0);
-
 
   const groupCartItems = (items) => {
     return items.map(item => {
@@ -101,54 +99,28 @@ useEffect(() => {
       };
     });
   };
-const checkStock = () => {
-  const exceeded = [];
-
-  cartItems.forEach(item => {
-    const idKey = item.id || item["Код"] || item["Артикул"];
-    const stock = Number(item["Количество"] ?? 0);
-    const ordered = Math.max(1, Number(inputValues[idKey] ?? item.quantity ?? 1));
-
-    if (ordered > stock) {
-      exceeded.push({
-        idKey,
-        manufacturer: item["Производитель"] || "",
-        name: item["Наименование"],
-        stock,
-        newQty: stock
-      });
-    }
-  });
-
-  return exceeded;
-};
-
-
-
-const handleQuantityFix = (id, newQty) => {
-  const qty = Number(newQty);
-  setInputValues(prev => ({ ...prev, [id]: qty }));
-  updateQuantity(id, qty);
-};
 
   const handleSubmitOrder = async () => {
     if (!token || cartItems.length === 0 || isSubmitting) return;
 
-    const exceeded = checkStock();
-    if (exceeded.length > 0) {
-      setFixProducts(checkStock());
-      setShowFixModal(true);
-      return;
-    }
-
     try {
       setIsSubmitting(true);
 
-      await axios.post(
+      const response = await axios.post(
         "https://api.dustipharma.tj:1212/api/v1/app/orders",
         { items: groupCartItems(cartItems) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+if (response.data?.message === "Успешно частично") {
+  setFixMessage(response.data.message);
+  setFixProducts(response.data.payload.order.items || []);
+  setFixChanges(response.data.payload.changes || []);
+  setShowFixModal(true);
+  clearCart();
+  return;
+}
+
 
       setShowSuccessModal(true);
       clearCart();
@@ -165,7 +137,6 @@ const handleQuantityFix = (id, newQty) => {
     }
   };
 
-
   const handleSort = (key) => {
     setSortConfig(prev => ({
       key,
@@ -173,7 +144,6 @@ const handleQuantityFix = (id, newQty) => {
         prev.key === key && prev.direction === "asc" ? "desc" : "asc"
     }));
   };
-
 
   const sortedItems = [...cartItems].sort((a, b) => {
     const getVal = (item) => {
@@ -220,7 +190,6 @@ const handleQuantityFix = (id, newQty) => {
       : String(bVal).localeCompare(String(aVal));
   });
 
-
   return (
     <div className="OrderBasket_content">
       <div className="basket_backs">
@@ -234,6 +203,7 @@ const handleQuantityFix = (id, newQty) => {
           <h1>Корзина</h1>
         </div>
       </div>
+
       <div className="order_basket_tables">
         <div className="order_basket_table">
           <div className="OrderBasket_Header">
@@ -250,6 +220,7 @@ const handleQuantityFix = (id, newQty) => {
                       <th>Удалить</th>
                     </tr>
                   </thead>
+
                   <tbody>
                     {sortedItems.length === 0 ? (
                       <tr>
@@ -264,11 +235,13 @@ const handleQuantityFix = (id, newQty) => {
                         const batch = item.batches?.[selectedIndex];
                         const qty = Number(inputValues[idKey] ?? item.quantity ?? 1);
                         const price = batch ? parseFloat(batch.price) : parseFloat(item["Цена"] || 0);
+
                         return (
                           <tr key={`${idKey}_${idx}`} className={idx % 2 === 0 ? "td_even" : "td_odd"}>
                             <td className="numeration_basket">{idx + 1}</td>
                             <td>{item["Производитель"] || ""}</td>
                             <td>{item["Наименование"]}</td>
+
                             <td>
                               <div className="counter_table">
                                 <button
@@ -280,29 +253,31 @@ const handleQuantityFix = (id, newQty) => {
                                 >
                                   -
                                 </button>
-                                  <input
-                                    type="number"
-                                    value={inputValues[idKey]}
-                                    onChange={(e) => {
-                                      const val = e.target.value;
-                                      if (val === '') {
-                                        setInputValues(prev => ({ ...prev, [idKey]: '' }));
-                                        return;
-                                      }
-                                      const num = Number(val);
-                                      if (!isNaN(num) && num > 0) {
-                                        handleQuantityChange(idKey, num.toString());
-                                      }
-                                    }}
-                                    onBlur={() => {
-                                      if (inputValues[idKey] === '' || Number(inputValues[idKey]) <= 0) {
-                                        handleQuantityChange(idKey, '1');
-                                      }
-                                    }}
-                                    onKeyDown={(e) => {
-                                      if (["-", "+", "e", "E"].includes(e.key)) e.preventDefault();
-                                    }}
-                                  />
+
+                                <input
+                                  type="number"
+                                  value={inputValues[idKey]}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === '') {
+                                      setInputValues(prev => ({ ...prev, [idKey]: '' }));
+                                      return;
+                                    }
+                                    const num = Number(val);
+                                    if (!isNaN(num) && num > 0) {
+                                      handleQuantityChange(idKey, num.toString());
+                                    }
+                                  }}
+                                  onBlur={() => {
+                                    if (inputValues[idKey] === '' || Number(inputValues[idKey]) <= 0) {
+                                      handleQuantityChange(idKey, '1');
+                                    }
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (["-", "+", "e", "E"].includes(e.key)) e.preventDefault();
+                                  }}
+                                />
+
                                 <button
                                   onClick={() => {
                                     const newQty = (Number(inputValues[idKey] ?? item.quantity) + 1);
@@ -314,7 +289,9 @@ const handleQuantityFix = (id, newQty) => {
                                 </button>
                               </div>
                             </td>
+
                             <td>{price.toFixed(2)}</td>
+
                             <td>
                               {item.batches?.length ? (
                                 <select
@@ -331,7 +308,9 @@ const handleQuantityFix = (id, newQty) => {
                                 formatDate(item["Срок"])
                               )}
                             </td>
+
                             <td>{(qty * price).toFixed(2)}</td>
+
                             <td>
                               <button className="remove-btn" onClick={() => removeFromCart(idKey)}>
                                 <Trash2 size={20} />
@@ -357,16 +336,20 @@ const handleQuantityFix = (id, newQty) => {
                     </button>
                   </div>
                 </div>
+
                 <div className="detailed_inf">
                   <div className="detailed_rows">
                     <div className="detailed_row">
                       <p>{calculateTotalQuantity()} шт.</p>
                       <p>Общее количество</p>
                     </div>
+
                     <div className="detailed_row">
                       <p>{calculateTotal().toFixed(2)} сом</p>
+
                       <div className="detailed_btn">
                         <p>Итоговая сумма</p>
+
                         <button
                           disabled={cartItems.length === 0 || isSubmitting}
                           onClick={() => setShowConfirmModal(true)}
@@ -377,18 +360,19 @@ const handleQuantityFix = (id, newQty) => {
                     </div>
                   </div>
                 </div>
-
               </div>
             </div>
           </div>
         </div>
       </div>
+
       {showFixModal && (
         <FixQuantityModal
           items={fixProducts}
           inputValues={inputValues}
+              changes={fixChanges}
+              message={fixMessage}
           removeFromCart={removeFromCart}
-          onFixQuantity={handleQuantityFix}
           onClose={() => setShowFixModal(false)}
         />
       )}
@@ -399,9 +383,11 @@ const handleQuantityFix = (id, newQty) => {
           onClose={() => setShowErrorModal(false)}
         />
       )}
+
       {showSuccessModal && (
         <OrderSuccessModal onClose={() => setShowSuccessModal(false)} />
       )}
+
       {showConfirmModal && (
         <ConfirmOrderModal
           onConfirm={() => {
@@ -411,6 +397,7 @@ const handleQuantityFix = (id, newQty) => {
           onCancel={() => setShowConfirmModal(false)}
         />
       )}
+
       {showClearCartModal && (
         <ConfirmClearCartModal
           onConfirm={() => {

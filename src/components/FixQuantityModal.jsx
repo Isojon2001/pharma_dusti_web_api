@@ -1,78 +1,22 @@
 import '../index.css';
-import React, { useState, useEffect } from 'react';
-import { Trash2, X } from 'lucide-react';
+import React from 'react';
 
-function FixQuantityModal({ items, inputValues = {}, onFixQuantity, onClose, removeFromCart }) {
-  const [quantities, setQuantities] = useState({});
-
-useEffect(() => {
-  const initial = {};
-
-  items.forEach(item => {
-    const stock = Number(item.stock ?? item["Количество"] ?? 0);
-    const ordered = Number(item.ordered ?? inputValues[item.idKey] ?? 1);
-    const newQty = Math.max(1, Math.min(item.newQty ?? ordered, stock));
-    initial[item.idKey] = newQty;
-  });
-
-  setQuantities(initial);
-}, [items, inputValues]);
-const checkStock = () => {
-  const exceeded = [];
-
-  cartItems.forEach(item => {
-    const idKey = item.id || item["Код"] || item["Артикул"];
-    const stock = Number(item["Количество"] ?? 0);
-    const ordered = Math.max(1, Number(inputValues[idKey] ?? item.quantity ?? 1));
-
-    if (ordered > stock) {
-      exceeded.push({
-        idKey,
-        manufacturer: item["Производитель"] || "",
-        name: item["Наименование"],
-        stock,
-        newQty: stock
-      });
-    }
-  });
-
-  return exceeded;
-};
-
-
-  const handleChange = (id, value, stock) => {
-    let qty = Number(value);
-    if (isNaN(qty) || qty < 1) qty = 1;
-    if (stock !== undefined && qty > stock) qty = stock;
-    setQuantities(prev => ({ ...prev, [id]: qty }));
-  };
-
-  const handleRemove = (id) => {
-    setQuantities(prev => ({ ...prev, [id]: 0 }));
-    if (removeFromCart) removeFromCart(id);
-  };
-
-  const handleApply = () => {
-    Object.entries(quantities).forEach(([id, qty]) => {
-      if (qty < 1) {
-        if (removeFromCart) removeFromCart(id);
-      } else {
-        onFixQuantity(id, qty);
-      }
+function FixQuantityModal({ items = [], changes = [], onClose, message }) {
+    const changesMap = {};
+    changes.forEach(change => {
+        changesMap[change.Код] = change.Количество;
     });
 
-    onClose();
-  };
-
-  return (
-    <div className="modal-overlay modals__close">
+    return (
+        <div className="modal-overlay modals__close">
       <div className="modals large">
-        <div className="modals__closed">
-          <X strokeWidth={3} onClick={onClose} />
-        </div>
+        <h2 style={{ marginBottom: "10px" }}>
+          Часть товаров была обработана
+        </h2>
 
-        <h2>Ошибка при оформлении заказа</h2>
-        <h3>Некоторые товары вы заказали больше, чем есть на складе</h3>
+        <h3 style={{ fontWeight: 400, marginBottom: "25px" }}>
+          Рекомендуем ознакомиться с обновлённым списком перед подтверждением.
+        </h3>
 
         <div className="table_scrollable error_modal_scroll">
           <table className="table_info larges">
@@ -81,61 +25,58 @@ const checkStock = () => {
                 <th>№</th>
                 <th>Производитель</th>
                 <th>Наименование</th>
-                <th>Кол-во</th>
-                <th>Заказано</th>
-                <th className='remove-btns'>Действие</th>
+                <th>Количество</th>
+                <th>Срок годности</th>
+                <th>Цена</th>
               </tr>
             </thead>
+
             <tbody>
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="basket_empty">Нет товаров для исправления</td>
+                  <td colSpan="6" className="basket_empty">
+                    Нет данных для отображения
+                  </td>
                 </tr>
               ) : (
                 items.map((item, idx) => {
-                  const stock = Number(item.stock ?? item["Количество"] ?? 0);
-                  const qty = quantities[item.idKey] ?? stock;
-
-                  return (
-                    <tr key={item.idKey} className={idx % 2 === 0 ? 'td_even' : 'td_odd'}>
-                      <td className="numeration_basket">{idx + 1}</td>
-                      <td>{item.manufacturer || ''}</td>
-                      <td>{item.name}</td>
-                      <td>
-                        {isNaN(qty) || qty < 1 ? (
-                          <span>Нет в наличии</span>
-                        ) : (
-                          <input
-                            type="number"
-                            value={qty}
-                            min={1}
-                            max={stock}
-                            disabled
-                            onChange={(e) => handleChange(item.idKey, e.target.value, stock)}
-                            style={{ textAlign: 'center' }}
-                          />
-                        )}
-                      </td>
-                      <td>{inputValues[item.idKey] ?? item.ordered ?? 0}</td>
-                      <td className='remove-btns'>
-                        <button className="remove-btn" onClick={() => handleRemove(item.idKey)}>
-                          <Trash2 size={20} />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
+                    const changedQuantity = changesMap[item.product_code];
+                    return (
+                      <tr key={idx} className={idx % 2 === 0 ? 'td_even' : 'td_odd'}>
+                        <td className="numeration_basket">{idx + 1}</td>
+                        <td>{item.manufacturer || "—"}</td>
+                        <td>{item.name}</td>
+                        <td>
+                          {changedQuantity !== undefined
+                            ? (Number(changedQuantity) === 0 ? "Нет в наличии" : changedQuantity)
+                            : (Number(item.quantity) === 0 ? "Нет в наличии" : item.quantity)}
+                        </td>
+                        <td>
+                          {item.expiration_date
+                            ? new Date(item.expiration_date).toLocaleDateString('ru-RU')
+                            : "—"}
+                        </td>
+                        <td>{Number(item.price || 0).toFixed(2)}</td>
+                      </tr>
+                    );
+                  })
               )}
             </tbody>
           </table>
         </div>
 
         <div className="modalss">
-          <button onClick={handleApply} className="close-btn">Подтвердить</button>
+          <button
+            style={{ marginTop: "25px" }}
+            onClick={onClose}
+            className="close-btn"
+          >
+            Подтвердить
+          </button>
         </div>
       </div>
     </div>
-  );
+    );
 }
 
 export default FixQuantityModal;
