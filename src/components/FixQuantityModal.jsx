@@ -74,5 +74,4 @@ function FixQuantityModal({ items = [], changes = [], onClose, message }) {
     </div>
     );
 }
-
 export default FixQuantityModal;
