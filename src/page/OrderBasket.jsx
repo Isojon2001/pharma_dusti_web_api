@@ -13,185 +13,183 @@ import ConfirmClearCartModal from '../components/ConfirmClearCartModal';
 import ConfirmOrderModal from '../components/ConfirmOrderModal';
 
 function OrderBasket() {
-  const {
-    cartItems,
-    increaseQuantity,
-    decreaseQuantity,
-    clearCart,
-    removeFromCart,
-    updateQuantity,
-    updateBatchIndex
-  } = useCart();
+    const {
+        cartItems,
+        increaseQuantity,
+        decreaseQuantity,
+        clearCart,
+        removeFromCart,
+        updateQuantity,
+        updateBatchIndex
+    } = useCart();
 
-  const { token } = useAuth();
-  const [inputValues, setInputValues] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showErrorModal, setShowErrorModal] = useState(false);
-  const [fixChanges, setFixChanges] = useState([]);
-  const [apiErrorMessage, setApiErrorMessage] = useState("");
-  const [showFixModal, setShowFixModal] = useState(false);
-  const [fixProducts, setFixProducts] = useState([]);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showClearCartModal, setShowClearCartModal] = useState(false);
-  const [sortConfig, setSortConfig] = useState({ key: '№', direction: 'asc' });
-  const [fixMessage, setFixMessage] = useState("");
+    const { token } = useAuth();
+    const [inputValues, setInputValues] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showErrorModal, setShowErrorModal] = useState(false);
+    const [fixChanges, setFixChanges] = useState([]);
+    const [apiErrorMessage, setApiErrorMessage] = useState("");
+    const [showFixModal, setShowFixModal] = useState(false);
+    const [fixProducts, setFixProducts] = useState([]);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showClearCartModal, setShowClearCartModal] = useState(false);
+    const [sortConfig, setSortConfig] = useState({ key: '№', direction: 'asc' });
+    const [fixMessage, setFixMessage] = useState("");
 
-  useEffect(() => {
-    setInputValues(prevValues => {
-      const newValues = {};
-      cartItems.forEach(item => {
-        const key = item.id || item['Код'] || item['Артикул'];
-        newValues[key] = prevValues[key] ?? item.quantity?.toString() ?? '1';
-      });
-      return newValues;
-    });
-  }, [cartItems]);
+    useEffect(() => {
+        setInputValues(prevValues => {
+            const newValues = {};
+            cartItems.forEach(item => {
+                const key = item.id || item['Код'] || item['Артикул'];
+                newValues[key] = prevValues[key] ? ? item.quantity ? .toString() ? ? '1';
+            });
+            return newValues;
+        });
+    }, [cartItems]);
 
-  const formatDate = (dateStr) =>
-    !dateStr || dateStr === '0001-01-01T00:00:00Z'
-      ? '—'
-      : new Date(dateStr).toLocaleDateString('ru-RU');
+    const formatDate = (dateStr) =>
+        !dateStr || dateStr === '0001-01-01T00:00:00Z' ?
+        '—' :
+        new Date(dateStr).toLocaleDateString('ru-RU');
 
-  const handleQuantityChange = (id, value) => {
-    let num = Number(value);
-    if (isNaN(num) || num <= 0) return;
+    const handleQuantityChange = (id, value) => {
+        let num = Number(value);
+        if (isNaN(num) || num <= 0) return;
 
-    setInputValues(prev => ({ ...prev, [id]: num.toString() }));
-    updateQuantity(id, num);
-  };
-
-  const handleBatchChange = (id, batchIndex) => {
-    updateBatchIndex(id, batchIndex);
-  };
-
-  const calculateTotal = () =>
-    cartItems.reduce((sum, item) => {
-      const idKey = item.id || item['Код'] || item['Артикул'];
-      const qty = Number(inputValues[idKey] ?? item.quantity ?? 1);
-
-      const batch = item.batches?.[item.selectedBatchIndex ?? 0];
-      const price = batch ? parseFloat(batch.price) : parseFloat(item['Цена'] || 0);
-
-      return sum + (isNaN(qty) ? 0 : price * qty);
-    }, 0);
-
-  const calculateTotalQuantity = () =>
-    cartItems.reduce((total, item) => {
-      const idKey = item.id || item['Код'] || item['Артикул'];
-      const qty = Number(inputValues[idKey] ?? item.quantity ?? 1);
-      return total + qty;
-    }, 0);
-
-  const groupCartItems = (items) => {
-    return items.map(item => {
-      const idKey = item.id || item["Код"] || item["Артикул"];
-      const qty = Number(inputValues[idKey] ?? item.quantity ?? 1);
-
-      const batch = item.batches?.[item.selectedBatchIndex ?? 0];
-
-      return {
-        product_code: item["Код"],
-        name: item["Наименование"],
-        price: batch ? parseFloat(batch.price) : parseFloat(item["Цена"]),
-        expiry: batch?.expiry ?? item["Срок"],
-        quantity: qty
-      };
-    });
-  };
-
-  const handleSubmitOrder = async () => {
-    if (!token || cartItems.length === 0 || isSubmitting) return;
-
-    try {
-      setIsSubmitting(true);
-
-      const response = await axios.post(
-        "https://api.dustipharma.tj:1212/api/v1/app/orders",
-        { items: groupCartItems(cartItems) },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-if (response.data?.message === "Успешно частично") {
-  setFixMessage(response.data.message);
-  setFixProducts(response.data.payload.order.items || []);
-  setFixChanges(response.data.payload.changes || []);
-  setShowFixModal(true);
-  clearCart();
-  return;
-}
-
-
-      setShowSuccessModal(true);
-      clearCart();
-
-    } catch (error) {
-      const msg =
-        error.response?.data?.message ||
-        "Произошла ошибка при оформлении заказа";
-
-      setApiErrorMessage(msg);
-      setShowErrorModal(true);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSort = (key) => {
-    setSortConfig(prev => ({
-      key,
-      direction:
-        prev.key === key && prev.direction === "asc" ? "desc" : "asc"
-    }));
-  };
-
-  const sortedItems = [...cartItems].sort((a, b) => {
-    const getVal = (item) => {
-      const idKey = item.id || item["Код"] || item["Артикул"];
-
-      switch (sortConfig.key) {
-        case "№":
-          return idKey;
-        case "Производитель":
-          return item["Производитель"] || "";
-        case "Наименование":
-          return item["Наименование"] || "";
-        case "Кол-во":
-          return Number(inputValues[idKey] ?? item.quantity ?? 1);
-        case "Цена": {
-          const batch = item.batches?.[item.selectedBatchIndex ?? 0];
-          return batch ? parseFloat(batch.price) : parseFloat(item["Цена"] || 0);
-        }
-        case "Срок годности": {
-          const batch = item.batches?.[item.selectedBatchIndex ?? 0];
-          const date = batch?.expiry || item["Срок"];
-          return date ? new Date(date).getTime() : Infinity;
-        }
-        case "Сумма": {
-          const qty = Number(inputValues[idKey] ?? item.quantity ?? 1);
-          const batch = item.batches?.[item.selectedBatchIndex ?? 0];
-          const price = batch ? parseFloat(batch.price) : parseFloat(item["Цена"]);
-          return qty * price;
-        }
-        default:
-          return "";
-      }
+        setInputValues(prev => ({ ...prev, [id]: num.toString() }));
+        updateQuantity(id, num);
     };
 
-    const aVal = getVal(a);
-    const bVal = getVal(b);
+    const handleBatchChange = (id, batchIndex) => {
+        updateBatchIndex(id, batchIndex);
+    };
 
-    if (typeof aVal === "number" && typeof bVal === "number") {
-      return sortConfig.direction === "asc" ? aVal - bVal : bVal - aVal;
-    }
+    const calculateTotal = () =>
+        cartItems.reduce((sum, item) => {
+            const idKey = item.id || item['Код'] || item['Артикул'];
+            const qty = Number(inputValues[idKey] ? ? item.quantity ? ? 1);
 
-    return sortConfig.direction === "asc"
-      ? String(aVal).localeCompare(String(bVal))
-      : String(bVal).localeCompare(String(aVal));
-  });
+            const batch = item.batches ? . [item.selectedBatchIndex ? ? 0];
+            const price = batch ? parseFloat(batch.price) : parseFloat(item['Цена'] || 0);
 
-  return (
-    <div className="OrderBasket_content">
+            return sum + (isNaN(qty) ? 0 : price * qty);
+        }, 0);
+
+    const calculateTotalQuantity = () =>
+        cartItems.reduce((total, item) => {
+            const idKey = item.id || item['Код'] || item['Артикул'];
+            const qty = Number(inputValues[idKey] ? ? item.quantity ? ? 1);
+            return total + qty;
+        }, 0);
+
+    const groupCartItems = (items) => {
+        return items.map(item => {
+            const idKey = item.id || item["Код"] || item["Артикул"];
+            const qty = Number(inputValues[idKey] ? ? item.quantity ? ? 1);
+
+            const batch = item.batches ? . [item.selectedBatchIndex ? ? 0];
+
+            return {
+                product_code: item["Код"],
+                name: item["Наименование"],
+                price: batch ? parseFloat(batch.price) : parseFloat(item["Цена"]),
+                expiry: batch ? .expiry ? ? item["Срок"],
+                quantity: qty
+            };
+        });
+    };
+
+    const handleSubmitOrder = async () => {
+        if (!token || cartItems.length === 0 || isSubmitting) return;
+
+        try {
+            setIsSubmitting(true);
+
+            const response = await axios.post(
+                "https://api.dustipharma.tj:1212/api/v1/app/orders", { items: groupCartItems(cartItems) }, { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            if (response.data ? .message === "Успешно частично") {
+                setFixMessage(response.data.message);
+                setFixProducts(response.data.payload.order.items || []);
+                setFixChanges(response.data.payload.changes || []);
+                setShowFixModal(true);
+                clearCart();
+                return;
+            }
+            setShowSuccessModal(true);
+            clearCart();
+
+        } catch (error) {
+            const msg =
+                error.response ? .data ? .message ||
+                "Произошла ошибка при оформлении заказа";
+
+            setApiErrorMessage(msg);
+            setShowErrorModal(true);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleSort = (key) => {
+        setSortConfig(prev => ({
+            key,
+            direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc"
+        }));
+    };
+
+    const sortedItems = [...cartItems].sort((a, b) => {
+        const getVal = (item) => {
+            const idKey = item.id || item["Код"] || item["Артикул"];
+
+            switch (sortConfig.key) {
+                case "№":
+                    return idKey;
+                case "Производитель":
+                    return item["Производитель"] || "";
+                case "Наименование":
+                    return item["Наименование"] || "";
+                case "Кол-во":
+                    return Number(inputValues[idKey] ? ? item.quantity ? ? 1);
+                case "Цена":
+                    {
+                        const batch = item.batches ? . [item.selectedBatchIndex ? ? 0];
+                        return batch ? parseFloat(batch.price) : parseFloat(item["Цена"] || 0);
+                    }
+                case "Срок годности":
+                    {
+                        const batch = item.batches ? . [item.selectedBatchIndex ? ? 0];
+                        const date = batch ? .expiry || item["Срок"];
+                        return date ? new Date(date).getTime() : Infinity;
+                    }
+                case "Сумма":
+                    {
+                        const qty = Number(inputValues[idKey] ? ? item.quantity ? ? 1);
+                        const batch = item.batches ? . [item.selectedBatchIndex ? ? 0];
+                        const price = batch ? parseFloat(batch.price) : parseFloat(item["Цена"]);
+                        return qty * price;
+                    }
+                default:
+                    return "";
+            }
+        };
+
+        const aVal = getVal(a);
+        const bVal = getVal(b);
+
+        if (typeof aVal === "number" && typeof bVal === "number") {
+            return sortConfig.direction === "asc" ? aVal - bVal : bVal - aVal;
+        }
+
+        return sortConfig.direction === "asc" ?
+            String(aVal).localeCompare(String(bVal)) :
+            String(bVal).localeCompare(String(aVal));
+    });
+
+    return (
+        <div className="OrderBasket_content">
       <div className="basket_backs">
         <OrderHeader />
         <div className="basket_back">
@@ -203,7 +201,6 @@ if (response.data?.message === "Успешно частично") {
           <h1>Корзина</h1>
         </div>
       </div>
-
       <div className="order_basket_tables">
         <div className="order_basket_table">
           <div className="OrderBasket_Header">
@@ -220,7 +217,6 @@ if (response.data?.message === "Успешно частично") {
                       <th>Удалить</th>
                     </tr>
                   </thead>
-
                   <tbody>
                     {sortedItems.length === 0 ? (
                       <tr>
@@ -235,13 +231,11 @@ if (response.data?.message === "Успешно частично") {
                         const batch = item.batches?.[selectedIndex];
                         const qty = Number(inputValues[idKey] ?? item.quantity ?? 1);
                         const price = batch ? parseFloat(batch.price) : parseFloat(item["Цена"] || 0);
-
                         return (
                           <tr key={`${idKey}_${idx}`} className={idx % 2 === 0 ? "td_even" : "td_odd"}>
                             <td className="numeration_basket">{idx + 1}</td>
                             <td>{item["Производитель"] || ""}</td>
                             <td>{item["Наименование"]}</td>
-
                             <td>
                               <div className="counter_table">
                                 <button
@@ -253,7 +247,6 @@ if (response.data?.message === "Успешно частично") {
                                 >
                                   -
                                 </button>
-
                                 <input
                                   type="number"
                                   value={inputValues[idKey]}
@@ -277,7 +270,6 @@ if (response.data?.message === "Успешно частично") {
                                     if (["-", "+", "e", "E"].includes(e.key)) e.preventDefault();
                                   }}
                                 />
-
                                 <button
                                   onClick={() => {
                                     const newQty = (Number(inputValues[idKey] ?? item.quantity) + 1);
@@ -289,9 +281,7 @@ if (response.data?.message === "Успешно частично") {
                                 </button>
                               </div>
                             </td>
-
                             <td>{price.toFixed(2)}</td>
-
                             <td>
                               {item.batches?.length ? (
                                 <select
@@ -308,9 +298,7 @@ if (response.data?.message === "Успешно частично") {
                                 formatDate(item["Срок"])
                               )}
                             </td>
-
                             <td>{(qty * price).toFixed(2)}</td>
-
                             <td>
                               <button className="remove-btn" onClick={() => removeFromCart(idKey)}>
                                 <Trash2 size={20} />
@@ -323,7 +311,6 @@ if (response.data?.message === "Успешно частично") {
                   </tbody>
                 </table>
               </div>
-
               <div className="detail_basket">
                 <div>
                   <h2>Детали заказа</h2>
@@ -336,14 +323,12 @@ if (response.data?.message === "Успешно частично") {
                     </button>
                   </div>
                 </div>
-
                 <div className="detailed_inf">
                   <div className="detailed_rows">
                     <div className="detailed_row">
                       <p>{calculateTotalQuantity()} шт.</p>
                       <p>Общее количество</p>
                     </div>
-
                     <div className="detailed_row">
                       <p>{calculateTotal().toFixed(2)} сом</p>
 
@@ -408,6 +393,6 @@ if (response.data?.message === "Успешно частично") {
         />
       )}
     </div>
-  );
+    );
 }
 export default OrderBasket;

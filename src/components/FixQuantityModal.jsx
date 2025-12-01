@@ -13,11 +13,9 @@ function FixQuantityModal({ items = [], changes = [], onClose, message }) {
         <h2 style={{ marginBottom: "10px" }}>
           Часть товаров была обработана
         </h2>
-
         <h3 style={{ fontWeight: 400, marginBottom: "25px" }}>
           Рекомендуем ознакомиться с обновлённым списком перед подтверждением.
         </h3>
-
         <div className="table_scrollable error_modal_scroll">
           <table className="table_info larges">
             <thead>
@@ -30,7 +28,6 @@ function FixQuantityModal({ items = [], changes = [], onClose, message }) {
                 <th>Цена</th>
               </tr>
             </thead>
-
             <tbody>
               {items.length === 0 ? (
                 <tr>
@@ -64,7 +61,6 @@ function FixQuantityModal({ items = [], changes = [], onClose, message }) {
             </tbody>
           </table>
         </div>
-
         <div className="modalss">
           <button
             style={{ marginTop: "25px" }}
