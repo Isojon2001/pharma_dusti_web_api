@@ -82,14 +82,11 @@ function OrderBasket() {
             const qty = Number(inputValues[idKey] ?? item.quantity ?? 1);
             return total + qty;
         }, 0);
-
     const groupCartItems = (items) => {
         return items.map(item => {
             const idKey = item.id || item["Код"] || item["Артикул"];
             const qty = Number(inputValues[idKey] ?? item.quantity ?? 1);
-
             const batch = item.batches?. [item.selectedBatchIndex ?? 0];
-
             return {
                 product_code: item["Код"],
                 name: item["Наименование"],
