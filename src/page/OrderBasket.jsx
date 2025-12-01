@@ -42,7 +42,7 @@ function OrderBasket() {
             const newValues = {};
             cartItems.forEach(item => {
                 const key = item.id || item['Код'] || item['Артикул'];
-                newValues[key] = prevValues[key] ?? item.quantity ? .toString() ?? '1';
+                newValues[key] = (prevValues[key] ?? item.quantity ?? 1).toString();
             });
             return newValues;
         });
@@ -70,7 +70,7 @@ function OrderBasket() {
             const idKey = item.id || item['Код'] || item['Артикул'];
             const qty = Number(inputValues[idKey] ?? item.quantity ?? 1);
 
-            const batch = item.batches ? . [item.selectedBatchIndex ?? 0];
+            const batch = item.batches?.[item.selectedBatchIndex ?? 0];
             const price = batch ? parseFloat(batch.price) : parseFloat(item['Цена'] || 0);
 
             return sum + (isNaN(qty) ? 0 : price * qty);
@@ -88,13 +88,13 @@ function OrderBasket() {
             const idKey = item.id || item["Код"] || item["Артикул"];
             const qty = Number(inputValues[idKey] ?? item.quantity ?? 1);
 
-            const batch = item.batches ? . [item.selectedBatchIndex ?? 0];
+            const batch = item.batches?. [item.selectedBatchIndex ?? 0];
 
             return {
                 product_code: item["Код"],
                 name: item["Наименование"],
                 price: batch ? parseFloat(batch.price) : parseFloat(item["Цена"]),
-                expiry: batch ? .expiry ?? item["Срок"],
+                expiry: batch?.expiry ?? item["Срок"],
                 quantity: qty
             };
         });
@@ -110,7 +110,7 @@ function OrderBasket() {
                 "https://api.dustipharma.tj:1212/api/v1/app/orders", { items: groupCartItems(cartItems) }, { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            if (response.data ? .message === "Успешно частично") {
+            if (response.data?.message === "Успешно частично") {
                 setFixMessage(response.data.message);
                 setFixProducts(response.data.payload.order.items || []);
                 setFixChanges(response.data.payload.changes || []);
@@ -123,7 +123,7 @@ function OrderBasket() {
 
         } catch (error) {
             const msg =
-                error.response ? .data ? .message ||
+                error.response?.data?.message ||
                 "Произошла ошибка при оформлении заказа";
 
             setApiErrorMessage(msg);
@@ -155,19 +155,19 @@ function OrderBasket() {
                     return Number(inputValues[idKey] ?? item.quantity ?? 1);
                 case "Цена":
                     {
-                        const batch = item.batches ? . [item.selectedBatchIndex ?? 0];
+                        const batch = item.batches?.[item.selectedBatchIndex ?? 0];
                         return batch ? parseFloat(batch.price) : parseFloat(item["Цена"] || 0);
                     }
                 case "Срок годности":
                     {
-                        const batch = item.batches ? . [item.selectedBatchIndex ?? 0];
-                        const date = batch ? .expiry || item["Срок"];
+                        const batch = item.batches?.[item.selectedBatchIndex ?? 0];
+                        const date = batch?.expiry || item["Срок"];
                         return date ? new Date(date).getTime() : Infinity;
                     }
                 case "Сумма":
                     {
                         const qty = Number(inputValues[idKey] ?? item.quantity ?? 1);
-                        const batch = item.batches ? . [item.selectedBatchIndex ?? 0];
+                        const batch = item.batches?.[item.selectedBatchIndex ?? 0];
                         const price = batch ? parseFloat(batch.price) : parseFloat(item["Цена"]);
                         return qty * price;
                     }
