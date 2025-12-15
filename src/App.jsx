@@ -12,6 +12,9 @@ import OrderBasket from './page/OrderBasket';
 import HistoryOrder from './page/HistoryOrder';
 import DetailedStory from './page/DetailedStory';
 import ProfileOrder from './page/ProfileOrder';
+import MyWarehouse from './page/MyWarehouse';
+import MyOrders from './page/MyOrders';
+import MyStatistic from './page/MyStatistic';
 import ForgotPassword from './page/ForgotPassword';
 import Reporting from './page/Reporting';
 import PriceList from './page/PriceList';
@@ -70,6 +73,9 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reporting" element={<RequireAuth><Reporting /></RequireAuth>} />
         <Route path="/price-list" element={<RequireAuth><PriceList /></RequireAuth>} />
+        <Route path="/my-warehouse" element={<RequireAuth><MyWarehouse /></RequireAuth>} />
+        <Route path="/my-orders" element={<RequireAuth><MyOrders /></RequireAuth>} />
+        <Route path="/my-statistic" element={<RequireAuth><MyStatistic /></RequireAuth>} />
       </Routes>
     </CartProvider>
   );

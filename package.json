@@ -18,6 +18,7 @@
     "asterisk-ami-client": "^1.1.5",
     "asterisk-manager": "^0.2.0",
     "axios": "^1.9.0",
+    "chart.js": "^4.5.1",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "embla-carousel-autoplay": "^8.6.0",
