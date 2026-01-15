@@ -100,7 +100,7 @@ function OrderHeader() {
                 </button>
               </div>
               <div className="user-modal__field">
-                <button className="user-modal__links" onClick={() => window.location.href = './profile-order'}>
+                <button className="user-modal__links" onClick={() => window.location.href = './lending'}>
                   О сервисе
                 </button>
               </div>

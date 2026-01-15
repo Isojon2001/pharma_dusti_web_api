@@ -21,6 +21,8 @@ import MyStatistic from './page/MyStatistic';
 import ForgotPassword from './page/ForgotPassword';
 import Reporting from './page/Reporting';
 import PriceList from './page/PriceList';
+import Lending   from './page/Lending';
+import Paymants   from './page/Paymants';
 import './index.css';
 
 function App() {
@@ -74,6 +76,8 @@ function App() {
         <Route path="/detailed-history/:order_id" element={<RequireAuth><DetailedStory /></RequireAuth>} />
         <Route path="/profile-order" element={<RequireAuth><ProfileOrder /></RequireAuth>} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/lending" element={<Lending />} />
+        <Route path="/paymants" element={<Paymants />} />
         <Route path="/reporting" element={<RequireAuth><Reporting /></RequireAuth>} />
         <Route path="/price-list" element={<RequireAuth><PriceList /></RequireAuth>} />
         <Route path="/my-warehouse" element={<RequireAuth><MyWarehouse /></RequireAuth>} />

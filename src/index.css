@@ -624,6 +624,9 @@ body,
     gap: 400px;
 }
 
+.myWarehouse_table thead th{
+    top: 0;
+}
 .myWarehouse_table {
     border-bottom: 1px solid #DEDEDE;
     border-right: 1px solid #DEDEDE;
@@ -1306,6 +1309,558 @@ body,
     color: #0F7372;
 }
 
+.sidebar_logo{
+    display: flex;
+}
+.sidebar_logo,
+.sidebar_logo_text{
+ padding: 10px;
+    font-size: 24px;
+}
+.sidebar_logo_text{
+    background-color:#1ba1a0;
+    border-radius:10px;
+    color: #fff;
+}
+.lenings_header a {
+    text-decoration:none;
+    color: #000;
+}
+.sidebar_logo div:nth-of-type(2){
+    opacity: 40%;
+}
+
+.lenings_content{
+  font-family: "Onest", sans-serif;
+font-weight: 900;
+background-color: #f3f6f6;
+padding: 30px 40px;
+}
+.lending_link ul,
+.lenings_header{
+    display: flex;
+    justify-content: space-between;
+    align-items:center;
+}
+.lending_link ul{
+    gap: 35px;
+}
+.lending_link ul>li{
+    list-style: none;
+    font-weight: normal;
+}
+.lenings_header{
+    border-radius:1200px;
+    box-shadow: 5px 5px 15px rgba(69, 77, 91, 0.1);
+    background-color: #fff;
+}
+.lending_info_paragraph,
+.lending_info{
+    display: flex;
+    flex-direction: column;
+    align-items:center;
+    text-align: center;
+    justify-content: center;
+}
+.lending_info_img_bg{
+    margin-top: 20px;
+}
+.lending_info_paragraph h2{
+    font-size: 60px;
+    margin: 10px 0;
+}
+.lending_info_paragraph span{
+    background: linear-gradient(90deg,  20%, #4ac3bd 80%);
+    color: #1ba1a0;
+}
+.lending_info_paragraph p{
+    opacity:50%;
+    max-width:620px;
+    font-weight: normal;
+     font-size: 20px;
+}
+.lending_action {
+    display: flex;
+    gap: 15px;
+}
+.lending_action button{
+    padding: 15px 30px;
+    border-radius:57px;
+    border:none;
+    background-color: #fff;
+    font-weight: 600;
+    font-size: 18px;
+    margin-top: 20px;
+}
+.lening_company_trust{
+    text-align: center;
+    margin: 50px 0;
+}
+.lening_company_partner ul{
+    display: flex;
+    justify-content: space-between;
+}
+.lening_company_partner{
+    background-color:#fff;
+    padding: 20px;
+    border-radius: 60px;
+}
+.lending_info_epharm{
+    display: flex;
+    flex-direction:column;
+    justify-content: center;
+    align-items:center;
+}
+.lending_info_epharm h1{
+    font-size: 48px;
+    margin: 0;
+    margin-top: 30px;
+    text-align: center;
+}
+.lending_info_epharm p{
+    text-align: center;
+    font-size: 20px;
+    opacity: 50%;
+    font-weight: 500;
+    max-width: 620px;
+}
+.lending_info_cards{
+    display: flex;
+    align-items:center;
+    justify-content: space-between;
+}
+.lending_info_card{
+    max-width: 276px;
+}
+.lending_info_card h3{
+    font-size: 24px;
+}
+.lending_info_card p{
+    font-size: 18px;
+    opacity: 40%;
+    font-weight: 400;
+}
+.lending_infos{
+    margin-bottom: 50px;
+}
+.lending_info_bg{
+    width: 65px;
+    height: 65px;
+    display: flex;
+    align-items:center;
+    justify-content: center;
+    border-radius:60px;
+    background: #fff;
+}
+.lening_company_partner ul li{
+    list-style:none;
+}
+.lending_action button:nth-of-type(2){
+    background: linear-gradient(90deg, #1ba1a0 20%, #4ac3bd 80%);
+    color: #fff;
+}
+.lenings_header button{
+    padding: 10px 20px;
+    color: #fff;
+    cursor: pointer;
+    background: linear-gradient(90deg, #1ba1a0 20%, #4ac3bd 80%);
+    border:none;
+    border-radius:57px;
+}
+.lending_warehouse_bg{
+    background-color:#fff;
+    padding: 50px 80px;
+    border-radius:60px;
+    display: flex;
+    position: relative;
+    justify-content: space-between;
+    align-items:center;
+}
+.lending_warehouse_bg ul,
+.lending_warehouse_bg p{
+    font-size: 18px;
+    font-weight: 400;
+}
+.lending_warehouse_bg p{
+    opacity: 40%;
+}
+.lending_warehouse_bg ul{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 0;
+    list-style:none;
+}
+
+.lending_cheklist{
+    display: flex;
+    align-items:center;
+    gap: 10px;
+}
+.lending_warehouse_bg_one img{
+    left: 0 !important;
+}
+.lending_warehouse_bg_one{
+    flex-direction:row-reverse !important;
+}
+.lending_warehouse_bg h1{
+    font-size: 40px;
+}
+.lending_warehouse_paragraph{
+    max-width:455px;
+}
+.lending_warehouse_bg img{
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+.lending_tarifs_cards,
+.lending_tarifs{
+    display: flex;
+}
+.lending_tarifs{
+    flex-direction: column;
+}
+
+.lending_tarifs_cards{
+    align-items:center;
+    justify-content: space-between;
+}
+.lending_tarifs_card{
+    border-radius:32px;
+    width: 280px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items:center;
+    justify-content: center;
+}
+.lending_tarifs_card p{
+    font-weight: 400;
+}
+
+.lending_tarifs h1{
+    font-weight: 600;
+    font-size: 48px;
+    text-align: center;
+}
+
+.ledning_pharmas h1{
+text-align: center;
+font-size: 48px;
+}
+.ledning_pharma_cards{
+    display: flex;
+    justify-content: space-between;
+}
+.ledning_pharma_card{
+    display: flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content: center;
+    background: #fff;
+    width: 385px;
+    padding: 20px;
+}
+.ledning_pharma_card h2{
+    font-size: 24px;
+    font-weight: 500;
+}
+.ledning_pharma_card p{
+    opacity:40%;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 400;
+}
+.ledning_pharma_icon{
+ background-color:#f3f6f6;
+ width: 65px;
+ display: flex;
+ align-items:center;
+ justify-content: center;
+ border-radius:60px;
+ height: 65px;
+}
+.ledning_pharmas_bg{
+    margin: 50px 0;
+}
+.lending_bunner_bg{
+    margin: 20px auto;
+    color: #fff;
+    background-color:#4ac3bd;
+    max-width: 1200px;
+    display: flex;
+    padding: 40px;
+    border-radius: 60px;
+    text-align: center;
+    align-items:center;
+    justify-content: center;
+}
+
+.lending_bunner_text{
+    width: 660px;
+}
+
+.lending_bunner_text h1{
+    font-size: 44px;
+    text-align: center;
+}
+.lending_bunner_text p{
+    text-align: center;
+    font-size: 24px;
+    font-weight:400;
+}
+.lending_bunner_text button{
+    padding: 20px 40px;
+    color: #fff;
+    margin-bottom: 20px;
+    font-weight: 500;
+    font-size: 18px;
+    background: linear-gradient(90deg, #1ba1a0 20%, #2a514f 80%);
+    border:none;
+    border-radius:60px;
+}
+.profileOrder_content {
+  background: #f6f8f8;
+  padding: 24px;
+}
+
+.back_link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #232323;
+  text-decoration: none;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  width: 580px;
+  margin-bottom: 20px;
+}
+.cards {
+    display: flex;
+    flex-direction: column;
+    align-items:center;
+}
+
+.card button {
+    color: #fff;
+    padding: 10px;
+    font-size: 18px;
+    background: #0F7372;
+    border-radius:16px;
+    border:none;
+}
+.card h2 {
+  margin-bottom: 16px;
+}
+
+.form_grid {
+  display: grid;
+  gap: 16px;
+}
+.form_fields {
+    display: flex;
+    gap: 10px;
+}
+
+.form_field {
+    position: relative;
+}
+.form_field label {
+    position: absolute;
+  font-size: 13px;
+  color: #0F7372;
+  left: 12px;
+  top: 12px;
+}
+
+.form_field input {
+  width: 95%;
+  padding: 12px;
+  border-radius: 12px;
+  background: #F3F6F6;
+  border:none;
+  padding-top: 25px;
+  margin-top: 6px;
+}
+
+.form_contacts>input {
+    width: 260px;
+}
+.doc_item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.doc_item.dashed {
+  border: 4px dashed #e5e7eb;
+  justify-content: space-between;
+}
+
+.doc_item.loading {
+  background: #F3F6F6;
+}
+
+.doc_info {
+  flex: 1;
+}
+
+.doc_info p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.doc_info span {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.progress {
+  height: 4px;
+  background: linear-gradient(90deg, #e5e7eb 40%);
+  border-radius: 4px;
+  margin-top: 6px;
+}
+
+.lending_questions h1{
+    text-align: center;
+}
+.lending_questions{
+    margin: 30px 0;
+}
+.lending_question{
+    display: flex;
+    align-items:center;
+    justify-content: space-between;
+}
+.lending_question h3{
+    font-weight: 400;
+}
+.lending_question h3{
+    color: #242424;
+}
+
+.lending_question p{
+    color: #848689;
+}
+.lending_question {
+    margin: 10px 0;
+    padding:10px 20px;
+    border-radius:16px;
+    background-color:#fff;
+}
+.lending_question h3,
+.lending_question p{
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.lending_footer_bg{
+    color: #fff;
+    background: #181818;
+    margin: 0px -40px -30px;
+}
+.lending_footer_info{
+    display: flex;
+    gap: 100px;
+    margin-left: 50px;
+    padding: 50px;
+    align-items:center;
+}
+.lending_footer_infos{
+    gap: 30px;
+    display: flex;
+    flex-direction:column;
+}
+.lending_footer_infos>div:nth-of-type(3),
+.lending_footer_infos h4{
+    color: #8C8C8C;
+    font-weight: normal;
+    font-size: 14px;
+    margin: 0;
+}
+.lending_footer_contacts{
+    display: flex;
+    gap: 10px;
+    align-items:center;
+    margin-top: 10px;
+    font-weight: normal;
+}
+.lending_footer_contacts p{
+    margin: 0;
+}
+.footer_icons{
+    margin-bottom: 77px;
+}
+.lending_footer_info ul{
+    list-style:none;
+}
+.lending_footer_info ul>li{
+    font-weight: normal;
+    font-size: 20px;
+}
+.back_paymants{
+    gap: 370px !important;
+    padding-top: 120px;
+}
+.doc_items{
+    display: flex;
+    align-items:center;
+    gap: 10px;
+    position: relative;
+}
+.doc_items span{
+    position: absolute;
+    top: 40px;
+    left: 35px;
+    opacity: 40%;
+    font-size: 16px;
+}
+.tabs {
+  display: flex;
+  justify-content:space-between;
+  margin-bottom: 12px;
+}
+.tab {
+  padding: 10px 90px !important;
+  border: 1px solid #e5e7eb;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #6b7280;
+}
+.tab:hover{
+  background: #003b3a;
+}
+
+.tab.active {
+  background: #003b3a;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+.paymants_header{
+    height: 1100px !important;
+}
+.paymants_content{
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 99999;
+}
+.lenings_content,
 .OrderBasket_content,
 .HistoryOrder_content,
 .DetailedHistory,
