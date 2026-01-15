@@ -1326,6 +1326,25 @@ body,
     text-decoration:none;
     color: #000;
 }
+.paymants_line{
+    justify-content: center;
+    display: flex;
+}
+.paymants_lines:nth-of-type(1){
+    background: #0F7372;
+    opacity: 60%;
+}
+.paymants_lines:nth-of-type(2){
+    background: #0F7372;
+}
+.paymants_lines{
+    border-radius:10px;
+    margin:0 5px;
+    margin-bottom: 30px;
+    background: #FFF;
+    width: 197px;
+    height: 6px;
+}
 .sidebar_logo div:nth-of-type(2){
     opacity: 40%;
 }

@@ -18,6 +18,11 @@ function Paymants() {
           </Link>
           <h1>Подключение к ePharma</h1>
         </div>
+        <div className='paymants_line'>
+        <div className="paymants_lines"></div>
+        <div className="paymants_lines"></div>
+        <div className="paymants_lines"></div>
+        </div>
         <div className="cards">
 
         <div className="card">
