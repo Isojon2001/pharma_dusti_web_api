@@ -562,6 +562,7 @@ body,
     text-align: left;
 }
 
+
 .examination_backspace {
     display: flex;
     align-items: center;
@@ -725,6 +726,9 @@ body,
 
 .rdrMonths {
     gap: 20px !important;
+}
+.rdrWeekDays{
+    margin: 10px 0;
 }
 
 .myStatistic_search {
@@ -955,6 +959,8 @@ body,
 .myWarehouse_search input {
     width: 333px;
     height: 48px;
+    font-size: 16px;
+    padding: 0 20px;
     border-radius: 16px;
     border: none;
     background-color: #F3F6F6;
@@ -983,7 +989,11 @@ body,
 
 .price-list_header {
     display: flex;
-    gap: 120px;
+    gap: 65px;
+}
+
+.price-list_header h1{
+    font-size: 30px;
 }
 
 .AddProductsToСart,
@@ -1312,10 +1322,14 @@ body,
 .sidebar_logo{
     display: flex;
 }
-.sidebar_logo,
-.sidebar_logo_text{
+.sidebar_logo{
  padding: 10px;
+    opacity: 50%;
+    color: #000;
     font-size: 24px;
+}
+.sidebar_logo:hover{
+    opacity:100%;
 }
 .sidebar_logo_text{
     background-color:#1ba1a0;
@@ -1324,7 +1338,6 @@ body,
 }
 .lenings_header a {
     text-decoration:none;
-    color: #000;
 }
 .paymants_line{
     justify-content: center;
@@ -1419,9 +1432,46 @@ padding: 30px 40px;
     display: flex;
     justify-content: space-between;
 }
+
+.partner-carousel {
+  overflow: hidden;
+  width: 100%;
+}
+
+.partner-track {
+  display: flex;
+  width: max-content;
+  animation: partner-scroll 18s linear infinite;
+}
+
+.partner-item {
+  flex: 0 0 auto;
+  width: 180px;
+  margin: 0 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.partner-item img {
+  max-width: 100%;
+  max-height: 60px;
+  object-fit: contain;
+  transition: 0.3s ease;
+}
+
+@keyframes partner-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 .lening_company_partner{
     background-color:#fff;
-    padding: 20px;
+    padding: 40px;
     border-radius: 60px;
 }
 .lending_info_epharm{
@@ -1446,7 +1496,7 @@ padding: 30px 40px;
 .lending_info_cards{
     display: flex;
     align-items:center;
-    justify-content: space-between;
+    justify-content: space-around;
 }
 .lending_info_card{
     max-width: 276px;
@@ -1474,15 +1524,15 @@ padding: 30px 40px;
 .lening_company_partner ul li{
     list-style:none;
 }
-.lending_action button:nth-of-type(2){
-    background: linear-gradient(90deg, #1ba1a0 20%, #4ac3bd 80%);
-    color: #fff;
-}
+.lending_action button:nth-of-type(2),
 .lenings_header button{
-    padding: 10px 20px;
     color: #fff;
     cursor: pointer;
     background: linear-gradient(90deg, #1ba1a0 20%, #4ac3bd 80%);
+}
+.lenings_header button{
+    padding: 10px 20px;
+    margin-right: 7px;
     border:none;
     border-radius:57px;
 }
@@ -1633,12 +1683,19 @@ font-size: 48px;
 .lending_bunner_text button{
     padding: 20px 40px;
     color: #fff;
+    cursor: pointer;
     margin-bottom: 20px;
     font-weight: 500;
     font-size: 18px;
     background: linear-gradient(90deg, #1ba1a0 20%, #2a514f 80%);
     border:none;
     border-radius:60px;
+}
+.lending_bunner_text button:hover,
+.lending_action button:hover,
+.lenings_header button:hover{
+    background: linear-gradient(90deg, #1ba1a0 30%, #2a514f 90%);
+    color: #FFF;
 }
 .profileOrder_content {
   background: #f6f8f8;
@@ -1689,6 +1746,25 @@ font-size: 48px;
     gap: 10px;
 }
 
+.form_profile{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    padding: 5px 0;
+    margin: 0 475px;
+    border-radius: 18px;
+}
+.form_profile input {
+    border: none;
+    font-size: 18px;
+    padding: 17px 0 0 17px;
+    width: 430px;
+    border-radius: 16px;
+    height: 40px;
+    background-color: #f3f6f6;
+}
 .form_field {
     position: relative;
 }
@@ -1751,16 +1827,48 @@ font-size: 48px;
   border-radius: 4px;
   margin-top: 6px;
 }
+.lending_question {
+  border-bottom: 1px solid #e5e5e5;
+  padding: 20px 0;
+}
+
+.question_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.question_icon {
+  transition: 0.3s ease;
+}
+
+.lending_question.active .question_icon {
+  transform: rotate(45deg);
+}
+
+.question_body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+}
+
+.lending_question.active .question_body {
+  max-height: 300px;
+  opacity: 1;
+  margin-top: 15px;
+}
 
 .lending_questions h1{
     text-align: center;
 }
 .lending_questions{
-    margin: 30px 0;
+    margin: 100px 0;
 }
 .lending_question{
     display: flex;
-    align-items:center;
+    flex-direction: column;
     justify-content: space-between;
 }
 .lending_question h3{
@@ -1768,6 +1876,25 @@ font-size: 48px;
 }
 .lending_question h3{
     color: #242424;
+}
+.question_icon {
+  font-size: 26px;
+  font-weight: 300;
+  line-height: 1;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.25s ease;
+  color: #242424;
+}
+.lending_question:hover{
+  transition: 0.25s ease;
+    background-color:#eee;
+}
+.lending_question.active .question_icon {
+  transform: rotate(180deg);
 }
 
 .lending_question p{
@@ -1870,7 +1997,7 @@ font-size: 48px;
 }
 
 .paymants_header{
-    height: 1100px !important;
+    height: 1200px !important;
 }
 .paymants_content{
     position: fixed;
@@ -2273,7 +2400,11 @@ font-size: 48px;
 .order_card_footer {
     text-align: right;
 }
-
+.footer_logo{
+    color: #FFF;
+    padding: 0;
+    opacity: 100%;
+}
 .details_button {
     background-color: #007bff;
     color: #fff;
@@ -2694,19 +2825,18 @@ font-size: 48px;
 
 .calendar-arrow-left {
     position: absolute;
-    top: 67px;
-    left: 05px;
+    top: 74px;
+    left: 15px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
     font-size: 18px;
     z-index: 2;
 }
-
 .calendar-arrow-right {
     position: absolute;
-    top: 67px;
-    right: 10px;
+    top: 74px;
+    right: 15px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
@@ -3373,6 +3503,7 @@ font-size: 48px;
 
 .rdrDayNumber span {
     font-size: 12px;
+    font-weight: normal;
 }
 
 .form>input {

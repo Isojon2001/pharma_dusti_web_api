@@ -37,40 +37,25 @@ function Paymants() {
               <label>Контактный телефон</label>
               <input type="tel" placeholder="+998 90 123 45 67" />
             </div>
-
             <div className="form_field form_contacts">
               <label>Партнёр</label>
               <input type="text" placeholder="Имя партнёра" />
+            </div>
+            </div>
+            <div className='form_fields'>              
+            <div className="form_field form_contacts">
+              <label>Контрагент</label>
+              <input type="tel" placeholder="Имя Контрагента" />
+            </div>
+            <div className="form_field form_contacts">
+              <label>Менеджер</label>
+              <input type="text" placeholder="Имя Менеджера" />
             </div>
             </div>
           </div>
         </div>
 
         <div className="card">
-          <div className="tabs">
-              <button
-                className={`tab ${activeTab === 'contractor' ? 'active' : ''}`}
-                onClick={() => setActiveTab('contractor')}
-              >
-                Контрагент
-              </button>
-
-              <button
-                className={`tab ${activeTab === 'manager' ? 'active' : ''}`}
-                onClick={() => setActiveTab('manager')}
-              >
-                Менеджер
-              </button>
-            </div>
-            {activeTab === 'contractor' && (
-              <div className="cards">
-              </div>
-            )}
-
-            {activeTab === 'manager' && (
-              <div className="cards">
-              </div>
-            )}
           <h2>Документы</h2>
           <div className="doc_item loading">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -66,7 +66,7 @@ function OrderHeader() {
           onMouseLeave={() => setIsHoverings(false)}
           style={{ position: 'relative', cursor: 'pointer' }}
         >
-          Duston ePharma
+          ePharma
           {isHoverings && (
             <div
               className="user-modal factory_modal"
