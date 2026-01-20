@@ -1,0 +1,94 @@
+import React, { useMemo, useEffect } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
+import RequireAuth from './components/RequireAuth';
+import LoginPage from './page/LoginPage';
+import RegistrationPage from './page/RegistrationPage';
+import Examination from './page/Examination';
+import SetPassword from './page/SetPassword';
+import AddProductsToCart from './page/AddProductsToСart';
+import OrderBasket from './page/OrderBasket';
+import HistoryOrder from './page/HistoryOrder';
+import DetailedStory from './page/DetailedStory';
+import ProfileOrder from './page/ProfileOrder';
+import PaymantsClient from './page/PaymantsClient';
+import PaymantsHistory from './page/PaymantsHistory';
+import PaymantsStatus from './page/PaymantsStatus';
+import MyWarehouse from './page/MyWarehouse';
+import MyOrders from './page/MyOrders';
+import MyStatistic from './page/MyStatistic';
+import ForgotPassword from './page/ForgotPassword';
+import Reporting from './page/Reporting';
+import PriceList from './page/PriceList';
+import Lending   from './page/Lending';
+import Paymants   from './page/Paymants';
+import './index.css';
+
+function App() {
+  const { token, user, isLoading } = useAuth();
+  const userId = useMemo(() => {
+    return token && user && typeof user.id === 'string' ? user.id : null;
+  }, [token, user]);
+
+  useEffect(() => {
+    console.log('Используемый userId для корзины:', userId);
+  }, [userId]);
+
+  useEffect(() => {
+    const applyZoom = () => {
+      const width = window.innerWidth;
+      let scale = 1;
+
+      if (width < 480) scale = 1.4;
+      else if (width < 768) scale = 1.3;
+      else if (width < 1024) scale = 1.2;
+      else if (width < 1280) scale = 1.1;
+
+      const root = document.getElementById('app');
+      if (root) {
+        root.style.transform = `scale(${scale})`;
+        root.style.transformOrigin = 'top left';
+        root.style.width = `${100 / scale}%`;
+      }
+    };
+
+    applyZoom();
+    window.addEventListener('resize', applyZoom);
+    return () => window.removeEventListener('resize', applyZoom);
+  }, []);
+
+  if (isLoading) {
+    console.log('Auth loading...');
+    return null;
+  }
+
+  return (
+    <CartProvider userId={userId}>
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/registration" element={<RegistrationPage />} />
+        <Route path="/examination" element={<Examination />} />
+        <Route path="/setPassword" element={<SetPassword />} />
+        <Route path="/add-products-to-cart" element={<RequireAuth><AddProductsToCart /></RequireAuth>} />
+        <Route path="/order-basket" element={<RequireAuth><OrderBasket /></RequireAuth>} />
+        <Route path="/history-order" element={<RequireAuth><HistoryOrder /></RequireAuth>} />
+        <Route path="/detailed-history/:order_id" element={<RequireAuth><DetailedStory /></RequireAuth>} />
+        <Route path="/profile-order" element={<RequireAuth><ProfileOrder /></RequireAuth>} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/lending" element={<Lending />} />
+        <Route path="/paymants" element={<Paymants />} />
+        <Route path="/reporting" element={<RequireAuth><Reporting /></RequireAuth>} />
+        <Route path="/price-list" element={<RequireAuth><PriceList /></RequireAuth>} />
+        <Route path="/my-warehouse" element={<RequireAuth><MyWarehouse /></RequireAuth>} />
+        <Route path="/paymants-client" element={<RequireAuth><PaymantsClient /></RequireAuth>} />
+        <Route path="/paymants-history" element={<RequireAuth><PaymantsHistory /></RequireAuth>} />
+        <Route path="/paymants-status" element={<RequireAuth><PaymantsStatus /></RequireAuth>} />
+        <Route path="/my-orders" element={<RequireAuth><MyOrders /></RequireAuth>} />
+        <Route path="/my-statistic" element={<RequireAuth><MyStatistic /></RequireAuth>} />
+      </Routes>
+    </CartProvider>
+  );
+}
+
+export default App;
