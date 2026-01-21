@@ -40,15 +40,14 @@ function Lending() {
         			</ul>
         		</div>
         		<div>
-        			<button>Подключиться</button>
+                    <Link to="/paymants">
+                        <button>Подключиться</button>
+                        </Link>
         		</div>
         	</div>
         	<main>
         		<div className='lending_info'>
         			<div className='lending_info_img_bg'>
-        				<div className="sidebar_logo">
-        					<div className="sidebar_logo">ePharma</div>
-        				</div>
         			</div>
         			<div className='lending_info_paragraph'>
         				<h2>Автоматизируйте аптеку. <br></br><span>Растите прибыль</span></h2>
@@ -56,7 +55,9 @@ function Lending() {
         			</div>
         			<div className='lending_action'>
         				<button>Смотреть видео</button>
+                        <Link className='lending_action' to="/paymants">
         				<button>Подключиться</button>
+                        </Link>
         			</div>
         		</div>
         		<div className='lening_company_trust'>
@@ -274,7 +275,9 @@ function Lending() {
                     <div className='lending_bunner_text'>
                         <h1>Готовы модернизировать свою аптеку?</h1>
                         <p>Оптимизируйте свои операции с помощью инструментов, разработанных для современного фармацевтического бизнеса</p>
+                        <Link to="/paymants">
                         <button>Подключиться</button>
+                        </Link>
                     </div>
                 </div>
                 <div className="lending_questions">

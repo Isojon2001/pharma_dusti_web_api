@@ -1530,6 +1530,18 @@ padding: 30px 40px;
     cursor: pointer;
     background: linear-gradient(90deg, #1ba1a0 20%, #4ac3bd 80%);
 }
+.lending_action a{
+    text-decoration:none;
+}
+.lending_action a>button{
+    color: #fff;
+    background: linear-gradient(90deg, #1ba1a0 20%, #4ac3bd 80%) !important;
+}
+.lending_action a>button:hover{
+    cursor:pointer;
+    background: linear-gradient(90deg, #1ba1a0 30%, #2a514f 90%) !important;
+}
+
 .lenings_header button{
     padding: 10px 20px;
     margin-right: 7px;
@@ -2923,7 +2935,7 @@ font-size: 48px;
 .factory_modal {
     top: 35px !important;
     width: 120px !important;
-    left: 0px !important;
+    left: -30px !important;
 }
 
 .factory_modal:last-child{
